@@ -6,7 +6,7 @@
 <Project Version="7" Minor="2" Path="e:/zhaom/works/R7/R7-OCM/R7OCM.xpr">
   <DefaultLaunch Dir="$PRUNDIR"/>
   <Configuration>
-    <Option Name="Id" Val="ffaa0ccd9e95489c89d4792ca63802c4"/>
+    <Option Name="Id" Val="837059a07d884541bd29cec62a8288ba"/>
     <Option Name="Part" Val="xc7z030ffg676-1"/>
     <Option Name="CompiledLibDir" Val="$PCACHEDIR/compile_simlib"/>
     <Option Name="BoardPart" Val=""/>
@@ -22,11 +22,16 @@
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
-        <CompFileExtendedInfo CompFileName="armocm.bd" FileRelPathName="hdl/armocm.v"/>
-        <CompFileExtendedInfo CompFileName="armocm.bd" FileRelPathName="ip/armocm_axi_bram_ctrl_0_0/armocm_axi_bram_ctrl_0_0.xci"/>
         <CompFileExtendedInfo CompFileName="armocm.bd" FileRelPathName="ip/armocm_processing_system7_0_0/armocm_processing_system7_0_0.xci"/>
+        <CompFileExtendedInfo CompFileName="armocm.bd" FileRelPathName="ip/armocm_axi_bram_ctrl_0_0/armocm_axi_bram_ctrl_0_0.xci"/>
         <CompFileExtendedInfo CompFileName="armocm.bd" FileRelPathName="ip/armocm_axi_gpio_0_0/armocm_axi_gpio_0_0.xci"/>
+        <CompFileExtendedInfo CompFileName="armocm.bd" FileRelPathName="ip/armocm_auto_pc_0/armocm_auto_pc_0.xci"/>
+        <CompFileExtendedInfo CompFileName="armocm.bd" FileRelPathName="ip/armocm_auto_pc_1/armocm_auto_pc_1.xci"/>
         <CompFileExtendedInfo CompFileName="armocm.bd" FileRelPathName="ip/armocm_processing_system7_0_axi_periph_0/armocm_processing_system7_0_axi_periph_0.xci"/>
+        <CompFileExtendedInfo CompFileName="armocm.bd" FileRelPathName="hw_handoff/armocm.hwh"/>
+        <CompFileExtendedInfo CompFileName="armocm.bd" FileRelPathName="armocm_ooc.xdc"/>
+        <CompFileExtendedInfo CompFileName="armocm.bd" FileRelPathName="hdl/armocm.v"/>
+        <CompFileExtendedInfo CompFileName="armocm.bd" FileRelPathName="hw_handoff/armocm_bd.tcl"/>
         <CompFileExtendedInfo CompFileName="armocm.bd" FileRelPathName="ip/armocm_xbar_0/armocm_xbar_0.xci"/>
         <CompFileExtendedInfo CompFileName="armocm.bd" FileRelPathName="ip/armocm_rst_processing_system7_0_40M_0/armocm_rst_processing_system7_0_40M_0.xci"/>
       </File>
@@ -37,10 +42,8 @@
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PSRCDIR/sources_1/imports/src/R7OCM_top.v">
+      <File Path="$PPRDIR/src/R7OCM_top.v">
         <FileInfo>
-          <Attr Name="ImportPath" Val="$PPRDIR/src/R7OCM_top.v"/>
-          <Attr Name="ImportTime" Val="1462030601"/>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
@@ -61,6 +64,7 @@
         </FileInfo>
       </File>
       <Config>
+        <Option Name="TargetConstrsFile" Val="$PPRDIR/xdc/q7.xdc"/>
         <Option Name="ConstrsType" Val="XDC"/>
       </Config>
     </FileSet>
@@ -70,6 +74,7 @@
         <Option Name="TopModule" Val="armocm_wrapper"/>
         <Option Name="TopLib" Val="xil_defaultlib"/>
         <Option Name="TopAutoSet" Val="TRUE"/>
+        <Option Name="SimMode" Val="post-implementation"/>
         <Option Name="SrcSet" Val="sources_1"/>
       </Config>
     </FileSet>
@@ -80,19 +85,6 @@
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
-        <CompFileExtendedInfo CompFileName="clk_wiz_0.xci" FileRelPathName="clk_wiz_0.xdc"/>
-        <CompFileExtendedInfo CompFileName="clk_wiz_0.xci" FileRelPathName="clk_wiz_0_ooc.xdc"/>
-        <CompFileExtendedInfo CompFileName="clk_wiz_0.xci" FileRelPathName="clk_wiz_0_clk_wiz.v"/>
-        <CompFileExtendedInfo CompFileName="clk_wiz_0.xci" FileRelPathName="clk_wiz_0_board.xdc"/>
-        <CompFileExtendedInfo CompFileName="clk_wiz_0.xci" FileRelPathName="clk_wiz_0.v"/>
-        <CompFileExtendedInfo CompFileName="clk_wiz_0.xci" FileRelPathName="doc/clk_wiz_v5_1_changelog.txt"/>
-        <CompFileExtendedInfo CompFileName="clk_wiz_0.xci" FileRelPathName="clk_wiz_0_funcsim.v"/>
-        <CompFileExtendedInfo CompFileName="clk_wiz_0.xci" FileRelPathName="clk_wiz_0_stub.v"/>
-        <CompFileExtendedInfo CompFileName="clk_wiz_0.xci" FileRelPathName="clk_wiz_0_stub.vhdl"/>
-        <CompFileExtendedInfo CompFileName="clk_wiz_0.xci" FileRelPathName="clk_wiz_0_funcsim.vhdl"/>
-        <CompFileExtendedInfo CompFileName="clk_wiz_0.xci" FileRelPathName="clk_wiz_0.dcp"/>
-        <CompFileExtendedInfo CompFileName="clk_wiz_0.xci" FileRelPathName="clk_wiz_0.xml"/>
-        <CompFileExtendedInfo CompFileName="clk_wiz_0.xci" FileRelPathName="clk_wiz_0.veo"/>
       </File>
       <Config>
         <Option Name="TopModule" Val="clk_wiz_0"/>

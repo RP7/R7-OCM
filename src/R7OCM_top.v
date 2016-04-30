@@ -144,7 +144,7 @@ module R7OCM_top
   wire S_AXI_HP0_wready;
   wire [3:0]S_AXI_HP0_wstrb;
   wire S_AXI_HP0_wvalid;
-  
+
 armocm_wrapper core
   (
   .BRAM_PORTA_addr(BRAM_PORTA_addr),
@@ -243,9 +243,9 @@ clk_wiz_0 pll
 
 iobuf GMII_MDIO_BUF
   (
-  .I(ENET0_MDIO_O)
-  .IO(GMII_MDIO)
-  .O(ENET0_MDIO_I)
+  .I(ENET0_MDIO_O),
+  .IO(GMII_MDIO),
+  .O(ENET0_MDIO_I),
   .T(ENET0_MDIO_T)
   );
 
