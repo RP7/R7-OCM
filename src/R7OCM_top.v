@@ -241,7 +241,7 @@ clk_wiz_0 pll
   .locked(pll_locked)            
   );
 
-iobuf GMII_MDIO_BUF
+IOBUF GMII_MDIO_BUF
   (
   .I(ENET0_MDIO_O),
   .IO(GMII_MDIO),
