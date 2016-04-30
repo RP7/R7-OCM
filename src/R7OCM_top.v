@@ -103,7 +103,7 @@ module R7OCM_top
 
   reg GMII_GE_IND_reg;
   reg[27:0] GMII_GE_TIMER;
-  wire ENET0_GMII_TX_CLK;
+  reg ENET0_GMII_TX_CLK;
 
 // AXI HP wire
   wire [31:0]S_AXI_HP0_araddr;
@@ -230,7 +230,7 @@ armocm_wrapper core
   .S_AXI_HP0_wstrb(S_AXI_HP0_wstrb),
   .S_AXI_HP0_wvalid(S_AXI_HP0_wvalid),
 
-  .TEST_LED_tri_o(TEST_LED)
+  .test_led_tri_o(TEST_LED)
   );
 
 clk_wiz_0 pll
@@ -249,7 +249,7 @@ iobuf GMII_MDIO_BUF
   .T(ENET0_MDIO_T)
   );
 
-always @ posedge(clk_125M)
+always @ (posedge clk_125M)
 begin
   if ( GMII_GE_IND==1'b1 ) begin
     GMII_GE_IND_reg <= 1'b1;

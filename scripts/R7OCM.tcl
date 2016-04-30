@@ -4,9 +4,10 @@ start_gui
 create_project R7OCM . -part xc7z030ffg676-1 -force
 add_files -fileset constrs_1 -norecurse xdc/q7.xdc
 set_property target_language verilog [current_project]
-create_bd_design "armocm"
-startgroup
 
+create_bd_design "armocm"
+
+startgroup
 create_bd_cell -type ip -vlnv xilinx.com:ip:processing_system7:5.5 processing_system7_0
 apply_bd_automation -rule xilinx.com:bd_rule:processing_system7 -config {make_external "FIXED_IO, DDR" apply_board_preset "1" Master "Disable" Slave "Disable" }  [get_bd_cells processing_system7_0]
 startgroup
@@ -145,5 +146,7 @@ create_ip_run [get_files -of_objects [get_fileset sources_1] R7OCM.srcs/sources_
 launch_run  clk_wiz_0_synth_1
 
 import_files -norecurse src/R7OCM_top.v
+set_property top R7OCM_top [current_fileset]
+
 update_compile_order -fileset sources_1
 update_compile_order -fileset sim_1
