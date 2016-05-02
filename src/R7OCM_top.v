@@ -103,7 +103,7 @@ module R7OCM_top
 
   reg GMII_GE_IND_reg;
   reg[27:0] GMII_GE_TIMER;
-  reg ENET0_GMII_TX_CLK;
+  wire ENET0_GMII_TX_CLK;
 
 // AXI HP wire
   wire [31:0]S_AXI_HP0_araddr;
@@ -171,14 +171,14 @@ armocm_wrapper core
   .DDR_reset_n(DDR_reset_n),
   .DDR_we_n(DDR_we_n),
   
-  .ENET0_GMII_RXD(ENET0_GMII_RXD),
-  .ENET0_GMII_RX_CLK(ENET0_GMII_RX_CLK),
-  .ENET0_GMII_RX_DV(ENET0_GMII_RX_DV),
-  .ENET0_GMII_RX_ER(ENET0_GMII_RX_ER),
-  .ENET0_GMII_TXD(ENET0_GMII_TXD),
+  .ENET0_GMII_RXD(GMII_RXD),
+  .ENET0_GMII_RX_CLK(GMII_RXCLK),
+  .ENET0_GMII_RX_DV(GMII_RX_DV),
+  .ENET0_GMII_RX_ER(GMII_RX_ER),
+  .ENET0_GMII_TXD(GMII_TXD),
   .ENET0_GMII_TX_CLK(ENET0_GMII_TX_CLK),
-  .ENET0_GMII_TX_EN(ENET0_GMII_TX_EN),
-  .ENET0_GMII_TX_ER(ENET0_GMII_TX_ER),
+  .ENET0_GMII_TX_EN(GMII_TX_EN),
+  .ENET0_GMII_TX_ER(GMII_TX_ER),
   .ENET0_MDIO_I(ENET0_MDIO_I),
   .ENET0_MDIO_MDC(ENET0_MDIO_MDC),
   .ENET0_MDIO_O(ENET0_MDIO_O),
@@ -236,7 +236,7 @@ armocm_wrapper core
 clk_wiz_0 pll
   (
   .clk_in1(SYS_CLK),
-  .clk_out1(SYS_CLK),
+  .clk_out1(clk_125M),
   .reset(pll_reset), 
   .locked(pll_locked)            
   );
@@ -262,11 +262,6 @@ begin
 end
 
 assign GMII_GTXCLK = clk_125M;
-
-always @(GMII_GE_IND_reg or clk_125M or GMII_TXCLK) 
-begin
-  if (GMII_GE_IND_reg==1'b1) ENET0_GMII_TX_CLK <= clk_125M;
-  else ENET0_GMII_TX_CLK <= GMII_TXCLK;
-end
+assign ENET0_GMII_TX_CLK = (GMII_GE_IND_reg==1'b1)? clk_125M:GMII_TXCLK;
 
 endmodule
