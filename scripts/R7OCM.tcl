@@ -146,6 +146,7 @@ create_ip_run [get_files -of_objects [get_fileset sources_1] R7OCM.srcs/sources_
 launch_run  clk_wiz_0_synth_1
 
 import_files -norecurse src/R7OCM_top.v
+import_files -norecurse src/GE_patch.v
 set_property top R7OCM_top [current_fileset]
 
 update_compile_order -fileset sources_1

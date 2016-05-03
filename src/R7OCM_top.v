@@ -87,9 +87,6 @@ module R7OCM_top
 
 // internal signal
 
-  wire clk_125M;
-  wire pll_locked;
-  wire pll_reset;
   wire ENET0_MDIO_O;
   wire ENET0_MDIO_T;
   wire ENET0_MDIO_I;
@@ -100,10 +97,6 @@ module R7OCM_top
   wire BRAM_PORTA_en;
   wire BRAM_PORTA_rst;
   wire[3:0] BRAM_PORTA_we;
-
-  reg GMII_GE_IND_reg;
-  reg[27:0] GMII_GE_TIMER;
-  wire ENET0_GMII_TX_CLK;
 
 // AXI HP wire
   wire [31:0]S_AXI_HP0_araddr;
@@ -233,35 +226,21 @@ armocm_wrapper core
   .test_led_tri_o(TEST_LED)
   );
 
-clk_wiz_0 pll
-  (
-  .clk_in1(SYS_CLK),
-  .clk_out1(clk_125M),
-  .reset(pll_reset), 
-  .locked(pll_locked)            
+GE_patch gep
+   (
+    .SYS_CLK(SYS_CLK),
+
+    .GMII_TXCLK(GMII_TXCLK),
+    .GMII_GTXCLK(GMII_GTXCLK),
+    .GMII_GE_IND(GMII_GE_IND),
+    
+    .ENET0_GMII_TX_CLK(ENET0_GMII_TX_CLK),
+
+    .ENET0_MDIO_I(ENET0_MDIO_I),
+    .ENET0_MDIO_O(ENET0_MDIO_O),
+    .ENET0_MDIO_T(ENET0_MDIO_T),
+
+    .GMII_MDIO(GMII_MDIO)
   );
-
-IOBUF GMII_MDIO_BUF
-  (
-  .I(ENET0_MDIO_O),
-  .IO(GMII_MDIO),
-  .O(ENET0_MDIO_I),
-  .T(ENET0_MDIO_T)
-  );
-
-always @ (posedge clk_125M)
-begin
-  if ( GMII_GE_IND==1'b1 ) begin
-    GMII_GE_IND_reg <= 1'b1;
-    GMII_GE_TIMER <= 28'h0000000;
-  end
-  else begin
-    if ( GMII_GE_TIMER==28'hffffff ) GMII_GE_IND_reg <= 1'b0;
-    else GMII_GE_TIMER <= GMII_GE_TIMER+1'b1;
-  end
-end
-
-assign GMII_GTXCLK = clk_125M;
-assign ENET0_GMII_TX_CLK = (GMII_GE_IND_reg==1'b1)? clk_125M:GMII_TXCLK;
 
 endmodule
