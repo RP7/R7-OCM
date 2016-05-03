@@ -140,6 +140,13 @@ add_files -norecurse R7OCM.srcs/sources_1/bd/armocm/hdl/armocm_wrapper.v
 create_ip -name clk_wiz -vendor xilinx.com -library ip -version 5.1 -module_name clk_wiz_0
 set_property -dict [list CONFIG.PRIM_IN_FREQ {25} CONFIG.CLKOUT1_REQUESTED_OUT_FREQ {125.000} CONFIG.CLKIN1_JITTER_PS {400.0} CONFIG.MMCM_CLKFBOUT_MULT_F {40.000} CONFIG.MMCM_CLKIN1_PERIOD {40.0} CONFIG.MMCM_CLKOUT0_DIVIDE_F {8.000} CONFIG.CLKOUT1_JITTER {220.126} CONFIG.CLKOUT1_PHASE_ERROR {237.727}] [get_ips clk_wiz_0]
 generate_target {instantiation_template} [get_files R7OCM.srcs/sources_1/ip/clk_wiz_0/clk_wiz_0.xci]
+
+create_ip -name blk_mem_gen -vendor xilinx.com -library ip -version 8.2 -module_name blk_mem_axi2s
+set_property -dict [list CONFIG.Interface_Type {Native} CONFIG.Memory_Type {Simple_Dual_Port_RAM} CONFIG.Assume_Synchronous_Clk {false} CONFIG.Write_Depth_A {32} CONFIG.Register_PortB_Output_of_Memory_Primitives {false} CONFIG.Use_AXI_ID {false} CONFIG.Enable_32bit_Address {false} CONFIG.Use_Byte_Write_Enable {false} CONFIG.Byte_Size {9} CONFIG.Write_Width_A {32} CONFIG.Read_Width_A {32} CONFIG.Operating_Mode_A {NO_CHANGE} CONFIG.Write_Width_B {32} CONFIG.Read_Width_B {32} CONFIG.Operating_Mode_B {WRITE_FIRST} CONFIG.Enable_B {Use_ENB_Pin} CONFIG.Register_PortA_Output_of_Memory_Primitives {false} CONFIG.Use_RSTB_Pin {false} CONFIG.Reset_Type {SYNC} CONFIG.Port_B_Clock {100} CONFIG.Port_B_Enable_Rate {100}] [get_ips blk_mem_axi2s]
+generate_target {instantiation_template} [get_files R7OCM.srcs/sources_1/ip/blk_mem_axi2s/blk_mem_axi2s.xci]
+create_ip_run [get_files -of_objects [get_fileset sources_1] R7OCM.srcs/sources_1/ip/blk_mem_axi2s/blk_mem_axi2s.xci]
+launch_run  blk_mem_axi2s_synth_1
+
 update_compile_order -fileset sources_1
 generate_target all [get_files R7OCM.srcs/sources_1/ip/clk_wiz_0/clk_wiz_0.xci]
 create_ip_run [get_files -of_objects [get_fileset sources_1] R7OCM.srcs/sources_1/ip/clk_wiz_0/clk_wiz_0.xci]
