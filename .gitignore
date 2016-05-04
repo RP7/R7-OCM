@@ -30,3 +30,14 @@
 
 # Debug files
 *.dSYM/
+
+build-r7/*
+poky/*
+meta-xilinx/*
+
+*.bak
+
+Data/*
+R7OCM.*/*
+.Xil/*
+*.xpr
