@@ -154,6 +154,9 @@ launch_run  clk_wiz_0_synth_1
 
 import_files -norecurse src/R7OCM_top.v
 import_files -norecurse src/GE_patch.v
+import_files -norecurse src/A2S_controller.v
+import_files -norecurse src/S2A_controller.v
+import_files -norecurse src/AXI2S.v
 set_property top R7OCM_top [current_fileset]
 
 update_compile_order -fileset sources_1

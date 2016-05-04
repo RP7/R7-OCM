@@ -73,7 +73,7 @@ begin
  	end
 end
 
-assign a2s_en = AXI_rvalid and AXI_rready;
+assign a2s_en = AXI_rvalid & AXI_rready;
 
 always @(posedge AXI_clk or rst)
 begin
@@ -92,7 +92,7 @@ begin
   else begin
   	start_d0 <= start;
   	start_d1 <= start_d0;
-  	axi_start <= (~start_d1) and start_d0;
+  	axi_start <= (~start_d1) & start_d0;
   	if( axi_start==1'b1 ) begin
   		state <= s1;
   	end
@@ -114,18 +114,16 @@ begin
   			s2 : begin
   				if( a2s_en==1'b1 ) begin
   					a2s_addr[3:0] <= a2s_addr[3:0] + 1'b1;
- 						if( a2s_addr[3:0]==4'hf ) begin
- 							state <= s0;
- 							AXI_rready <= 1'b0;
- 							a2s_err <= AXI_rlast;
+ 					if( a2s_addr[3:0]==4'hf ) begin
+ 						state <= s0;
+ 						AXI_rready <= 1'b0;
+ 						a2s_err <= AXI_rlast;
   					end
   				end
   			end
   		endcase
   	end 
   end
-end
-
 end
 
 endmodule

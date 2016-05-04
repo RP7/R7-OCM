@@ -78,7 +78,7 @@ begin
  	end
 end
 
-assign s2a_en <= (AXI_wvalid and AXI_wready and ~AXI_wlast) or s2a_pre;
+assign s2a_en = (AXI_wvalid & AXI_wready & ~AXI_wlast) | s2a_pre;
 
 always @(posedge AXI_clk or rst)
 begin
@@ -98,7 +98,7 @@ begin
   else begin
   	start_d0 <= start;
   	start_d1 <= start_d0;
-  	axi_start <= (~start_d1) and start_d0;
+  	axi_start <= (~start_d1) & start_d0;
   	if( axi_start==1'b1 ) begin
   		state <= s1;
   	end
@@ -123,9 +123,9 @@ begin
   				AXI_wvalid <= 1'b1;
   				if( s2a_en==1'b1 ) begin
   					s2a_addr[3:0] <= s2a_addr[3:0] + 1'b1;
- 						if( s2a_addr[3:0]==4'hf ) begin
- 							AXI_wlast <= 1'b1;
- 							state <= s3;
+ 					if( s2a_addr[3:0]==4'hf ) begin
+ 						AXI_wlast <= 1'b1;
+ 						state <= s3;
   					end
   				end
   			end
