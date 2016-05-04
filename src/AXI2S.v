@@ -100,12 +100,20 @@ module AXI2S
   output [3:0]AXI_wstrb;
   output AXI_wvalid;
 
+wire [4:0] Iaddr,Oaddr,s2a_addr,a2s_addr;
+wire s2a_en,s2a_wea,a2s_en,a2s_wea;
+wire [31:0] s2a_cnt,a2s_cnt;
+wire a2s_err;
+
+assign s2a_wea = Ien;
+assign a2s_wea = a2s_en;
+
 blk_mem_axi2s s2axi (
-  .clka(Sclk),    // input wire clka
-  .ena(Ien),      // input wire ena
-  .wea(s2a_wea),      // input wire [0 : 0] wea
-  .addra(IAddr),  // input wire [4 : 0] addra
-  .dina(Sin),    // input wire [31 : 0] dina
+  .ena(Ien),         // input wire ena
+  .wea(s2a_wea),     // input wire [0 : 0] wea
+  .addra(Iaddr),     // input wire [4 : 0] addra
+  .dina(Sin),        // input wire [31 : 0] dina
+  .clka(Sclk),       // input wire clka
   .clkb(AXI_clk),    // input wire clkb
   .enb(s2a_en),      // input wire enb
   .addrb(s2a_addr),  // input wire [4 : 0] addrb
@@ -115,15 +123,68 @@ blk_mem_axi2s s2axi (
 blk_mem_axi2s axi2s (
   .clka(AXI_clk),    // input wire clka
   .ena(a2s_en),      // input wire ena
-  .wea(a2s_wea),      // input wire [0 : 0] wea
+  .wea(a2s_wea),     // input wire [0 : 0] wea
   .addra(a2s_addr),  // input wire [4 : 0] addra
-  .dina(AXI_rdata),    // input wire [31 : 0] dina
-  .clkb(Sclk),    // input wire clkb
-  .enb(Oen),      // input wire enb
-  .addrb(Oaddr),  // input wire [4 : 0] addrb
-  .doutb(Sout)  // output wire [31 : 0] doutb
+  .dina(AXI_rdata),  // input wire [31 : 0] dina
+  .clkb(Sclk),       // input wire clkb
+  .enb(Oen),         // input wire enb
+  .addrb(Oaddr),     // input wire [4 : 0] addrb
+  .doutb(Sout)       // output wire [31 : 0] doutb
 );
 
-assign AXI_arlen = 4'hf;
+assign AXI_arid      = 12'hfff;
+assign AXI_arlen     = 4'hf;
+assign AXI_arsize    = 3'b010;   //size: 4byte
+assign AXI_arburst   = 2'b01;    //"01";    --incr
+assign AXI_arlock    = 2'b00;    //"00";
+assign AXI_arcache   = 4'h0;     //x"0";
+assign AXI_arprot    = 3'b000;   //"000";
+assign AXI_arqos     = 4'h0;     //x"0";
+
+assign AXI_awid      = 12'hfff; 
+assign AXI_awlen     = 4'hf;     //x"F"; burst length: 16
+assign AXI_awsize    = 3'b010;   //size: 4byte     
+assign AXI_awburst   = 2'b01;    //"01";    --incr            
+assign AXI_awlock    = 2'b00;    //"00";
+assign AXI_awcache   = 4'h0;     //x"0";
+assign AXI_awprot    = 3'b000;   //"000";
+assign AXI_awqos     = 4'h0;     //x"0";
+assign AXI_bready    = 1'b1;     //'1';
+ 
+
+S2A_controller #(.ocm_haddr(32'hfffc0000),.ocm_width(16)) cs2a(
+  .Sclk(Sclk),
+  .rst(rst),
+  .sync(sync),
+  .Ien(Ien),
+  .Iaddr(Iaddr),
+  .AXI_clk(AXI_clk),
+  .AXI_waddr(AXI_waddr),
+  .AXI_awvalid(AXI_awvalid),
+  .AXI_awready(AXI_awready),
+  .AXI_wvalid(AXI_wvalid),
+  .AXI_wlast(AXI_wlast),
+  .s2a_addr(s2a_addr),
+  .s2a_en(s2a_en),
+  .s2a_cnt(s2a_cnt)
+  );
+
+A2S_controller #(.ocm_haddr(32'hfffc0000),.ocm_width(16)) ca2s(
+  .rst(rst),
+  .Sclk(Sclk),
+  .sync(sync),
+  .Oen(Oen),
+  .Oaddr(Oaddr),
+  .AXI_clk(AXI_clk),
+  .AXI_raddr(AXI_raddr),
+  .AXI_arvalid(AXI_arvalid),
+  .AXI_arready(AXI_arready),
+  .AXI_rvalid(AXI_rvalid),
+  .AXI_rlast(AXI_rlast),
+  .a2s_addr(a2s_addr),
+  .a2s_en(a2s_en),
+  .a2s_cnt(a2s_cnt),
+  a2s_err(a2s_err)
+  );
 
 endmodule
