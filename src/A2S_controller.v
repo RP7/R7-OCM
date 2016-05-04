@@ -114,11 +114,11 @@ begin
   			s2 : begin
   				if( a2s_en==1'b1 ) begin
   					a2s_addr[3:0] <= a2s_addr[3:0] + 1'b1;
- 					if( a2s_addr[3:0]==4'hf ) begin
- 						state <= s0;
- 						AXI_rready <= 1'b0;
- 						a2s_err <= AXI_rlast;
-  					end
+    				if( a2s_addr[3:0]==4'hf ) begin
+    					state <= s0;
+    					AXI_rready <= 1'b0;
+    					a2s_err <= AXI_rlast;
+  				  end
   				end
   			end
   		endcase
