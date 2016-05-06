@@ -10,7 +10,7 @@ module cntSrc
 
   parameter up = 1'b0;
 
-always @(posedge clk or rst)
+always @(posedge clk or posedge rst)
 begin
 	if( rst ) Cout <= 16'b0000;
 	else begin

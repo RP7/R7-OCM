@@ -45,6 +45,7 @@ module R7OCM_top
     TEST_LED
   );
 
+  `define TEST
   input SYS_CLK; 
 
   inout [14:0]DDR_addr;
@@ -99,6 +100,10 @@ module R7OCM_top
   wire[3:0] BRAM_PORTA_we;
 
 // AXI HP wire
+  wire FCLK_CLK1;
+  wire FCLK_RESET1_N;
+
+  wire AXI_clk;
   wire [31:0]AXI_HP0_araddr;
   wire [1:0]AXI_HP0_arburst;
   wire [3:0]AXI_HP0_arcache;
@@ -137,6 +142,12 @@ module R7OCM_top
   wire AXI_HP0_wready;
   wire [3:0]AXI_HP0_wstrb;
   wire AXI_HP0_wvalid;
+
+  wire rst,Sclk,sync;
+  wire Ien,Oen;
+
+  wire [31:0]Sin;
+  wire [31:0]Sout;
 
 armocm_wrapper core
   (
@@ -183,6 +194,9 @@ armocm_wrapper core
   .FIXED_IO_ps_clk(FIXED_IO_ps_clk),
   .FIXED_IO_ps_porb(FIXED_IO_ps_porb),
   .FIXED_IO_ps_srstb(FIXED_IO_ps_srstb),
+
+  .FCLK_CLK1(FCLK_CLK1),
+  .FCLK_RESET1_N(FCLK_RESET1_N),
   
   .S_AXI_HP0_araddr(AXI_HP0_araddr),
   .S_AXI_HP0_arburst(AXI_HP0_arburst),
@@ -257,43 +271,66 @@ AXI2S a2s
     .sync(sync),
 
     .AXI_clk(AXI_clk),
-    AXI_HP0_araddr,
-    AXI_HP0_arburst,
-    AXI_HP0_arcache,
-    AXI_HP0_arid,
-    AXI_HP0_arlen,
-    AXI_HP0_arlock,
-    AXI_HP0_arprot,
-    AXI_HP0_arqos,
-    AXI_HP0_arready,
-    AXI_HP0_arsize,
-    AXI_HP0_arvalid,
-    AXI_HP0_awaddr,
-    AXI_HP0_awburst,
-    AXI_HP0_awcache,
-    AXI_HP0_awid,
-    AXI_HP0_awlen,
-    AXI_HP0_awlock,
-    AXI_HP0_awprot,
-    AXI_HP0_awqos,
-    AXI_HP0_awready,
-    AXI_HP0_awsize,
-    AXI_HP0_awvalid,
-    AXI_HP0_bid,
-    AXI_HP0_bready,
-    AXI_HP0_bresp,
-    AXI_HP0_bvalid,
-    AXI_HP0_rdata,
-    AXI_HP0_rid,
-    AXI_HP0_rlast,
-    AXI_HP0_rready,
-    AXI_HP0_rresp,
-    AXI_HP0_rvalid,
-    AXI_HP0_wdata,
-    AXI_HP0_wid,
-    AXI_HP0_wlast,
-    AXI_HP0_wready,
-    AXI_HP0_wstrb,
-    AXI_HP0_wvalid
+    .AXI_araddr(AXI_HP0_araddr),
+    .AXI_arburst(AXI_HP0_arburst),
+    .AXI_arcache(AXI_HP0_arcache),
+    .AXI_arid(AXI_HP0_arid),
+    .AXI_arlen(AXI_HP0_arlen),
+    .AXI_arlock(AXI_HP0_arlock),
+    .AXI_arprot(AXI_HP0_arprot),
+    .AXI_arqos(AXI_HP0_arqos),
+    .AXI_arready(AXI_HP0_arready),
+    .AXI_arsize(AXI_HP0_arsize),
+    .AXI_arvalid(AXI_HP0_arvalid),
+    .AXI_awaddr(AXI_HP0_awaddr),
+    .AXI_awburst(AXI_HP0_awburst),
+    .AXI_awcache(AXI_HP0_awcache),
+    .AXI_awid(AXI_HP0_awid),
+    .AXI_awlen(AXI_HP0_awlen),
+    .AXI_awlock(AXI_HP0_awlock),
+    .AXI_awprot(AXI_HP0_awprot),
+    .AXI_awqos(AXI_HP0_awqos),
+    .AXI_awready(AXI_HP0_awready),
+    .AXI_awsize(AXI_HP0_awsize),
+    .AXI_awvalid(AXI_HP0_awvalid),
+    .AXI_bid(AXI_HP0_bid),
+    .AXI_bready(AXI_HP0_bready),
+    .AXI_bresp(AXI_HP0_bresp),
+    .AXI_bvalid(AXI_HP0_bvalid),
+    .AXI_rdata(AXI_HP0_rdata),
+    .AXI_rid(AXI_HP0_rid),
+    .AXI_rlast(AXI_HP0_rlast),
+    .AXI_rready(AXI_HP0_rready),
+    .AXI_rresp(AXI_HP0_rresp),
+    .AXI_rvalid(AXI_HP0_rvalid),
+    .AXI_wdata(AXI_HP0_wdata),
+    .AXI_wid(AXI_HP0_wid),
+    .AXI_wlast(AXI_HP0_wlast),
+    .AXI_wready(AXI_HP0_wready),
+    .AXI_wstrb(AXI_HP0_wstrb),
+    .AXI_wvalid(AXI_HP0_wvalid)
   );
+
+assign     rst = 1'b0;
+assign    sync = 1'b0;
+assign     Ien = 1'b1;
+assign     Oen = 1'b1;
+assign AXI_clk = FCLK_CLK1;
+assign    Sclk = SYS_CLK;
+
+`ifdef TEST
+cntSrc Isrc
+  (
+    .clk(Sclk),
+    .rst(rst),
+    .Cout(Sin[15:0])
+  );
+cntSrc Qsrc
+  (
+    .clk(Sclk),
+    .rst(rst),
+    .Cout(Sin[31:16])
+  );
+`endif
+
 endmodule

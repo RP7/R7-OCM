@@ -10,7 +10,7 @@ module S2A_controller(
   Iaddr,
   // AXI Bus Signal
   AXI_clk,
-  AXI_waddr,
+  AXI_awaddr,
   AXI_awvalid,
   AXI_awready,
   AXI_wready,
@@ -40,35 +40,36 @@ module S2A_controller(
   input AXI_awready;
   input AXI_wready;
 
-  output reg[31:0] AXI_waddr;
-	output reg AXI_awvalid,AXI_wvalid,AXI_wlast;
+  output reg[31:0] AXI_awaddr;
+  output reg AXI_awvalid,AXI_wvalid,AXI_wlast;
 
   output[31:0] s2a_cnt;
   reg[35:0] cnt;
   reg start;
 
   reg start_d0,start_d1,axi_start;
-
+  reg [2:0]state;
+  reg s2a_pre;
 
 assign Iaddr = cnt[4:0];
 assign s2a_cnt = cnt[35:4];
 
-always @(posedge Sclk or rst)
+always @(posedge Sclk or posedge rst)
 begin
   if( rst==1'b1 ) begin
     start <= 1'b0;
     cnt <= 36'h000000000;
   end
-  else begin
+  else if(Sclk) begin
   	if ( sync==1'b1 ) begin
       start <= 1'b0;
       cnt <= 36'h000000000;
   	end
   	else if( Ien==1'b1 ) begin
-  	  cnt <= cnt + 1'b1;
+  	  cnt <= cnt + 36'h000000001;
   	  if( cnt[3:0]==4'hf ) begin
-  	  	AXI_waddr[1:0] <= 2'b00;
-  	  	AXI_waddr[31:2] <= ocm_haddr[31:2] + cnt[ocm_width-2-1+4:0+4];
+  	  	AXI_awaddr[1:0] <= 2'b00;
+  	  	AXI_awaddr[31:2] <= ocm_haddr[31:2] + cnt[ocm_width-2-1+4:0+4];
   	  end
   	end
   	if( Ien==1'b1 && 
@@ -80,7 +81,7 @@ end
 
 assign s2a_en = (AXI_wvalid & AXI_wready & ~AXI_wlast) | s2a_pre;
 
-always @(posedge AXI_clk or rst)
+always @(posedge AXI_clk or posedge rst)
 begin
   if( rst==1'b1 ) begin
     start_d0      <= 1'b0;
@@ -95,7 +96,7 @@ begin
 
     state         <= s0;
   end
-  else begin
+  else if(AXI_clk) begin
   	start_d0 <= start;
   	start_d1 <= start_d0;
   	axi_start <= (~start_d1) & start_d0;
@@ -112,8 +113,8 @@ begin
   				AXI_awvalid <= 1'b1;
   				if( AXI_awready==1'b1 && AXI_awvalid==1'b1 ) begin
   					state <= s2;
-  					AXI_awvaild <= 1'b0;
-  					s2a_addr[4] <= AXI_waddr[6];
+  					AXI_awvalid <= 1'b0;
+  					s2a_addr[4] <= AXI_awaddr[6];
   					s2a_addr[3:0] <= 4'h0;
   					s2a_pre <= 1'b1;
   				end

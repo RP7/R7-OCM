@@ -17,7 +17,7 @@ module GE_patch
 
   input SYS_CLK; 
   
-  output GMII_TXCLK;
+  input GMII_TXCLK;
   output GMII_GTXCLK;
   input GMII_GE_IND;
 

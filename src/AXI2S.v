@@ -159,9 +159,10 @@ S2A_controller #(.ocm_haddr(32'hfffc0000),.ocm_width(16)) cs2a(
   .Ien(Ien),
   .Iaddr(Iaddr),
   .AXI_clk(AXI_clk),
-  .AXI_waddr(AXI_waddr),
+  .AXI_awaddr(AXI_awaddr),
   .AXI_awvalid(AXI_awvalid),
   .AXI_awready(AXI_awready),
+  .AXI_wready(AXI_wready),
   .AXI_wvalid(AXI_wvalid),
   .AXI_wlast(AXI_wlast),
   .s2a_addr(s2a_addr),
@@ -176,15 +177,59 @@ A2S_controller #(.ocm_haddr(32'hfffc0000),.ocm_width(16)) ca2s(
   .Oen(Oen),
   .Oaddr(Oaddr),
   .AXI_clk(AXI_clk),
-  .AXI_raddr(AXI_raddr),
+  .AXI_araddr(AXI_araddr),
   .AXI_arvalid(AXI_arvalid),
   .AXI_arready(AXI_arready),
+  .AXI_rready(AXI_rready),
   .AXI_rvalid(AXI_rvalid),
   .AXI_rlast(AXI_rlast),
   .a2s_addr(a2s_addr),
   .a2s_en(a2s_en),
   .a2s_cnt(a2s_cnt),
-  a2s_err(a2s_err)
+  .a2s_err(a2s_err)
   );
 
+`ifdef TEST
+ila_0 ILA_AIX (
+  .clk(AXI_clk), // input wire clk
+
+  .probe0(a2s_addr), // input wire [4:0]  probe0  
+  .probe1(s2a_addr), // input wire [4:0]  probe1 
+  .probe2(AXI_araddr), // input wire [31:0]  probe2 
+  .probe3(AXI_awaddr), // input wire [31:0]  probe3 
+  .probe4(AXI_arvalid), // input wire [0:0]  probe4 
+  .probe5(AXI_arready), // input wire [0:0]  probe5 
+  .probe6(AXI_rvalid), // input wire [0:0]  probe6 
+  .probe7(AXI_rready), // input wire [0:0]  probe7 
+  .probe8(AXI_rlast), // input wire [0:0]  probe8 
+  .probe9(AXI_awvalid), // input wire [0:0]  probe9 
+  .probe10(AXI_awready), // input wire [0:0]  probe10 
+  .probe11(AXI_wready), // input wire [0:0]  probe11 
+  .probe12(AXI_wvalid), // input wire [0:0]  probe12 
+  .probe13(AXI_wlast), // input wire [0:0]  probe13 
+  .probe14(a2s_en), // input wire [0:0]  probe14 
+  .probe15(s2a_en) // input wire [0:0]  probe15
+);
+
+ila_0 ILA_S (
+  .clk(Sclk), // input wire clk
+
+  .probe0(Iaddr), // input wire [4:0]  probe0  
+  .probe1(Oaddr), // input wire [4:0]  probe1 
+  .probe2(Sin), // input wire [31:0]  probe2 
+  .probe3(Sout),
+  .probe4(a2s_err), // input wire [0:0]  probe4 
+  .probe5(s2a_cnt[0]), // input wire [0:0]  probe5 
+  .probe6(s2a_cnt[1]), // input wire [0:0]  probe6 
+  .probe7(s2a_cnt[2]), // input wire [0:0]  probe7 
+  .probe8(s2a_cnt[3]), // input wire [0:0]  probe8 
+  .probe9(s2a_cnt[4]), // input wire [0:0]  probe9 
+  .probe10(s2a_cnt[5]), // input wire [0:0]  probe10 
+  .probe11(s2a_cnt[6]), // input wire [0:0]  probe11 
+  .probe12(s2a_cnt[7]), // input wire [0:0]  probe12 
+  .probe13(s2a_cnt[8]), // input wire [0:0]  probe13 
+  .probe14(s2a_cnt[9]), // input wire [0:0]  probe14 
+  .probe15(s2a_cnt[10]) // input wire [0:0]  probe15
+);
+`endif
 endmodule

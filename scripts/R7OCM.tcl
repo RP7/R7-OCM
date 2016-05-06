@@ -131,6 +131,18 @@ create_bd_port -dir I ENET0_MDIO_I
 connect_bd_net [get_bd_pins /processing_system7_0/ENET0_MDIO_I] [get_bd_ports ENET0_MDIO_I]
 endgroup
 
+startgroup
+set_property -dict [list CONFIG.PCW_EN_RST1_PORT {1}] [get_bd_cells processing_system7_0]
+endgroup
+startgroup
+create_bd_port -dir O -type rst FCLK_RESET1_N
+connect_bd_net [get_bd_pins /processing_system7_0/FCLK_RESET1_N] [get_bd_ports FCLK_RESET1_N]
+endgroup
+startgroup
+create_bd_port -dir O -type clk FCLK_CLK1
+connect_bd_net [get_bd_pins /processing_system7_0/FCLK_CLK1] [get_bd_ports FCLK_CLK1]
+endgroup
+
 regenerate_bd_layout
 save_bd_design
 generate_target all [get_files  R7OCM.srcs/sources_1/bd/armocm/armocm.bd]
@@ -147,16 +159,25 @@ generate_target {instantiation_template} [get_files R7OCM.srcs/sources_1/ip/blk_
 create_ip_run [get_files -of_objects [get_fileset sources_1] R7OCM.srcs/sources_1/ip/blk_mem_axi2s/blk_mem_axi2s.xci]
 launch_run  blk_mem_axi2s_synth_1
 
-update_compile_order -fileset sources_1
 generate_target all [get_files R7OCM.srcs/sources_1/ip/clk_wiz_0/clk_wiz_0.xci]
 create_ip_run [get_files -of_objects [get_fileset sources_1] R7OCM.srcs/sources_1/ip/clk_wiz_0/clk_wiz_0.xci]
 launch_run  clk_wiz_0_synth_1
 
-import_files -norecurse src/R7OCM_top.v
-import_files -norecurse src/GE_patch.v
-import_files -norecurse src/A2S_controller.v
-import_files -norecurse src/S2A_controller.v
-import_files -norecurse src/AXI2S.v
+#create_ip -name ila -vendor xilinx.com -library ip -version 5.0 -module_name ila_0
+#set_property -dict [list CONFIG.C_NUM_OF_PROBES {16} CONFIG.C_MONITOR_TYPE {Native} CONFIG.C_ENABLE_ILA_AXI_MON {false}] [get_ips ila_0]
+#set_property -dict [list CONFIG.C_PROBE3_WIDTH {32} CONFIG.C_PROBE2_WIDTH {32} CONFIG.C_PROBE1_WIDTH {5} CONFIG.C_PROBE0_WIDTH {5} CONFIG.C_EN_STRG_QUAL {0} CONFIG.C_TRIGIN_EN {false} CONFIG.C_PROBE15_MU_CNT {1} CONFIG.C_PROBE14_MU_CNT {1} CONFIG.C_PROBE13_MU_CNT {1} CONFIG.C_PROBE12_MU_CNT {1} CONFIG.C_PROBE11_MU_CNT {1} CONFIG.C_PROBE10_MU_CNT {1} CONFIG.C_PROBE9_MU_CNT {1} CONFIG.C_PROBE8_MU_CNT {1} CONFIG.C_PROBE7_MU_CNT {1} CONFIG.C_PROBE6_MU_CNT {1} CONFIG.C_PROBE5_MU_CNT {1} CONFIG.C_PROBE4_MU_CNT {1} CONFIG.C_PROBE3_MU_CNT {1} CONFIG.C_PROBE2_MU_CNT {1} CONFIG.C_PROBE1_MU_CNT {1} CONFIG.C_PROBE0_MU_CNT {1} CONFIG.ALL_PROBE_SAME_MU_CNT {1}] [get_ips ila_0]
+
+#generate_target {instantiation_template} [get_files e:/zhaom/works/R7/R7-OCM/R7OCM.srcs/sources_1/ip/ila_0/ila_0.xci]
+#create_ip_run [get_files -of_objects [get_fileset sources_1] e:/zhaom/works/R7/R7-OCM/R7OCM.srcs/sources_1/ip/ila_0/ila_0.xci]
+#launch_run  ila_0_synth_1
+
+add_files -norecurse src/R7OCM_top.v
+add_files -norecurse src/GE_patch.v
+add_files -norecurse src/A2S_controller.v
+add_files -norecurse src/S2A_controller.v
+add_files -norecurse src/AXI2S.v
+add_files -norecurse test/cntSrc.v
+
 set_property top R7OCM_top [current_fileset]
 
 update_compile_order -fileset sources_1

@@ -10,7 +10,7 @@ module A2S_controller(
   Oaddr,
   // AXI Bus Signal
   AXI_clk,
-  AXI_raddr,
+  AXI_araddr,
   AXI_arvalid,
   AXI_arready,
   AXI_rready,
@@ -20,7 +20,8 @@ module A2S_controller(
   a2s_addr,
   a2s_en,
   // output counter
-  a2s_cnt
+  a2s_cnt,
+  a2s_err
 );
 
   parameter ocm_haddr = 32'hfffc0000;
@@ -35,47 +36,51 @@ module A2S_controller(
   output[4:0] Oaddr;
 
   input AXI_clk;
-  output reg[31:0] AXI_raddr;
+  output reg[31:0] AXI_araddr;
   input AXI_arready,AXI_rvalid;
   output reg AXI_rready,AXI_arvalid;
+  output reg a2s_err;
 
   input AXI_rlast;
 
   output reg[4:0] a2s_addr;
   output a2s_en;
   output [31:0]a2s_cnt;
+  
+  reg [35:0]cnt;
+  reg start,start_d0,start_d1;
+  reg axi_start;
+  reg [2:0]state;
 
 assign Oaddr = cnt[4:0];
 assign a2s_cnt = cnt[35:4];
 
-always @(posedge Sclk or rst)
+always @(posedge Sclk or posedge rst)
 begin
   if( rst==1'b1 ) begin
     start <= 1'b0;
     cnt <= 36'h000000000;
   end
-  else begin
+  else if(Sclk) begin
   	if ( sync==1'b1 ) begin
       start <= 1'b0;
       cnt <= 36'h000000000;
   	end
   	else if( Oen==1'b1 ) begin
-  	  cnt <= cnt + 1'b1;
-  	  if( cnt[3:0]==4'hf ) begin
-  	  	AXI_raddr[1:0] <= 2'b00;
-  	  	AXI_raddr[31:2] <= ocm_haddr[31:2] + cnt[ocm_width-2-1+4:0+4];
+  	  cnt <= cnt + 36'h000000001;
+      if( cnt[3:0]==4'hf ) begin
+  	  	AXI_araddr[1:0] <= 2'b00;
+  	  	AXI_araddr[31:2] <= ocm_haddr[31:2] + cnt[ocm_width-2-1+4:0+4];
   	  end
   	end
-  	if( Oen==1'b1 && 
-  		  cnt[3:0]==4'hf && 
-  		  start==1'b0 ) start <= 1'b1;
+  	if( Oen==1'b1 && cnt[3:0]==4'hf && start==1'b0 ) start <= 1'b1;
   	else start <= 1'b0;
  	end
 end
 
 assign a2s_en = AXI_rvalid & AXI_rready;
 
-always @(posedge AXI_clk or rst)
+always @(posedge AXI_clk or posedge rst)
 begin
   if( rst==1'b1 ) begin
     start_d0      <= 1'b0;
@@ -89,7 +94,7 @@ begin
     
     state         <= s0;
   end
-  else begin
+  else if(AXI_clk) begin
   	start_d0 <= start;
   	start_d1 <= start_d0;
   	axi_start <= (~start_d1) & start_d0;
@@ -105,8 +110,8 @@ begin
   				AXI_arvalid <= 1'b1;
   				if( AXI_arready==1'b1 && AXI_arvalid==1'b1 ) begin
   					state <= s2;
-  					AXI_arvaild <= 1'b0;
-  					a2s_addr[4] <= AXI_waddr[6];
+  					AXI_arvalid <= 1'b0;
+  					a2s_addr[4] <= AXI_araddr[6];
   					a2s_addr[3:0] <= 4'h0;
   					AXI_rready <= 1'b1;
   				end
