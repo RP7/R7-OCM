@@ -22,21 +22,15 @@ int main()
 	for(i=0;i<256*64;i++) *(p+i)=i*4;
 
 	drvFPGA_WriteMem( 0x10000, p, 65536/sizeof(int) );
-	drvFPGA_ReadMem( 0x10000, p, 65536/sizeof(int) );
+
+	for(i=0;i<256*64;i++) *(p+i)=0;
+
+	drvFPGA_ReadMem( 0, p, 65536/sizeof(int) );
 	for(i=0;i<256*16;i++)
 	{
 		if((i%16)==0) printf("\n%03x ",i>>4);	
 		printf("%08x ",*(p+i));
 	}
-	/*
-	printf("\n=====================\n");
-	drvFPGA_ReadMem( 0x0, p, 65536/sizeof(int) );
-	for(i=0;i<256*4;i++)
-	{
-		if((i%16)==0) printf("\n%03x ",i>>4);	
-		printf("%08x ",*(p+i));
-	}
-	*/
 }
 
 int drvFPGA_OpenDev(const char *dev)

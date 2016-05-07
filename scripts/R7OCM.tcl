@@ -163,14 +163,6 @@ generate_target all [get_files R7OCM.srcs/sources_1/ip/clk_wiz_0/clk_wiz_0.xci]
 create_ip_run [get_files -of_objects [get_fileset sources_1] R7OCM.srcs/sources_1/ip/clk_wiz_0/clk_wiz_0.xci]
 launch_run  clk_wiz_0_synth_1
 
-#create_ip -name ila -vendor xilinx.com -library ip -version 5.0 -module_name ila_0
-#set_property -dict [list CONFIG.C_NUM_OF_PROBES {16} CONFIG.C_MONITOR_TYPE {Native} CONFIG.C_ENABLE_ILA_AXI_MON {false}] [get_ips ila_0]
-#set_property -dict [list CONFIG.C_PROBE3_WIDTH {32} CONFIG.C_PROBE2_WIDTH {32} CONFIG.C_PROBE1_WIDTH {5} CONFIG.C_PROBE0_WIDTH {5} CONFIG.C_EN_STRG_QUAL {0} CONFIG.C_TRIGIN_EN {false} CONFIG.C_PROBE15_MU_CNT {1} CONFIG.C_PROBE14_MU_CNT {1} CONFIG.C_PROBE13_MU_CNT {1} CONFIG.C_PROBE12_MU_CNT {1} CONFIG.C_PROBE11_MU_CNT {1} CONFIG.C_PROBE10_MU_CNT {1} CONFIG.C_PROBE9_MU_CNT {1} CONFIG.C_PROBE8_MU_CNT {1} CONFIG.C_PROBE7_MU_CNT {1} CONFIG.C_PROBE6_MU_CNT {1} CONFIG.C_PROBE5_MU_CNT {1} CONFIG.C_PROBE4_MU_CNT {1} CONFIG.C_PROBE3_MU_CNT {1} CONFIG.C_PROBE2_MU_CNT {1} CONFIG.C_PROBE1_MU_CNT {1} CONFIG.C_PROBE0_MU_CNT {1} CONFIG.ALL_PROBE_SAME_MU_CNT {1}] [get_ips ila_0]
-
-#generate_target {instantiation_template} [get_files e:/zhaom/works/R7/R7-OCM/R7OCM.srcs/sources_1/ip/ila_0/ila_0.xci]
-#create_ip_run [get_files -of_objects [get_fileset sources_1] e:/zhaom/works/R7/R7-OCM/R7OCM.srcs/sources_1/ip/ila_0/ila_0.xci]
-#launch_run  ila_0_synth_1
-
 add_files -norecurse src/R7OCM_top.v
 add_files -norecurse src/GE_patch.v
 add_files -norecurse src/A2S_controller.v

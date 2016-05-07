@@ -45,7 +45,7 @@ module R7OCM_top
     TEST_LED
   );
 
-  `define TEST
+  `define LOOP
   input SYS_CLK; 
 
   inout [14:0]DDR_addr;
@@ -316,9 +316,9 @@ assign    sync = 1'b0;
 assign     Ien = 1'b1;
 assign     Oen = 1'b1;
 assign AXI_clk = FCLK_CLK1;
-assign    Sclk = SYS_CLK;
 
 `ifdef TEST
+assign    Sclk = SYS_CLK;
 cntSrc #(.up(1'b0)) Isrc
   (
     .clk(Sclk),
@@ -332,5 +332,8 @@ cntSrc #(.up(1'b1)) Qsrc
     .Cout(Sin[31:16])
   );
 `endif
-
+`ifdef LOOP
+assign    Sclk = SYS_CLK;
+assign     Sin = Sout;
+`endif
 endmodule
