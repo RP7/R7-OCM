@@ -319,13 +319,13 @@ assign AXI_clk = FCLK_CLK1;
 assign    Sclk = SYS_CLK;
 
 `ifdef TEST
-cntSrc Isrc
+cntSrc #(.up(1'b0)) Isrc
   (
     .clk(Sclk),
     .rst(rst),
     .Cout(Sin[15:0])
   );
-cntSrc Qsrc
+cntSrc #(.up(1'b1)) Qsrc
   (
     .clk(Sclk),
     .rst(rst),

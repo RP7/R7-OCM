@@ -64,7 +64,7 @@ module AXI2S
   output [31:0]AXI_araddr;
   output [1:0]AXI_arburst;
   output [3:0]AXI_arcache;
-  output [11:0]AXI_arid;
+  output [5:0]AXI_arid;
   output [3:0]AXI_arlen;
   output [1:0]AXI_arlock;
   output [2:0]AXI_arprot;
@@ -75,7 +75,7 @@ module AXI2S
   output [31:0]AXI_awaddr;
   output [1:0]AXI_awburst;
   output [3:0]AXI_awcache;
-  output [11:0]AXI_awid;
+  output [5:0]AXI_awid;
   output [3:0]AXI_awlen;
   output [1:0]AXI_awlock;
   output [2:0]AXI_awprot;
@@ -83,18 +83,18 @@ module AXI2S
   input AXI_awready;
   output [2:0]AXI_awsize;
   output AXI_awvalid;
-  input [11:0]AXI_bid;
+  input [5:0]AXI_bid;
   output AXI_bready;
   input [1:0]AXI_bresp;
   input AXI_bvalid;
   input [31:0]AXI_rdata;
-  input [11:0]AXI_rid;
+  input [5:0]AXI_rid;
   input AXI_rlast;
   output AXI_rready;
   input [1:0]AXI_rresp;
   input AXI_rvalid;
   output [31:0]AXI_wdata;
-  output [11:0]AXI_wid;
+  output [5:0]AXI_wid;
   output AXI_wlast;
   input AXI_wready;
   output [3:0]AXI_wstrb;
@@ -132,7 +132,7 @@ blk_mem_axi2s axi2s (
   .doutb(Sout)       // output wire [31 : 0] doutb
 );
 
-assign AXI_arid      = 12'hfff;
+assign AXI_arid      = 6'b111111;
 assign AXI_arlen     = 4'hf;
 assign AXI_arsize    = 3'b010;   //size: 4byte
 assign AXI_arburst   = 2'b01;    //"01";    --incr
@@ -141,7 +141,7 @@ assign AXI_arcache   = 4'h0;     //x"0";
 assign AXI_arprot    = 3'b000;   //"000";
 assign AXI_arqos     = 4'h0;     //x"0";
 
-assign AXI_awid      = 12'hfff; 
+assign AXI_awid      = 6'b111111; 
 assign AXI_awlen     = 4'hf;     //x"F"; burst length: 16
 assign AXI_awsize    = 3'b010;   //size: 4byte     
 assign AXI_awburst   = 2'b01;    //"01";    --incr            
@@ -150,7 +150,7 @@ assign AXI_awcache   = 4'h0;     //x"0";
 assign AXI_awprot    = 3'b000;   //"000";
 assign AXI_awqos     = 4'h0;     //x"0";
 assign AXI_bready    = 1'b1;     //'1';
- 
+assign AXI_wstrb     = 4'hf; 
 
 S2A_controller #(.ocm_haddr(32'hfffc0000),.ocm_width(16)) cs2a(
   .Sclk(Sclk),
@@ -170,7 +170,7 @@ S2A_controller #(.ocm_haddr(32'hfffc0000),.ocm_width(16)) cs2a(
   .s2a_cnt(s2a_cnt)
   );
 
-A2S_controller #(.ocm_haddr(32'hfffc0000),.ocm_width(16)) ca2s(
+A2S_controller #(.ocm_haddr(32'hfffd0000),.ocm_width(16)) ca2s(
   .rst(rst),
   .Sclk(Sclk),
   .sync(sync),

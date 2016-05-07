@@ -50,6 +50,7 @@ module S2A_controller(
   reg start_d0,start_d1,axi_start;
   reg [2:0]state;
   reg s2a_pre;
+  reg [31:0]AXI_awaddr_reg;
 
 assign Iaddr = cnt[4:0];
 assign s2a_cnt = cnt[35:4];
@@ -68,8 +69,8 @@ begin
   	else if( Ien==1'b1 ) begin
   	  cnt <= cnt + 36'h000000001;
   	  if( cnt[3:0]==4'hf ) begin
-  	  	AXI_awaddr[1:0] <= 2'b00;
-  	  	AXI_awaddr[31:2] <= ocm_haddr[31:2] + cnt[ocm_width-2-1+4:0+4];
+  	  	AXI_awaddr_reg[5:0] <= 6'b000000;
+  	  	AXI_awaddr_reg[31:6] <= ocm_haddr[31:6] + cnt[ocm_width-2-1:0+4];
   	  end
   	end
   	if( Ien==1'b1 && 
@@ -101,6 +102,7 @@ begin
   	start_d1 <= start_d0;
   	axi_start <= (~start_d1) & start_d0;
   	if( axi_start==1'b1 ) begin
+      AXI_awaddr <= AXI_awaddr_reg;
   		state <= s1;
   	end
   	else begin
