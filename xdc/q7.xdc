@@ -212,3 +212,5 @@ set_property IOSTANDARD LVCMOS33 [get_ports GMII_MDIO]
 set_property PACKAGE_PIN AA24 [get_ports GMII_GE_IND]
 set_property IOSTANDARD LVCMOS33 [get_ports GMII_GE_IND]
 
+
+

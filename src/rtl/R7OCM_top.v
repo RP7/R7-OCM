@@ -149,16 +149,16 @@ module R7OCM_top
   wire [31:0]Sin;
   wire [31:0]Sout;
   
-  wire [31:0]ibase;
-  wire [31:0]obase;
-  wire [23:6]isize;
-  wire [23:6]osize;
+  wire [31:0] AXI_IBASE;
+  wire [31:0] AXI_OBASE;
+  wire [23:6] AXI_ISIZE;
+  wire [23:6] AXI_OSIZE;
 
-  wire [23:6]iacnt;
-  wire [23:6]oacnt;
+  wire [23:6] AXI_IACNT;
+  wire [23:6] AXI_OACNT;
 
-  wire [31:0]ibcnt;
-  wire [31:0]obcnt;
+  wire [31:0] AXI_IBCNT;
+  wire [31:0] AXI_OBCNT;
 
   wire sys_Ien,sys_Oen;
 
@@ -282,6 +282,15 @@ AXI2S a2s
     .Sout(Sout),
     .Oen(Oen&sys_Oen),
     .sync(sync),
+
+    .ibase(AXI_IBASE),
+    .isize(AXI_ISIZE),
+    .obase(AXI_OBASE),
+    .osize(AXI_OSIZE),
+    .iacnt(AXI_IACNT),
+    .ibcnt(AXI_IBCNT),
+    .oacnt(AXI_OACNT),
+    .obcnt(AXI_OBCNT),
 
     .AXI_clk(AXI_clk),
     .AXI_araddr(AXI_HP0_araddr),

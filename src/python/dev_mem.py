@@ -6,7 +6,7 @@ class dev_mem:
     def __init__(self,BASE,LEN):
         self.len = LEN
         self.base = BASE
-        self.fd = open(dev_mem.DEVNAME,'r+b',buffering)
+        self.fd = open(dev_mem.DEVNAME,'r+b',buffering=0)
         self.mmap = mmap.mmap(self.fd.fileno(),LEN, offset=BASE) 
 
     def ioread(self,addr):
@@ -16,7 +16,7 @@ class dev_mem:
     def iowrite(self,addr,d):
         buf = (c_uint*1)()
         buf[0] = d
-        self.memwrite(addr,d)
+        self.memwrite(addr,buf)
     
     def memread(self,addr,len):
         buf = (c_uint*len)()
