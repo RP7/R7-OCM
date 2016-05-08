@@ -168,6 +168,8 @@ add_files -norecurse src/GE_patch.v
 add_files -norecurse src/A2S_controller.v
 add_files -norecurse src/S2A_controller.v
 add_files -norecurse src/AXI2S.v
+add_files -norecurse src/AXI2SREG.v
+add_files -norecurse src/reg_define.v
 add_files -norecurse test/cntSrc.v
 
 set_property top R7OCM_top [current_fileset]

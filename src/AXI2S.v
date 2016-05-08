@@ -11,6 +11,16 @@ module AXI2S
    	Oen,
    	sync,
 
+    ibase,
+    isize,
+    obase,
+    osize,
+
+    iacnt,
+    ibcnt,
+    oacnt,
+    obcnt,
+
     AXI_clk,
     AXI_araddr,
     AXI_arburst,
@@ -100,10 +110,21 @@ module AXI2S
   output [3:0]AXI_wstrb;
   output AXI_wvalid;
 
-wire [4:0] Iaddr,Oaddr,s2a_addr,a2s_addr;
-wire s2a_en,s2a_wea,a2s_en,a2s_wea;
-wire [31:0] s2a_cnt,a2s_cnt;
-wire a2s_err;
+  input [31:0]ibase;
+  input [31:0]obase;
+  input [23:6]isize;
+  input [23:6]osize;
+
+  output [23:6]iacnt;
+  output [23:6]oacnt;
+
+  output [31:0]ibcnt;
+  output [31:0]obcnt;
+
+  wire [4:0] Iaddr,Oaddr,s2a_addr,a2s_addr;
+  wire s2a_en,s2a_wea,a2s_en,a2s_wea;
+  wire [31:0] s2a_cnt,a2s_cnt;
+  wire a2s_err;
 
 assign s2a_wea = Ien;
 assign a2s_wea = a2s_en;
@@ -135,7 +156,7 @@ blk_mem_axi2s axi2s (
 assign AXI_arid      = 6'b111111;
 assign AXI_arlen     = 4'hf;
 assign AXI_arsize    = 3'b010;   //size: 4byte
-assign AXI_arburst   = 2'b01;    //"01";    --incr
+assign AXI_arburst   = 2'b01;    //"01"; --incr
 assign AXI_arlock    = 2'b00;    //"00";
 assign AXI_arcache   = 4'h0;     //x"0";
 assign AXI_arprot    = 3'b000;   //"000";
@@ -144,7 +165,7 @@ assign AXI_arqos     = 4'h0;     //x"0";
 assign AXI_awid      = 6'b111111; 
 assign AXI_awlen     = 4'hf;     //x"F"; burst length: 16
 assign AXI_awsize    = 3'b010;   //size: 4byte     
-assign AXI_awburst   = 2'b01;    //"01";    --incr            
+assign AXI_awburst   = 2'b01;    //"01"; --incr            
 assign AXI_awlock    = 2'b00;    //"00";
 assign AXI_awcache   = 4'h0;     //x"0";
 assign AXI_awprot    = 3'b000;   //"000";
@@ -152,12 +173,19 @@ assign AXI_awqos     = 4'h0;     //x"0";
 assign AXI_bready    = 1'b1;     //'1';
 assign AXI_wstrb     = 4'hf; 
 
-S2A_controller #(.ocm_haddr(32'hfffc0000),.ocm_width(16)) cs2a(
+S2A_controller cs2a(
   .Sclk(Sclk),
   .rst(rst),
   .sync(sync),
   .Ien(Ien),
   .Iaddr(Iaddr),
+
+  .ibase(ibase),
+  .isize(isize),
+
+  .iacnt(iacnt),
+  .ibcnt(ibcnt),
+
   .AXI_clk(AXI_clk),
   .AXI_awaddr(AXI_awaddr),
   .AXI_awvalid(AXI_awvalid),
@@ -166,16 +194,22 @@ S2A_controller #(.ocm_haddr(32'hfffc0000),.ocm_width(16)) cs2a(
   .AXI_wvalid(AXI_wvalid),
   .AXI_wlast(AXI_wlast),
   .s2a_addr(s2a_addr),
-  .s2a_en(s2a_en),
-  .s2a_cnt(s2a_cnt)
+  .s2a_en(s2a_en)
   );
 
-A2S_controller #(.ocm_haddr(32'hfffd0000),.ocm_width(16)) ca2s(
+A2S_controller ca2s(
   .rst(rst),
   .Sclk(Sclk),
   .sync(sync),
   .Oen(Oen),
   .Oaddr(Oaddr),
+
+  .obase(obase),
+  .osize(osize),
+
+  .oacnt(oacnt),
+  .obcnt(obcnt),
+
   .AXI_clk(AXI_clk),
   .AXI_araddr(AXI_araddr),
   .AXI_arvalid(AXI_arvalid),
@@ -185,9 +219,7 @@ A2S_controller #(.ocm_haddr(32'hfffd0000),.ocm_width(16)) ca2s(
   .AXI_rlast(AXI_rlast),
   .a2s_addr(a2s_addr),
   .a2s_en(a2s_en),
-  .a2s_cnt(a2s_cnt),
   .a2s_err(a2s_err)
   );
-
 
 endmodule

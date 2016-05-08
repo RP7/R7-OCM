@@ -148,6 +148,19 @@ module R7OCM_top
 
   wire [31:0]Sin;
   wire [31:0]Sout;
+  
+  wire [31:0]ibase;
+  wire [31:0]obase;
+  wire [23:6]isize;
+  wire [23:6]osize;
+
+  wire [23:6]iacnt;
+  wire [23:6]oacnt;
+
+  wire [31:0]ibcnt;
+  wire [31:0]obcnt;
+
+  wire sys_Ien,sys_Oen;
 
 armocm_wrapper core
   (
@@ -264,10 +277,10 @@ AXI2S a2s
     .Sclk(Sclk),
 
     .Sin(Sin),
-    .Ien(Ien),
+    .Ien(Ien&sys_Ien),
 
     .Sout(Sout),
-    .Oen(Oen),
+    .Oen(Oen&sys_Oen),
     .sync(sync),
 
     .AXI_clk(AXI_clk),
@@ -309,6 +322,37 @@ AXI2S a2s
     .AXI_wready(AXI_HP0_wready),
     .AXI_wstrb(AXI_HP0_wstrb),
     .AXI_wvalid(AXI_HP0_wvalid)
+  );
+
+AXI2SREG axi2s_reg_space
+  (
+    .clk(BRAM_PORTA_clk),
+    .rst(BRAM_PORTA_rst),
+    .en(BRAM_PORTA_en),
+    .addr(BRAM_PORTA_addr),
+    .din(BRAM_PORTA_din),
+    .dout(BRAM_PORTA_dout),
+    .wen(BRAM_PORTA_we),
+    .ien(sys_Ien),
+    .oen(sys_Oen),
+    //.tddmode(sys_Mode),
+    .ibase(AXI_IBASE),
+    .isize(AXI_ISIZE),
+    .obase(AXI_OBASE),
+    .osize(AXI_OSIZE),
+    /*
+    frame_len,
+    frame_adj,
+    tstart,
+    tend,
+    rstart,
+    rend,
+    */
+    .iacnt(AXI_IACNT),
+    .ibcnt(AXI_IBCNT),
+    .oacnt(AXI_OACNT),
+    .obcnt(AXI_OBCNT)//,
+    //adj_pending
   );
 
 assign     rst = 1'b0;

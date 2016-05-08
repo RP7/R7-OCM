@@ -8,6 +8,13 @@ module A2S_controller(
   // Buffer read
   Oen,
   Oaddr,
+
+  obase,
+  osize,
+
+  oacnt,
+  obcnt,
+
   // AXI Bus Signal
   AXI_clk,
   AXI_araddr,
@@ -24,9 +31,6 @@ module A2S_controller(
   a2s_err
 );
 
-  parameter ocm_haddr = 32'hfffd0000;
-  parameter ocm_width = 16;
-  
   parameter s0 = 3'd0;
   parameter s1 = 3'd1;
   parameter s2 = 3'd2;
@@ -45,34 +49,51 @@ module A2S_controller(
 
   output reg[4:0] a2s_addr;
   output a2s_en;
-  output [31:0]a2s_cnt;
   
-  reg [35:0]cnt;
+  reg[21:0] cnt;
+  reg[31:0] bcnt;
+
   reg start,start_d0,start_d1;
   reg axi_start;
   reg [2:0]state;
   reg [31:0]AXI_araddr_reg;
 
+  input [31:0]obase;
+  input [23:6]osize;
+
+  output [23:6]oacnt;
+  output [31:0]obcnt;
+
+
 assign Oaddr = cnt[4:0];
-assign a2s_cnt = cnt[35:4];
+assign oacnt[23:6] = cnt[21:4];
+assign obcnt <= bcnt;
 
 always @(posedge Sclk or posedge rst)
 begin
   if( rst==1'b1 ) begin
     start <= 1'b0;
-    cnt <= 36'h000000000;
+    cnt <= 22'h0;
+    bcnt <= 32'h0;
   end
   else if(Sclk) begin
   	if ( sync==1'b1 ) begin
       start <= 1'b0;
-      cnt <= 36'h000000000;
+      cnt <= 22'h0;
+      bcnt <= 32'h0;
   	end
   	else if( Oen==1'b1 ) begin
-  	  cnt <= cnt + 36'h000000001;
       if( cnt[3:0]==4'hf ) begin
         AXI_araddr_reg[5:0] <= 6'b000000;
-        AXI_araddr_reg[31:6] <= ocm_haddr[31:6] + cnt[ocm_width-2-1:0+4];
-  	  end
+        AXI_araddr_reg[31:6] <= obase[31:6] + cnt[21:4];
+        cnt[3:0] <= 4'h0;
+        if( cnt[21:4]==(osize[23:6]-1'b1) ) begin
+          cnt[21:4] <= 18'h0;
+          bcnt <= bcnt + 32'h1;
+        end
+        else cnt[21:4] <= cnt[21:4]+18'h1;
+      end
+      else cnt[3:0] <= cnt[3:0] + 4'h1;
   	end
   	if( Oen==1'b1 && cnt[3:0]==4'hf && start==1'b0 ) start <= 1'b1;
   	else start <= 1'b0;
