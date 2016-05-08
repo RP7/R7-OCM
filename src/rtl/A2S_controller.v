@@ -27,7 +27,6 @@ module A2S_controller(
   a2s_addr,
   a2s_en,
   // output counter
-  a2s_cnt,
   a2s_err
 );
 
@@ -67,7 +66,7 @@ module A2S_controller(
 
 assign Oaddr = cnt[4:0];
 assign oacnt[23:6] = cnt[21:4];
-assign obcnt <= bcnt;
+assign obcnt = bcnt;
 
 always @(posedge Sclk or posedge rst)
 begin

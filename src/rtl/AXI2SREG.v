@@ -39,8 +39,8 @@ module AXI2SREG
 	output reg [31:0]dout;
 	output reg [31:0]ibase;
 	output reg [31:0]obase;
-	output reg [23:6]iszie;
-	output reg [23:6]oszie;
+	output reg [23:6]isize;
+	output reg [23:6]osize;
 
 	output reg [23:0]frame_len;
 	output reg [23:0]tstart;
@@ -82,56 +82,56 @@ begin
 			if( wen==1'b1 ) begin
 				case( addr[7:0] )
 					// define AXI2S_EN        8'h00
-					AXI2S_EN: begin
+					`AXI2S_EN: begin
 						ien <= din[0];
 						oen <= din[1];
 						tddmode <= din[2];
 					end
 					// define AXI2S_IBASE     8'h10
-					AXI2S_IBASE: begin
+					`AXI2S_IBASE: begin
 						ibase <= din;
 					end
 					// define AXI2S_ISIZE     8'h14
-					AXI2S_ISIZE: begin
+					`AXI2S_ISIZE: begin
 						isize <= din[23:6];
 					end
 					// define AXI2S_OBASE     8'h18
-					AXI2S_OBASE: begin
+					`AXI2S_OBASE: begin
 						obase <= din;
 					end
 					// define AXI2S_OSIZE     8'h1C
-					AXI2S_OSIZE: begin
+					`AXI2S_OSIZE: begin
 						osize <= din[23:6];
 					end
 					// define FRAME_LEN       8'h20
-					FRAME_LEN: begin
+					`FRAME_LEN: begin
 						frame_len <= din[23:0];
 					end
 					// define FRAME_ADJ       8'h24
-					FRAME_ADJ: begin
+					`FRAME_ADJ: begin
 						frame_adj <= din[23:0];
 					end
 					// define TSTART          8'h30
-					TSTART: begin
+					`TSTART: begin
 						tstart <= din[23:0];
 					end
 					// define TEND            8'h34
-					TEND: begin
+					`TEND: begin
 						tend <= din[23:0];
 					end
 					// define RSTART          8'h38
-					RSTART: begin
+					`RSTART: begin
 						rstart <= din[23:0];
 					end
 					// define REND            8'h3C
-					REND: begin
+					`REND: begin
 						rend <= din[23:0];
 					end
 				endcase
 			end
 			case( addr[7:0] )
 				// define AXI2S_STATE     8'h00
-				AXI2S_STATE: begin
+				`AXI2S_STATE: begin
 					dout[0] <= ien;
 					dout[1] <= oen;
 					dout[2] <= tddmode;
@@ -139,23 +139,23 @@ begin
 					dout[31:4] <= 28'd0;
  				end
  				// define AXI2S_IACNT     8'h10
- 				AXI2S_IACNT: begin
+ 				`AXI2S_IACNT: begin
  					dout[23:6] <= iacnt;
  					dout[31:24] <= 8'd0;
  					dout[5:0] <= 6'd0;
  				end
  				// define AXI2S_IBCNT     8'h14
- 				AXI2S_IBCNT: begin
+ 				`AXI2S_IBCNT: begin
  					dout <= ibcnt;
  				end
  				// define AXI2S_OACNT     8'h18
- 				AXI2S_OACNT: begin
+ 				`AXI2S_OACNT: begin
  					dout[23:6] <= oacnt;
  					dout[31:24] <= 8'd0;
  					dout[5:0] <= 6'd0;
  				end
  				// define AXI2S_OBCNT     8'h1c
-				AXI2S_OBCNT: begin
+				`AXI2S_OBCNT: begin
  					dout <= obcnt;
  				end
  			endcase	

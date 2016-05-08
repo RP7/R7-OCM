@@ -163,13 +163,13 @@ generate_target all [get_files R7OCM.srcs/sources_1/ip/clk_wiz_0/clk_wiz_0.xci]
 create_ip_run [get_files -of_objects [get_fileset sources_1] R7OCM.srcs/sources_1/ip/clk_wiz_0/clk_wiz_0.xci]
 launch_run  clk_wiz_0_synth_1
 
-add_files -norecurse src/R7OCM_top.v
-add_files -norecurse src/GE_patch.v
-add_files -norecurse src/A2S_controller.v
-add_files -norecurse src/S2A_controller.v
-add_files -norecurse src/AXI2S.v
-add_files -norecurse src/AXI2SREG.v
-add_files -norecurse src/reg_define.v
+add_files -norecurse src/rtl/R7OCM_top.v
+add_files -norecurse src/rtl/GE_patch.v
+add_files -norecurse src/rtl/A2S_controller.v
+add_files -norecurse src/rtl/S2A_controller.v
+add_files -norecurse src/rtl/AXI2S.v
+add_files -norecurse src/rtl/AXI2SREG.v
+add_files -norecurse src/rtl/reg_define.v
 add_files -norecurse test/cntSrc.v
 
 set_property top R7OCM_top [current_fileset]

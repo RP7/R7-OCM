@@ -63,7 +63,7 @@ module S2A_controller(
 
 assign Iaddr = cnt[4:0];
 assign iacnt[23:6] = cnt[21:4];
-assign ibcnt <= bcnt;
+assign ibcnt = bcnt;
 
 always @(posedge Sclk or posedge rst)
 begin
