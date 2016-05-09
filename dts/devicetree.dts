@@ -210,7 +210,7 @@
 		spi@e0007000 {
 			compatible = "xlnx,zynq-spi-r1p6";
 			reg = <0xe0007000 0x1000>;
-			status = "disabled";
+			status = "okey";
 			interrupt-parent = <0x3>;
 			interrupts = <0x0 0x31 0x4>;
 			clocks = <0x1 0x1a 0x1 0x23>;

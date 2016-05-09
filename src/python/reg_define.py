@@ -1,14 +1,7 @@
 import os
 import re
 
-addr = {}
-path = os.path.split(os.path.realpath(__file__))[0]
-fn = path+"/../rtl/reg_define.v"
 
-addr = loadFromVerilog(fn,addr)
-
-fn = path+"/../c/ad9361_spi.h"
-addr = loadFromC(fn,addr)
 
 def loadFromVerilog(fn,addr):
 	reg_file = open(fn)
@@ -53,4 +46,13 @@ def loadFromC(fn,addr):
 	return addr
 
 
+addr = {}
+path = os.path.split(os.path.realpath(__file__))[0]
+fn = path+"/../rtl/reg_define.v"
 
+addr = loadFromVerilog(fn,addr)
+
+fn = path+"/../c/ad9361_spi.h"
+addr = loadFromC(fn,addr)
+
+#print addr

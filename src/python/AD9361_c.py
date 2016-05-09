@@ -2,6 +2,8 @@ import dev_mem
 import reg_define as reg
 from const import *
 import time
+import sys
+
 
 class AD9361_c:
 	def __init__(self):
@@ -21,7 +23,10 @@ class AD9361_c:
 
 def main():
 	uut = AD9361_c()
-	uut.read('SPI_Config')
+	if len(sys.argv)>1:
+		uut.read(sys.argv[1])
+	else:
+		uut.read('SPI_Config')
 
 if __name__ == '__main__':
 	main()
