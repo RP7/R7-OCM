@@ -40,9 +40,7 @@ module GE_patch
 clk_wiz_0 pll
   (
   .clk_in1(SYS_CLK),
-  .clk_out1(clk_125M),
-  .reset(pll_reset), 
-  .locked(pll_locked)            
+  .clk_out1(clk_125M)         
   );
 
 IOBUF GMII_MDIO_BUF

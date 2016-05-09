@@ -151,6 +151,7 @@ add_files -norecurse R7OCM.srcs/sources_1/bd/armocm/hdl/armocm_wrapper.v
 
 create_ip -name clk_wiz -vendor xilinx.com -library ip -version 5.1 -module_name clk_wiz_0
 set_property -dict [list CONFIG.PRIM_IN_FREQ {25} CONFIG.CLKOUT1_REQUESTED_OUT_FREQ {125.000} CONFIG.CLKIN1_JITTER_PS {400.0} CONFIG.MMCM_CLKFBOUT_MULT_F {40.000} CONFIG.MMCM_CLKIN1_PERIOD {40.0} CONFIG.MMCM_CLKOUT0_DIVIDE_F {8.000} CONFIG.CLKOUT1_JITTER {220.126} CONFIG.CLKOUT1_PHASE_ERROR {237.727}] [get_ips clk_wiz_0]
+set_property -dict [list CONFIG.USE_LOCKED {false} CONFIG.USE_RESET {false}] [get_ips clk_wiz_0]
 generate_target {instantiation_template} [get_files R7OCM.srcs/sources_1/ip/clk_wiz_0/clk_wiz_0.xci]
 
 create_ip -name blk_mem_gen -vendor xilinx.com -library ip -version 8.2 -module_name blk_mem_axi2s
