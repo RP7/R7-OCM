@@ -31,17 +31,17 @@ set_property IOSTANDARD LVCMOS18 [get_ports {TEST_LED[2]}]
 set_property PACKAGE_PIN G1 [get_ports {TEST_LED[3]}]
 set_property IOSTANDARD LVCMOS18 [get_ports {TEST_LED[3]}]
 
-set_property PACKAGE_PIN F10 [get_ports SPI_CLK]
-set_property IOSTANDARD LVCMOS18 [get_ports SPI_CLK]
+set_property PACKAGE_PIN F10 [get_ports AD9361_SPI_CLK]
+set_property IOSTANDARD LVCMOS18 [get_ports AD9361_SPI_CLK]
 
-set_property PACKAGE_PIN B6 [get_ports SPI_ENB]
-set_property IOSTANDARD LVCMOS18 [get_ports SPI_ENB]
+set_property PACKAGE_PIN B6 [get_ports AD9361_SPI_ENB]
+set_property IOSTANDARD LVCMOS18 [get_ports AD9361_SPI_ENB]
 
-set_property PACKAGE_PIN H7 [get_ports SPI_DI]
-set_property IOSTANDARD LVCMOS18 [get_ports SPI_DI]
+set_property PACKAGE_PIN H7 [get_ports AD9361_SPI_DI]
+set_property IOSTANDARD LVCMOS18 [get_ports AD9361_SPI_DI]
 
-set_property PACKAGE_PIN B12 [get_ports SPI_DO]
-set_property IOSTANDARD LVCMOS18 [get_ports SPI_DO]
+set_property PACKAGE_PIN B12 [get_ports AD9361_SPI_DO]
+set_property IOSTANDARD LVCMOS18 [get_ports AD9361_SPI_DO]
 
 set_property PACKAGE_PIN C11 [get_ports AD9361_RST]
 set_property IOSTANDARD LVCMOS18 [get_ports AD9361_RST]

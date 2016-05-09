@@ -41,6 +41,12 @@ module R7OCM_top
     GMII_MDIO,
     GMII_MDIO_MDC,
     GMII_GE_IND,
+    /////////////////// AD9361 SPI
+    AD9361_SPI_CLK, //         : out   std_logic;
+    AD9361_SPI_ENB, //         : out   std_logic;
+    AD9361_SPI_DI,  //         : out   std_logic;
+    AD9361_SPI_DO,  //         : in    std_logic;  
+
     /////////////////// test interface
     TEST_LED
   );
@@ -83,6 +89,11 @@ module R7OCM_top
   inout GMII_MDIO;
   output GMII_MDIO_MDC;
   input GMII_GE_IND;
+
+  output AD9361_SPI_CLK,
+  output AD9361_SPI_ENB,
+  output AD9361_SPI_DI,
+  input AD9361_SPI_DO,
 
   output [3:0]TEST_LED;
 
