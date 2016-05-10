@@ -27,7 +27,7 @@ class AD9361_c:
 		b = len(data)
 		l = (b-1)&0x7
 		H8 = H8 | (l<<4)
-		if wop:
+		if wop==1:
 			H8 = H8 | 0x80
 		HL = addr & 0xff
 		self.writereg('SPI_Config',0x4015)
@@ -36,9 +36,9 @@ class AD9361_c:
 		for i in range(b):
 			self.writereg('SPI_Tx_data',data[i])
 		r = 0
-		while(r!=0):
-			r = self.readreg('SPI_Intr_status')&0x20
-			print "Tx FIFO underflow:",r
+		#while(r==0):
+		r = self.readreg('SPI_Intr_status')&0x2
+		#	print "Tx FIFO underflow:",r
 		self.writereg('SPI_Config',0x7c15)
 		RH = self.readreg('SPI_Rx_data')
 		RL = self.readreg('SPI_Rx_data')
@@ -50,26 +50,29 @@ class AD9361_c:
 	def readByte(self,addr):
 		data=[0xff]
 		data = self.spi_op(addr,data,0)
-		print "R: [0x%04x]:0x%02x",addr,data[0]
+		print "R: [0x%04x]:0x%02x"%(addr,data[0])
 
 	def writeByte(self,addr,d):
 		data = [d]
 		data = self.spi_op(addr,data,1)
-		print "W: [0x%04x]:0x%02x",addr,d
+		print "W: [0x%04x]:0x%02x"%(addr,d)
 
 def main():
 	uut = AD9361_c()
-	uut.writereg('SPI_Intrpt_en',0x28)
+	#uut.writereg('SPI_Intrpt_en',0x3f)
+	#uut.writereg('SPI_En',0)
+	#uut.writereg('SPI_En',1)
+	
 	if len(sys.argv)>1:
 		if sys.argv[1]=='S':
 			if len(sys.argv)==3:
 				uut.readreg(sys.argv[2])
-			elif len(sys.argv)==3:
+			elif len(sys.argv)==4:
 				uut.writereg(sys.argv[2],int(sys.argv[3],16))
 		elif sys.argv[1]=='R':
 			if len(sys.argv)==3:
 				uut.readByte(int(sys.argv[2],16))
-			elif len(sys.argv)==3:
+			elif len(sys.argv)==4:
 				uut.writeByte(int(sys.argv[2],16),int(sys.argv[3],16))
 	else:
 		uut.read('SPI_Config')

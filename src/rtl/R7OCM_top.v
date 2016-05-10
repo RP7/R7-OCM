@@ -89,7 +89,9 @@ module R7OCM_top
   inout GMII_MDIO;
   output GMII_MDIO_MDC;
   input GMII_GE_IND;
-
+// AD9361
+  output AD9361_RST;
+  output AD9361_EN;
   output AD9361_SPI_CLK,
   output AD9361_SPI_ENB,
   output AD9361_SPI_DI,
