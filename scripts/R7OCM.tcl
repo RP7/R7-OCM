@@ -79,6 +79,15 @@ endgroup
 connect_bd_net [get_bd_pins processing_system7_0/FCLK_CLK1] [get_bd_pins processing_system7_0/S_AXI_HP0_ACLK]
 
 startgroup
+set_property -dict [list CONFIG.PCW_SPI_PERIPHERAL_FREQMHZ {200} CONFIG.PCW_SPI1_PERIPHERAL_ENABLE {1}] [get_bd_cells processing_system7_0]
+endgroup
+
+startgroup
+create_bd_intf_port -mode Master -vlnv xilinx.com:interface:spi_rtl:1.0 SPI_1
+connect_bd_intf_net [get_bd_intf_pins processing_system7_0/SPI_1] [get_bd_intf_ports SPI_1]
+endgroup
+
+startgroup
 create_bd_port -dir O -from 0 -to 0 ENET0_GMII_TX_EN
 connect_bd_net [get_bd_pins /processing_system7_0/ENET0_GMII_TX_EN] [get_bd_ports ENET0_GMII_TX_EN]
 endgroup

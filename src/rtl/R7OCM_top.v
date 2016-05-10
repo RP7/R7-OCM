@@ -41,6 +41,9 @@ module R7OCM_top
     GMII_MDIO,
     GMII_MDIO_MDC,
     GMII_GE_IND,
+    /////////////////// AD9361
+    AD9361_RST,
+    AD9361_EN,
     /////////////////// AD9361 SPI
     AD9361_SPI_CLK, //         : out   std_logic;
     AD9361_SPI_ENB, //         : out   std_logic;
@@ -92,6 +95,7 @@ module R7OCM_top
 // AD9361
   output AD9361_RST;
   output AD9361_EN;
+// AD9361 SPI  
   output AD9361_SPI_CLK,
   output AD9361_SPI_ENB,
   output AD9361_SPI_DI,
@@ -174,6 +178,7 @@ module R7OCM_top
   wire [31:0] AXI_OBCNT;
 
   wire sys_Ien,sys_Oen;
+  wire MOSI,MISO,SCK,SS;
 
 armocm_wrapper core
   (
@@ -262,6 +267,11 @@ armocm_wrapper core
   .S_AXI_HP0_wready(AXI_HP0_wready),
   .S_AXI_HP0_wstrb(AXI_HP0_wstrb),
   .S_AXI_HP0_wvalid(AXI_HP0_wvalid),
+
+  .spi_1_io0_io(MOSI),
+  .spi_1_io1_io(MISO),
+  .spi_1_sck_io(SCK),
+  .spi_1_ss_io(SS),
 
   .test_led_tri_o(TEST_LED)
   );
@@ -382,6 +392,14 @@ assign    sync = 1'b0;
 assign     Ien = 1'b1;
 assign     Oen = 1'b1;
 assign AXI_clk = FCLK_CLK1;
+
+assign AD9361_SPI_CLK = SCK;
+assign AD9361_SPI_DI  = MOSI;
+assign AD9361_SPI_DO  = MISO;
+assign AD9361_SPI_ENB = SS;
+
+assign AD9361_RST = 1'b1;
+assign AD9361_EN  = 1'b0;
 
 `ifdef TEST
 assign    Sclk = SYS_CLK;
