@@ -11,7 +11,7 @@ module CBusReadMerge
 		ad9361_dout
 	);
 
-	input clk,rst,en,wen;
+	input clk,rst,en;
 	input [31:0]axi2s_dout;
 	input [31:0]ad9361_dout;
 	
@@ -31,3 +31,4 @@ always @(posedge clk or posedge rst) begin
 	end
 end
 
+endmodule
