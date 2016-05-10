@@ -41,3 +41,8 @@ Data/*
 R7OCM.*/*
 .Xil/*
 *.xpr
+*.tgz
+*.tar
+*.tar.gz
+*.btree
+*.log
