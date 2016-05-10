@@ -96,10 +96,10 @@ module R7OCM_top
   output AD9361_RST;
   output AD9361_EN;
 // AD9361 SPI  
-  output AD9361_SPI_CLK,
-  output AD9361_SPI_ENB,
-  output AD9361_SPI_DI,
-  input AD9361_SPI_DO,
+  inout AD9361_SPI_CLK;
+  inout AD9361_SPI_ENB;
+  inout AD9361_SPI_DI;
+  inout AD9361_SPI_DO;
 
   output [3:0]TEST_LED;
 
@@ -180,6 +180,9 @@ module R7OCM_top
   wire sys_Ien,sys_Oen;
   wire MOSI,MISO,SCK,SS;
 
+  wire [31:0] AXI2S_REG_DOUT;
+  wire [31:0] AD9361_REG_DOUT;
+  
 armocm_wrapper core
   (
   .BRAM_PORTA_addr(BRAM_PORTA_addr),
@@ -363,7 +366,7 @@ AXI2SREG axi2s_reg_space
     .en(BRAM_PORTA_en),
     .addr(BRAM_PORTA_addr),
     .din(BRAM_PORTA_din),
-    .dout(BRAM_PORTA_dout),
+    .dout(AXI2S_REG_DOUT),
     .wen(BRAM_PORTA_we),
     .ien(sys_Ien),
     .oen(sys_Oen),
@@ -387,6 +390,31 @@ AXI2SREG axi2s_reg_space
     //adj_pending
   );
 
+AD9361REG ad9361_reg_space
+  (
+    .clk(BRAM_PORTA_clk),
+    .rst(BRAM_PORTA_rst),
+    .en(BRAM_PORTA_en),
+    .addr(BRAM_PORTA_addr),
+    .din(BRAM_PORTA_din),
+    .dout(AD9361_REG_DOUT),
+    .wen(BRAM_PORTA_we),
+    .ad9361_rstb(AD9361_RST),
+    .ad9361_en(AD9361_EN)
+  );
+
+CBusReadMerge cbmerge
+  (
+    .clk(BRAM_PORTA_clk),
+    .rst(BRAM_PORTA_rst),
+    .en(BRAM_PORTA_en),
+    .addr(BRAM_PORTA_addr),
+    .dout(BRAM_PORTA_dout),
+    .axi2s_dout(AXI2S_REG_DOUT),
+    .ad9361_dout(AD9361_REG_DOUT)  
+  );
+
+
 assign     rst = 1'b0;
 assign    sync = 1'b0;
 assign     Ien = 1'b1;
@@ -397,9 +425,6 @@ assign AD9361_SPI_CLK = SCK;
 assign AD9361_SPI_DI  = MOSI;
 assign AD9361_SPI_DO  = MISO;
 assign AD9361_SPI_ENB = SS;
-
-assign AD9361_RST = 1'b1;
-assign AD9361_EN  = 1'b0;
 
 `ifdef TEST
 assign    Sclk = SYS_CLK;

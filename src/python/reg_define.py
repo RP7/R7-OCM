@@ -17,7 +17,7 @@ def loadFromVerilog(fn,addr):
 				s = len(x)
 				line = line[s:]
 				#print x,line
-				m = re.match(r"\s+8",line)
+				m = re.match(r"\s+18",line)
 				if m:
 					s = len(m.group(0))
 					a = int(line[s+2:],16)

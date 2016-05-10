@@ -29,7 +29,7 @@ module AXI2SREG
 		adj_pending
 	);
 
-	parameter BASE = 18'h00000;
+	parameter BASE = `AXI2SREG_BASE;
 
 	input clk,rst,en,wen;
 	input [31:0]din;
@@ -61,7 +61,6 @@ module AXI2SREG
 always @(posedge clk or posedge rst)
 begin
 	if(rst) begin
-		dout      <= 32'h00000000;
 		ien       <= 1'b0;
 		oen       <= 1'b0;
 		tddmode   <= 1'b0;
@@ -77,90 +76,96 @@ begin
 		rend      <= 24'd1919;
 	end	
 	else if(clk) begin
-		if(addr[17:8]==BASE[17:8] && en==1'b1 ) begin
+		if( en==1'b1 ) begin
 			// write
 			if( wen==1'b1 ) begin
-				case( addr[7:0] )
-					// define AXI2S_EN        8'h00
+				case( addr )
+					// define AXI2S_EN        18'h00
 					`AXI2S_EN: begin
 						ien <= din[0];
 						oen <= din[1];
 						tddmode <= din[2];
 					end
-					// define AXI2S_IBASE     8'h10
+					// define AXI2S_IBASE     18'h10
 					`AXI2S_IBASE: begin
 						ibase <= din;
 					end
-					// define AXI2S_ISIZE     8'h14
+					// define AXI2S_ISIZE     18'h14
 					`AXI2S_ISIZE: begin
 						isize <= din[23:6];
 					end
-					// define AXI2S_OBASE     8'h18
+					// define AXI2S_OBASE     18'h18
 					`AXI2S_OBASE: begin
 						obase <= din;
 					end
-					// define AXI2S_OSIZE     8'h1C
+					// define AXI2S_OSIZE     18'h1C
 					`AXI2S_OSIZE: begin
 						osize <= din[23:6];
 					end
-					// define FRAME_LEN       8'h20
+					// define FRAME_LEN       18'h20
 					`FRAME_LEN: begin
 						frame_len <= din[23:0];
 					end
-					// define FRAME_ADJ       8'h24
+					// define FRAME_ADJ       18'h24
 					`FRAME_ADJ: begin
 						frame_adj <= din[23:0];
 					end
-					// define TSTART          8'h30
+					// define TSTART          18'h30
 					`TSTART: begin
 						tstart <= din[23:0];
 					end
-					// define TEND            8'h34
+					// define TEND            18'h34
 					`TEND: begin
 						tend <= din[23:0];
 					end
-					// define RSTART          8'h38
+					// define RSTART          18'h38
 					`RSTART: begin
 						rstart <= din[23:0];
 					end
-					// define REND            8'h3C
+					// define REND            18'h3C
 					`REND: begin
 						rend <= din[23:0];
 					end
 				endcase
 			end
-			case( addr[7:0] )
-				// define AXI2S_STATE     8'h00
-				`AXI2S_STATE: begin
-					dout[0] <= ien;
-					dout[1] <= oen;
-					dout[2] <= tddmode;
-					dout[3] <= adj_pending;
-					dout[31:4] <= 28'd0;
- 				end
- 				// define AXI2S_IACNT     8'h10
- 				`AXI2S_IACNT: begin
- 					dout[23:6] <= iacnt;
- 					dout[31:24] <= 8'd0;
- 					dout[5:0] <= 6'd0;
- 				end
- 				// define AXI2S_IBCNT     8'h14
- 				`AXI2S_IBCNT: begin
- 					dout <= ibcnt;
- 				end
- 				// define AXI2S_OACNT     8'h18
- 				`AXI2S_OACNT: begin
- 					dout[23:6] <= oacnt;
- 					dout[31:24] <= 8'd0;
- 					dout[5:0] <= 6'd0;
- 				end
- 				// define AXI2S_OBCNT     8'h1c
-				`AXI2S_OBCNT: begin
- 					dout <= obcnt;
- 				end
- 			endcase	
 		end
 	end
 end	
+
+always @(*) begin
+	if(addr[17:8]==BASE[17:8] && en==1'b1 ) begin
+		case( addr )
+			// define AXI2S_STATE     18'h00
+			`AXI2S_STATE: begin
+				dout[0] <= ien;
+				dout[1] <= oen;
+				dout[2] <= tddmode;
+				dout[3] <= adj_pending;
+				dout[31:4] <= 28'd0;
+			end
+			// define AXI2S_IACNT     18'h10
+			`AXI2S_IACNT: begin
+				dout[23:6] <= iacnt;
+				dout[31:24] <= 8'd0;
+				dout[5:0] <= 6'd0;
+			end
+			// define AXI2S_IBCNT     18'h14
+			`AXI2S_IBCNT: begin
+				dout <= ibcnt;
+			end
+			// define AXI2S_OACNT     18'h18
+			`AXI2S_OACNT: begin
+				dout[23:6] <= oacnt;
+				dout[31:24] <= 8'd0;
+				dout[5:0] <= 6'd0;
+			end
+			// define AXI2S_OBCNT     18'h1c
+			`AXI2S_OBCNT: begin
+				dout <= obcnt;
+			end
+		endcase
+	end
+	else dout <= 32'h0;	
+end
 
 endmodule

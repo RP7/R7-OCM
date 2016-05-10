@@ -180,6 +180,8 @@ add_files -norecurse src/rtl/S2A_controller.v
 add_files -norecurse src/rtl/AXI2S.v
 add_files -norecurse src/rtl/AXI2SREG.v
 add_files -norecurse src/rtl/reg_define.v
+add_files -norecurse src/rtl/CBusReadMerge.v
+add_files -norecurse src/rtl/AD9361REG.v
 add_files -norecurse test/cntSrc.v
 
 set_property top R7OCM_top [current_fileset]
