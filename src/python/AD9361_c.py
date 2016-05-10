@@ -2,13 +2,13 @@ import reg_define as reg
 from const import *
 import time
 import sys
-if c_system=='LINUX':
+if c_system=='Linux':
 	import dev_mem
 
 
 class AD9361_c:
 	def __init__(self):
-		if c_system=='LINUX':
+		if c_system=='Linux':
 			self.dev = dev_mem.dev_mem(AD9361_SPI_BASE,AD9361_SPI_SIZE)
 		self.order = {
 			  'SPIWrite'     : self.API_SPIWrite
@@ -40,7 +40,7 @@ class AD9361_c:
 		pass
 		
 	def readreg(self,regname):
-		if c_system=='LINUX':
+		if c_system=='Linux':
 			r = self.dev.ioread(reg.addr[regname])
 		else:
 			r = 0
@@ -48,7 +48,7 @@ class AD9361_c:
 		return r
 	
 	def writereg(self,regname,data):
-		if c_system=='LINUX':
+		if c_system=='Linux':
 			self.dev.iowrite(reg.addr[regname],data)
 		else:
 			print 'W:',regname, hex(data)
