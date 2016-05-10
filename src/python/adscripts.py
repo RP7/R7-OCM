@@ -23,7 +23,7 @@ def parse(line,order=None):
 
 def main():
 	path = os.path.split(os.path.realpath(__file__))[0]
-	fn = path+"/../../temp/test.reg"
+	fn = path+"/../../AD9361/ad9361_config.reg"
 	f = open(fn)
 	ad = AD9361_c.AD9361_c()
 	for x in f.readlines():
