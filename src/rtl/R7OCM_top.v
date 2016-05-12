@@ -41,6 +41,9 @@ module R7OCM_top
     GMII_MDIO,
     GMII_MDIO_MDC,
     GMII_GE_IND,
+    /////////////////// RF
+    PA_EN,
+    RF_SW,
     /////////////////// AD9361
     AD9361_RST,
     AD9361_EN,
@@ -111,6 +114,9 @@ module R7OCM_top
   inout GMII_MDIO;
   output GMII_MDIO_MDC;
   input GMII_GE_IND;
+// RF
+  output PA_EN;
+  output RF_SW;
 // AD9361
   output AD9361_RST;
   output AD9361_EN;
@@ -444,8 +450,9 @@ AD9361REG ad9361_reg_space
     .ad9361_en(AD9361_EN),
     .ad9361_tx_rx(AD9361_Tx_Rx),
     .ad9361_en_agc(AD9361_EN_AGC),
-    .rf_ctrl_in(RF_CTRL_IN)
-    
+    .rf_ctrl_in(RF_CTRL_IN),
+    .pa_en(PA_EN),
+    .rf_sw(RF_SW)
   );
 
 CBusReadMerge cbmerge

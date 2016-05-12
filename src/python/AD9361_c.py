@@ -4,6 +4,7 @@ import time
 import sys
 if c_system=='Linux':
 	import dev_mem
+import math
 
 
 class AD9361_c:
@@ -140,6 +141,60 @@ class AD9361_c:
 				time.sleep(0.01)
 				t -= 10
 
+	def RFFreqCalc(self,ref,f):
+		VCO_Divider = math.floor(math.log(12e9/f)/math.log(2.))
+		F_RFPLL = (2**VCO_Divider)*f
+		n = F_RFPLL/(ref*2)
+		N_integer = int(math.floor(n))
+		N_fractional = int(round(8388593.*(n-N_integer)))
+		return (VCO_Divider-1,N_integer,N_fractional)
+
+	def Set_Tx_freq(self,ref,f):
+		(D,I,F)=self.RFFreqCalc(ref,f)
+		div = self.readByte(0x5)
+		div &= 0xf
+		div |= D<<4
+		IL = I&0xff
+		IH = I>>8
+		IH &= 0x3
+		FL = F&0xff
+		FM = (F>>8)&0xff
+		FH = (F>>16)&0x7f
+		self.writeByte(0x271,IL)
+		self.writeByte(0x272,IH)
+		self.writeByte(0x273,FL)
+		self.writeByte(0x274,FM)
+		self.writeByte(0x275,FH)
+		self.writeByte(5,div)
+		self.API_WAIT_CALDONE("WAIT_CALDONE	TXCP,100")
+
+	def Set_Rx_freq(self,ref,f):
+		(D,I,F)=self.RFFreqCalc(ref,f)
+		div = self.readByte(0x5)
+		div &= 0xf0
+		div |= D
+		IL = I&0xff
+		IH = I>>8
+		IH &= 0x3
+		FL = F&0xff
+		FM = (F>>8)&0xff
+		FH = (F>>16)&0x7f
+		self.writeByte(0x231,IL)
+		self.writeByte(0x232,IH)
+		self.writeByte(0x233,FL)
+		self.writeByte(0x234,FM)
+		self.writeByte(0x235,FH)
+		self.writeByte(5,div)
+		self.API_WAIT_CALDONE("WAIT_CALDONE	RXCP,100")
+		
+
+		
+
+
+
+
+
+
 
 
 def main():
@@ -157,7 +212,9 @@ def main():
 			elif len(sys.argv)==4:
 				uut.writeByte(int(sys.argv[2],16),int(sys.argv[3],16))
 	else:
-		uut.read('SPI_Config')
+		uut.readreg('SPI_Config')
+		(D,I,F) = uut.RFFreqCalc(25e6,835e6)
+		print D,hex(I),hex(F)
 
 if __name__ == '__main__':
 	main()

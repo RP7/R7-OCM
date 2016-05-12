@@ -13,7 +13,9 @@ module AD9361REG
 		ad9361_en,
 		ad9361_tx_rx,
     ad9361_en_agc,
-    rf_ctrl_in
+    rf_ctrl_in,
+    pa_en,
+    rf_sw
 	);
 
 	parameter BASE = `AD9361REG_BASE;
@@ -26,6 +28,7 @@ module AD9361REG
 	output [31:0]dout;
 	output reg ad9361_tx_rx,ad9361_en_agc;
 	output reg [3:0]rf_ctrl_in;
+	output reg pa_en,rf_sw;
 	
 always @(posedge clk or posedge rst)
 begin
@@ -35,6 +38,8 @@ begin
 		ad9361_tx_rx  <= 1'b0;
 		ad9361_en_agc <= 1'b0;
 		rf_ctrl_in    <= 1'h0;
+		rf_sw         <= 1'b0;
+		pa_en         <= 1'b0;
 	end	
 	else if(clk) begin
 		if( en==1'b1 ) begin
@@ -51,6 +56,10 @@ begin
 					`AD9361_EN_AGC: ad9361_en_agc <= din[0];
 					// define RF_CTRL_IN    18'h140
 					`RF_CTRL_IN: rf_ctrl_in <= din[3:0];
+					// define RF_SW    18'h150
+					`RF_SW: rf_sw <= din[0];
+					// define PA_EN    18'h160
+					`PA_EN: pa_en <= din[0];
 				endcase
 			end
 		end

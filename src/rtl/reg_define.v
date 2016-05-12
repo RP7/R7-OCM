@@ -26,3 +26,5 @@
 `define AD9361_TX_RX    18'h00120
 `define AD9361_EN_AGC   18'h00130
 `define RF_CTRL_IN      18'h00140
+`define RF_SW           18'h00150
+`define PA_EN           18'h00160

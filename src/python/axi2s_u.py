@@ -1,6 +1,7 @@
 import dev_mem
 from const import *
 import sys
+import json
 
 class axi2s_u:
 	def __init__(self):
@@ -15,6 +16,19 @@ class axi2s_u:
 			for k in range(16):
 				print "%08x"%(r[i+k]),
 			print ""
+	def idata(self):
+		d = self.dev.memread(0,1024)
+		x = []
+		i = []
+		for n in range(1024):
+			x.append(n)
+			z = d[n]&0xffff
+			if z>32767:
+				z -= 65536
+			i.append(z)
+		r = {'freq':x,'power':i}
+		return json.dumps(r)
+		
 		
 def main():
 	uut = axi2s_u()
