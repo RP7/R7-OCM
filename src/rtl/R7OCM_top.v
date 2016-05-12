@@ -45,7 +45,7 @@ module R7OCM_top
     AD9361_RST,
     AD9361_EN,
 
-    AD9361_TX_RX,           
+    AD9361_Tx_Rx,           
     AD9361_EN_AGC,          
     
     AD9361_RX_Frame_P,      
@@ -115,25 +115,25 @@ module R7OCM_top
   output AD9361_RST;
   output AD9361_EN;
 
-  output AD9361_TX_RX;          //          : out std_logic;
+  output AD9361_Tx_Rx;          //          : out std_logic;
   output AD9361_EN_AGC;         //          : out std_logic;
 
-  input  AD9361_RX_Frame_P;     //          : in    std_logic;
+  input  AD9361_RX_Frame_P;     //          : in  std_logic;
   input  AD9361_RX_Frame_N;     //          : in  std_logic;
   input  AD9361_DATA_CLK_P;     //          : in  std_logic;
   input  AD9361_DATA_CLK_N;     //          : in  std_logic;
   input  [5:0]AD9361_RX_DATA_P; //          : in  std_logic_vector(5 downto 0);
   input  [5:0]AD9361_RX_DATA_N; //          : in  std_logic_vector(5 downto 0);
 
-  output AD9361_TX_Frame_P;     //          : out   std_logic;
-  output AD9361_TX_Frame_N;     //          : out   std_logic;
-  output AD9361_FB_CLK_P;       //          : out   std_logic;
+  output AD9361_TX_Frame_P;     //          : out std_logic;
+  output AD9361_TX_Frame_N;     //          : out std_logic;
+  output AD9361_FB_CLK_P;       //          : out std_logic;
   output AD9361_FB_CLK_N;       //          : out std_logic;
-  output [5:0]AD9361_TX_DATA_P; //          : out   std_logic_vector(5 downto 0);
-  output [5:0]AD9361_TX_DATA_N; //          : out   std_logic_vector(5 downto 0);
+  output [5:0]AD9361_TX_DATA_P; //          : out std_logic_vector(5 downto 0);
+  output [5:0]AD9361_TX_DATA_N; //          : out std_logic_vector(5 downto 0);
 
-  output [3:0]RF_CTRL_IN;            //          : out   std_logic_vector(3 downto 0);
-  input  [7:0]RF_CTRL_OUT;      //          : in std_logic_vector(7 downto 0);
+  output [3:0]RF_CTRL_IN;       //          : out std_logic_vector(3 downto 0);
+  input  [7:0]RF_CTRL_OUT;      //          : in  std_logic_vector(7 downto 0);
 // AD9361 SPI  
   inout AD9361_SPI_CLK;
   inout AD9361_SPI_ENB;
@@ -442,7 +442,7 @@ AD9361REG ad9361_reg_space
     .wen(BRAM_PORTA_we),
     .ad9361_rstb(AD9361_RST),
     .ad9361_en(AD9361_EN),
-    .ad9361_tx_rx(AD9361_TX_RX),
+    .ad9361_tx_rx(AD9361_Tx_Rx),
     .ad9361_en_agc(AD9361_EN_AGC),
     .rf_ctrl_in(RF_CTRL_IN)
     

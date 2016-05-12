@@ -128,3 +128,19 @@
 >     bit 0：高使能
 >     --------------	
 >     只写,缺省值0x0
+
+* AD9361 TX_RX	`20`	
+>     bit 0：0-Rx 1-Tx
+>     When using FDD (register 0x013[0] = 1), FDD TXON/RXON Independent Control mode allows the receive chain and transmit chain to be enabled independently. This mode is enabled by setting register 0x015[7] =1. Note, SPI writes must be used to move the ENSM into the FDD state. The ENABLE and TXNRX pins are remapped to RXON and TXON, respectively. 
+>     --------------	
+>     只写,缺省值0x0
+
+* AD9361 EN_AGC	`30`	
+>     bit 0：1-AGC 0-MGC
+>     --------------	
+>     只写,缺省值0x0
+
+* RF CNTL IN	`40`	
+>     bit 3-0：
+>     --------------	
+>     只写,缺省值0x0

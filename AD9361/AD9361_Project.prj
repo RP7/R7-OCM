@@ -48,7 +48,7 @@ reg006 (Delay Cell) = 15
 reg007 = 0    
 reg03C LVDS = 33    
 reg03D LVDS Invert = 255    
-reg03E LVDS Invert = 223    
+reg03E LVDS Invert = 255    
 Reg035 = 0    
 Reg036 = 255    
 
