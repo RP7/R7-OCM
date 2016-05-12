@@ -50,7 +50,7 @@ module ad9361_1t1r
 	wire clk_out;
 	wire [13:0]rx;
 
-	reg [11:0]rx_h;
+	reg [13:0]rx_h;
 	reg [13:0]tx;
 	reg [11:0]tx_I_reg;
 	reg [11:0]tx_Q_reg;
@@ -65,25 +65,25 @@ ddr_rx rx_if (
   .data_in_to_device(rx)      // output wire [13 : 0] data_in_to_device
 );
 ddr_tx tx_if (
-  .data_out_to_pins_p(AD9361_TX_DATA_P),      // output wire [6 : 0] data_out_to_pins_p
-  .data_out_to_pins_n(AD9361_TX_DATA_N),      // output wire [6 : 0] data_out_to_pins_n
+  .data_out_to_pins_p({AD9361_TX_Frame_P,AD9361_TX_DATA_P}),      // output wire [6 : 0] data_out_to_pins_p
+  .data_out_to_pins_n({AD9361_TX_Frame_N,AD9361_TX_DATA_N}),      // output wire [6 : 0] data_out_to_pins_n
   .clk_in(clk_out),                              // input wire clk_in
   .data_out_from_device(tx),  // input wire [13 : 0] data_out_from_device
   .clk_reset(rst),                        // input wire clk_reset
   .io_reset(rst),                          // input wire io_reset
-  .clk_to_pins_p(AD9361_TX_DATA_P),                // output wire clk_to_pins_p
-  .clk_to_pins_n(AD9361_TX_DATA_N)                // output wire clk_to_pins_n
+  .clk_to_pins_p(AD9361_FB_CLK_P),                // output wire clk_to_pins_p
+  .clk_to_pins_n(AD9361_FB_CLK_N)                // output wire clk_to_pins_n
 );
 always @(posedge clk_out or posedge rst) begin
 	if (rst) begin
-		rx_h <= 12'h0;
+		rx_h <= 14'h0;
 		rx_I <= 12'h0;
 		rx_Q <= 12'h0;
 		rx_ce <= 1'b0;
 	end
 	else if (rx[13]==1'b1) begin
 		rx_ce <= 1'b1;
-		rx_h <= rx[11:0];
+		rx_h <= rx;
 	end
 	else if(rx_ce==1'b1) begin
 		rx_ce <= 1'b0;
@@ -120,3 +120,5 @@ always @(posedge clk_out or posedge rst) begin
 		tx[13]   <= 1'b0;
 	end
 end
+
+endmodule
