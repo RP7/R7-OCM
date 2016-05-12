@@ -42,8 +42,8 @@ WAIT_CALDONE	BBPLL,2000	// Wait for BBPLL to lock, Timeout 2sec, Max BBPLL VCO C
 
 SPIRead	05E	// Check BBPLL locked status  (0x05E[7]==1 is locked)
 
-SPIWrite	002,DE	// Setup Tx Digital Filters/ Channels
-SPIWrite	003,DE	// Setup Rx Digital Filters/ Channels
+SPIWrite	002,5E	// Setup Tx Digital Filters/ Channels
+SPIWrite	003,5E	// Setup Rx Digital Filters/ Channels
 SPIWrite	004,03	// Select Rx input pin(A,B,C)/ Tx out pin (A,B)
 SPIWrite	00A,05	// Set BBPLL post divide rate
 

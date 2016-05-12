@@ -44,6 +44,26 @@ module R7OCM_top
     /////////////////// AD9361
     AD9361_RST,
     AD9361_EN,
+
+    AD9361_TX_RX,           
+    AD9361_EN_AGC,          
+    
+    AD9361_RX_Frame_P,      
+    AD9361_RX_Frame_N,      
+    AD9361_DATA_CLK_P,      
+    AD9361_DATA_CLK_N,      
+    AD9361_RX_DATA_P,       
+    AD9361_RX_DATA_N,       
+    
+    AD9361_TX_Frame_P,      
+    AD9361_TX_Frame_N,      
+    AD9361_FB_CLK_P,        
+    AD9361_FB_CLK_N,        
+    AD9361_TX_DATA_P,       
+    AD9361_TX_DATA_N,       
+    
+    RF_CTRL_IN,             
+    RF_CTRL_OUT, 
     /////////////////// AD9361 SPI
     AD9361_SPI_CLK, //         : out   std_logic;
     AD9361_SPI_ENB, //         : out   std_logic;
@@ -54,7 +74,6 @@ module R7OCM_top
     TEST_LED
   );
 
-  `define LOOP
   input SYS_CLK; 
 
   inout [14:0]DDR_addr;
@@ -95,6 +114,26 @@ module R7OCM_top
 // AD9361
   output AD9361_RST;
   output AD9361_EN;
+
+  output AD9361_TX_RX;          //          : out std_logic;
+  output AD9361_EN_AGC;         //          : out std_logic;
+
+  input  AD9361_RX_Frame_P;     //          : in    std_logic;
+  input  AD9361_RX_Frame_N;     //          : in  std_logic;
+  input  AD9361_DATA_CLK_P;     //          : in  std_logic;
+  input  AD9361_DATA_CLK_N;     //          : in  std_logic;
+  input  [5:0]AD9361_RX_DATA_P; //          : in  std_logic_vector(5 downto 0);
+  input  [5:0]AD9361_RX_DATA_N; //          : in  std_logic_vector(5 downto 0);
+
+  output AD9361_TX_Frame_P;     //          : out   std_logic;
+  output AD9361_TX_Frame_N;     //          : out   std_logic;
+  output AD9361_FB_CLK_P;       //          : out   std_logic;
+  output AD9361_FB_CLK_N;       //          : out std_logic;
+  output [5:0]AD9361_TX_DATA_P; //          : out   std_logic_vector(5 downto 0);
+  output [5:0]AD9361_TX_DATA_N; //          : out   std_logic_vector(5 downto 0);
+
+  output [3:0]RF_CTRL_IN;            //          : out   std_logic_vector(3 downto 0);
+  input  [7:0]RF_CTRL_OUT;      //          : in std_logic_vector(7 downto 0);
 // AD9361 SPI  
   inout AD9361_SPI_CLK;
   inout AD9361_SPI_ENB;
@@ -165,6 +204,8 @@ module R7OCM_top
 
   wire [31:0]Sin;
   wire [31:0]Sout;
+  wire [11:0]Rx_I;
+  wire [11:0]Rx_Q;
   
   wire [31:0] AXI_IBASE;
   wire [31:0] AXI_OBASE;
@@ -400,7 +441,11 @@ AD9361REG ad9361_reg_space
     .dout(AD9361_REG_DOUT),
     .wen(BRAM_PORTA_we),
     .ad9361_rstb(AD9361_RST),
-    .ad9361_en(AD9361_EN)
+    .ad9361_en(AD9361_EN),
+    .ad9361_tx_rx(AD9361_TX_RX),
+    .ad9361_en_agc(AD9361_EN_AGC),
+    .rf_ctrl_in(RF_CTRL_IN)
+    
   );
 
 CBusReadMerge cbmerge
@@ -414,11 +459,35 @@ CBusReadMerge cbmerge
     .ad9361_dout(AD9361_REG_DOUT)  
   );
 
+ad9361_1t1r ad_if
+(
+    .AD9361_RX_Frame_P(AD9361_RX_Frame_P),      
+    .AD9361_RX_Frame_N(AD9361_RX_Frame_N),      
+    .AD9361_DATA_CLK_P(AD9361_DATA_CLK_P),      
+    .AD9361_DATA_CLK_N(AD9361_DATA_CLK_N),      
+    .AD9361_RX_DATA_P(AD9361_RX_DATA_P),       
+    .AD9361_RX_DATA_N(AD9361_RX_DATA_N),       
 
+    .AD9361_TX_Frame_P(AD9361_TX_Frame_P),      
+    .AD9361_TX_Frame_N(AD9361_TX_Frame_N),      
+    .AD9361_FB_CLK_P(AD9361_FB_CLK_P),        
+    .AD9361_FB_CLK_N(AD9361_FB_CLK_N),        
+    .AD9361_TX_DATA_P(AD9361_TX_DATA_P),       
+    .AD9361_TX_DATA_N(AD9361_TX_DATA_N),
+
+    .clk(Sclk),
+    .rst(rst),
+    .rx_I(Rx_I),
+    .rx_Q(Rx_Q),
+    .tx_I(Sout[11:0]),
+    .tx_Q(Sout[27:0]),
+    .rx_ce(Ien),
+    .tx_ce(Oen)       
+  );
+assign Sin[15:0]  = {Rx_I[11],Rx_I[11],Rx_I[11],Rx_I[11],Rx_I[11:0]};
+assign Sin[31:16] = {Rx_Q[11],Rx_Q[11],Rx_Q[11],Rx_Q[11],Rx_Q[11:0]};
 assign     rst = 1'b0;
 assign    sync = 1'b0;
-assign     Ien = 1'b1;
-assign     Oen = 1'b1;
 assign AXI_clk = FCLK_CLK1;
 
 assign AD9361_SPI_CLK = SCK;
@@ -426,23 +495,4 @@ assign AD9361_SPI_DI  = MOSI;
 assign AD9361_SPI_DO  = MISO;
 assign AD9361_SPI_ENB = SS;
 
-`ifdef TEST
-assign    Sclk = SYS_CLK;
-cntSrc #(.up(1'b0)) Isrc
-  (
-    .clk(Sclk),
-    .rst(rst),
-    .Cout(Sin[15:0])
-  );
-cntSrc #(.up(1'b1)) Qsrc
-  (
-    .clk(Sclk),
-    .rst(rst),
-    .Cout(Sin[31:16])
-  );
-`endif
-`ifdef LOOP
-assign    Sclk = SYS_CLK;
-assign     Sin = Sout;
-`endif
 endmodule

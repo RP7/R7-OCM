@@ -17,6 +17,10 @@ class AD9361_c:
 			, 'WAIT_CALDONE' : self.API_WAIT_CALDONE
 			}
 		"""
+		Reg 0x16
+    D7   D6   D5     D4     D3     D2        D1   D0
+    RXBB TXBB RXQuad TXQuad RXGain TXMonitor RFDC Baseband
+
 		WAIT_CALDONE	BBPLL,2000	// Wait for BBPLL to lock, Timeout 2sec, Max BBPLL VCO Cal Time: 552.960 us (Done when 0x05E[7]==1)
 		WAIT_CALDONE	RXCP,100	// Wait for CP cal to complete, Max RXCP Cal time: 737.280 (us)(Done when 0x244[7]==1)
 		WAIT_CALDONE	TXCP,100	// Wait for CP cal to complete, Max TXCP Cal time: 737.280 (us)(Done when 0x284[7]==1)
@@ -32,9 +36,12 @@ class AD9361_c:
 			'TXCP' 		  :{'reg':0x284,'mask':0x80,'done':0x80},
 			'RXFILTER'  :{'reg':0x016,'mask':0x80,'done':0x00},
 			'TXFILTER'  :{'reg':0x016,'mask':0x40,'done':0x00},
-			'BBDC'      :{'reg':0x016,'mask':0x01,'done':0x00},
+			'RXQUAD'    :{'reg':0x016,'mask':0x20,'done':0x00},
+			'TXQUAD'    :{'reg':0x016,'mask':0x10,'done':0x00},
+			'RXGAIN'    :{'reg':0x016,'mask':0x08,'done':0x00},
+			'TXMON'     :{'reg':0x016,'mask':0x04,'done':0x00},
 			'RFDC'      :{'reg':0x016,'mask':0x02,'done':0x00},
-			'TXQUAD'    :{'reg':0x016,'mask':0x10,'done':0x00}
+			'BBDC'      :{'reg':0x016,'mask':0x01,'done':0x00}
 		}
 	def init(self):
 		pass
@@ -137,9 +144,6 @@ class AD9361_c:
 
 def main():
 	uut = AD9361_c()
-	#uut.writereg('SPI_Intrpt_en',0x3f)
-	#uut.writereg('SPI_En',0)
-	#uut.writereg('SPI_En',1)
 	
 	if len(sys.argv)>1:
 		if sys.argv[1]=='S':

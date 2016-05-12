@@ -173,6 +173,20 @@ generate_target all [get_files R7OCM.srcs/sources_1/ip/clk_wiz_0/clk_wiz_0.xci]
 create_ip_run [get_files -of_objects [get_fileset sources_1] R7OCM.srcs/sources_1/ip/clk_wiz_0/clk_wiz_0.xci]
 launch_run  clk_wiz_0_synth_1
 
+create_ip -name selectio_wiz -vendor xilinx.com -library ip -version 5.1 -module_name ddr_rx
+set_property -dict [list CONFIG.BUS_SIG_TYPE {DIFF} CONFIG.BUS_IO_STD {LVDS_25} CONFIG.SELIO_ACTIVE_EDGE {DDR} CONFIG.SYSTEM_DATA_WIDTH {7} CONFIG.SELIO_DDR_ALIGNMENT {SAME_EDGE} CONFIG.SELIO_CLK_SIG_TYPE {DIFF} CONFIG.SELIO_CLK_IO_STD {LVDS_25} CONFIG.CLK_FWD_SIG_TYPE {DIFF} CONFIG.CLK_FWD_IO_STD {LVDS_25}] [get_ips ddr_rx]
+generate_target {instantiation_template} [get_files R7-OCM/R7OCM.srcs/sources_1/ip/ddr_rx/ddr_rx.xci]
+generate_target all [get_files R7-OCM/R7OCM.srcs/sources_1/ip/ddr_rx/ddr_rx.xci]
+create_ip_run [get_files -of_objects [get_fileset sources_1] R7-OCM/R7OCM.srcs/sources_1/ip/ddr_rx/ddr_rx.xci]
+launch_run  ddr_rx_synth_1
+
+create_ip -name selectio_wiz -vendor xilinx.com -library ip -version 5.1 -module_name ddr_tx
+set_property -dict [list CONFIG.BUS_DIR {OUTPUTS} CONFIG.BUS_SIG_TYPE {DIFF} CONFIG.BUS_IO_STD {LVDS_25} CONFIG.SELIO_ACTIVE_EDGE {DDR} CONFIG.SYSTEM_DATA_WIDTH {7} CONFIG.SELIO_CLK_BUF {MMCM} CONFIG.CLK_FWD {true} CONFIG.SELIO_CLK_SIG_TYPE {DIFF} CONFIG.SELIO_CLK_IO_STD {LVDS_25} CONFIG.CLK_FWD_SIG_TYPE {DIFF} CONFIG.CLK_FWD_IO_STD {LVDS_25}] [get_ips ddr_tx]
+generate_target {instantiation_template} [get_files R7-OCM/R7OCM.srcs/sources_1/ip/ddr_tx/ddr_tx.xci]
+generate_target all [get_files  R7-OCM/R7OCM.srcs/sources_1/ip/ddr_tx/ddr_tx.xci]
+create_ip_run [get_files -of_objects [get_fileset sources_1] R7-OCM/R7OCM.srcs/sources_1/ip/ddr_tx/ddr_tx.xci]
+launch_run  ddr_tx_synth_1
+
 add_files -norecurse src/rtl/R7OCM_top.v
 add_files -norecurse src/rtl/GE_patch.v
 add_files -norecurse src/rtl/A2S_controller.v

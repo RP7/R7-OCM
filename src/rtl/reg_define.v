@@ -23,3 +23,6 @@
 /* AD9361 Control Signal */
 `define AD9361_RST			18'h00100
 `define AD9361_EN				18'h00110
+`define AD9361_TX_RX    18'h00120
+`define AD9361_EN_AGC   18'h00130
+`define RF_CTRL_IN      18'h00140
