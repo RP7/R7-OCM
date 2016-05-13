@@ -20,7 +20,6 @@ var option = {
             }
   , xAxis: {  type: 'value'
   					, boundaryGap: false
-  					, data : []
   					, min: -500
   					, max: 500
             }
@@ -63,9 +62,12 @@ var option = {
 
 var newdata = function(myChart) {
             $.getJSON('/data').done( function(data) {
+              var ss = [];
+              for (var i = 0; i < data.freq.length; i++) {
+                ss.push([data.freq[i],data.power[i]]);
+              };
             	var newoption = {
-            		  xAxis : { data:data.freq}
-            		,	series : [{ name:'Spectrum', data:data.power}]
+            		  series : [{ name:'Spectrum', data:ss}]
             	};
             	myChart.setOption(newoption);
     });
