@@ -27,6 +27,7 @@ class axi2s_u:
 				z -= 65536
 			i.append(z)
 		r = {'freq':x,'power':i}
+		print 'ocm read',r['power'][:10]
 		return json.dumps(r)
 		
 		

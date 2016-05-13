@@ -13,9 +13,12 @@
     <script type="text/javascript">
         // 基于准备好的dom，初始化echarts实例
         var myChart = echarts.init(document.getElementById('main'));
-        
+        var app = {};
+
         // 指定图表的配置项和数据
-        $.getJSON('/data').done(function(data){
+        
+        var newdata = function() {
+            $.getJSON('/data').done(function(data){
             var option = {
             tooltip: {
             trigger: 'axis',
@@ -87,6 +90,8 @@
             };
         myChart.setOption(option);
     });
+    };
+    app.timeTicket = setInterval(newdata, 500);
 
     </script>
 </body>

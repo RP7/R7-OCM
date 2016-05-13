@@ -187,16 +187,6 @@ class AD9361_c:
 		self.writeByte(5,div)
 		self.API_WAIT_CALDONE("WAIT_CALDONE	RXCP,100")
 		
-
-		
-
-
-
-
-
-
-
-
 def main():
 	uut = AD9361_c()
 	

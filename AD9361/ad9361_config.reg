@@ -1608,8 +1608,8 @@ SPIWrite	006,0F	// PPORT Rx Delay (adjusts Tco Dataclk->Data)
 SPIWrite	007,00	// PPORT TX Delay (adjusts setup/hold FBCLK->Data)
 
 SPIWrite	03C,21	// CLK_OUT slew; LVDS: Rx Term; Bypass Bias R; Tx LO VCM; Bias[2:0]
-SPIWrite	03D,00	// LVDS polarity invert
-SPIWrite	03E,00	// LVDS polarity invert
+SPIWrite	03D,FF	// LVDS polarity invert
+SPIWrite	03E,FF	// LVDS polarity invert
 
 //************************************************************
 // Setup AuxDAC
@@ -1675,7 +1675,7 @@ SPIWrite	23D,00	// Clear Half VCO cal clock setting
 SPIWrite	27D,00	// Clear Half VCO cal clock setting
 
 SPIWrite	015,0C	// Set Dual Synth mode bit
-SPIWrite	014,15	// Set Force ALERT State bit
+SPIWrite	014,1D	// Set Force ALERT State bit
 SPIWrite	013,01	// Set ENSM FDD mode
 WAIT	1	// waits 1 ms
 

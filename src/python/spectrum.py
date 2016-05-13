@@ -20,11 +20,12 @@ if __name__ == "__main__":
 	fn = path+"/../../AD9361/ad9361_config.reg"
 	f = open(fn)
 	ad = AD9361_c.AD9361_c()
-	ad.writereg('AD9361_EN',1)
 	for x in f.readlines():
 		adscripts.parse(x,ad.order)
 	uut = axi2s_c.axi2s_c()
 	uut.init()
+	uut.write('AD9361_EN',1)
+	uut.check()
 
 	app = web.application(urls, globals())
 	app.run()

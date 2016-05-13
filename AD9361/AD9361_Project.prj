@@ -53,7 +53,7 @@ Reg035 = 0
 Reg036 = 255    
 
 [ENSM Settings]
-reg014 = 17    
+reg014 = 25    
 reg015 = 12    
 VCO Cal Time = 3    
 reg013 = 1    
