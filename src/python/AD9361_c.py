@@ -5,6 +5,7 @@ import sys
 if c_system=='Linux':
 	import dev_mem
 import math
+import axi2s_c
 
 
 class AD9361_c:
@@ -44,9 +45,16 @@ class AD9361_c:
 			'RFDC'      :{'reg':0x016,'mask':0x02,'done':0x00},
 			'BBDC'      :{'reg':0x016,'mask':0x01,'done':0x00}
 		}
+		self.ensm_db = ['SLEEP/WAIT','CALIBRATION','CALIBRATION', 'CALIBRATION', 'WAIT to ALERT delay', 'ALERT', 'TX', 'TX FLUSH', 'RX', 'RX FLUSH', 'FDD', 'FDD FLUSH']
+		self.cntr = axi2s_c.axi2s_c()
+	def cntrWrite(self,addr,d):
+		self.cntr.write(addr,d)
+
 	def init(self):
 		pass
-		
+	def deinit(self):
+		self.dev.deinit()
+
 	def readreg(self,regname):
 		if c_system=='Linux':
 			r = self.dev.ioread(reg.addr[regname])
@@ -147,9 +155,10 @@ class AD9361_c:
 		n = F_RFPLL/(ref*2)
 		N_integer = int(math.floor(n))
 		N_fractional = int(round(8388593.*(n-N_integer)))
-		return (VCO_Divider-1,N_integer,N_fractional)
+		return (int(VCO_Divider)-1,N_integer,N_fractional)
 
 	def Set_Tx_freq(self,ref,f):
+		self.cntrWrite('AD9361_EN',0)
 		(D,I,F)=self.RFFreqCalc(ref,f)
 		div = self.readByte(0x5)
 		div &= 0xf
@@ -166,9 +175,22 @@ class AD9361_c:
 		self.writeByte(0x274,FM)
 		self.writeByte(0x275,FH)
 		self.writeByte(5,div)
-		self.API_WAIT_CALDONE("WAIT_CALDONE	TXCP,100")
+		self.API_WAIT_CALDONE(["TXCP","100"])
+		r = self.ENSM(1)
+		timeout = 10
+		while r!=0xa:
+			self.cntrWrite('AD9361_EN',0)
+			time.sleep(1)
+			self.cntrWrite('AD9361_EN',1)
+			time.sleep(1)
+			r = self.ENSM(1)
+			timeout -= 1
+			if timeout<0:
+				break
 
+		
 	def Set_Rx_freq(self,ref,f):
+		self.cntrWrite('AD9361_EN',0)
 		(D,I,F)=self.RFFreqCalc(ref,f)
 		div = self.readByte(0x5)
 		div &= 0xf0
@@ -185,8 +207,25 @@ class AD9361_c:
 		self.writeByte(0x234,FM)
 		self.writeByte(0x235,FH)
 		self.writeByte(5,div)
-		self.API_WAIT_CALDONE("WAIT_CALDONE	RXCP,100")
+		self.API_WAIT_CALDONE(["RXCP","100"])
+		r = self.ENSM(1)
+		timeout = 10
+		while r!=0xa:
+			self.cntrWrite('AD9361_EN',0)
+			time.sleep(1)
+			self.cntrWrite('AD9361_EN',1)
+			time.sleep(1)
+			r = self.ENSM(1)
+			timeout -= 1
+			if timeout<0:
+				break
 		
+	def ENSM(self,p=None):
+		r = self.readByte(0x17)&0xf
+		if p and r<12:
+			print 'ENSM:',r,self.ensm_db[r]
+		return r
+
 def main():
 	uut = AD9361_c()
 	

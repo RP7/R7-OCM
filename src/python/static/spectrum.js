@@ -18,20 +18,24 @@ var option = {
   												, saveAsImage: {show: true}
                 }
             }
-  , xAxis: {  type: 'category'
+  , xAxis: {  type: 'value'
   					, boundaryGap: false
   					, data : []
+  					, min: -500
+  					, max: 500
             }
   , yAxis: {  type: 'value'
   					, boundaryGap: [0, '100%']
+  					, min: 0
+  					, max: 150
             }
   , dataZoom: [
   							{   type: 'inside'
   								, start: 0
-  								, end: 10
+  								, end: 100
             		}
             	, {   start: 0
-            		  , end: 10
+            		  , end: 100
             		}
             	]
   , backgroundColor:'rgb(255, 255, 255)'

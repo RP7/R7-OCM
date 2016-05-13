@@ -32,7 +32,9 @@ class axi2s_c:
 	def write(self,regname,data):
 		self.dev.iowrite(reg.addr[regname],data)
 		print 'W:',regname, hex(data)
-
+	def deinit(self):
+		self.dev.deinit()
+		
 def main():
 	uut = axi2s_c()
 	uut.init()

@@ -23,10 +23,17 @@ class dev_mem:
         self.mmap.seek(addr)
         memmove(buf,self.mmap.read(4*len),4*len)
         return buf
+    
+    def SetOffset(self,offset):
+        self.mmap.seek(offset)
 
     def memwrite(self,addr,buf):
         self.mmap.seek(addr)
         self.mmap.write(buf)
+
+    def deinit(self):
+        self.mmap.close()
+
 
 
 

@@ -1,7 +1,7 @@
 import dev_mem
 from const import *
 import sys
-import json
+import numpy as np
 
 class axi2s_u:
 	def __init__(self):
@@ -16,6 +16,7 @@ class axi2s_u:
 			for k in range(16):
 				print "%08x"%(r[i+k]),
 			print ""
+	
 	def idata(self):
 		d = self.dev.memread(0,1024)
 		x = []
@@ -28,9 +29,22 @@ class axi2s_u:
 			i.append(z)
 		r = {'freq':x,'power':i}
 		print 'ocm read',r['power'][:10]
-		return json.dumps(r)
+		return r
+	
+	def rfdata(self):
+		self.dev.SetOffset(0)
+		d = np.frombuffer(self.dev.mmap, dtype=np.int16, count=1920*2, offset=0)
+		d.shape = (1920,2)
+		iq = complex(1.,0.)*d[:,0]+complex(0.,1.)*d[:,1]
+		f = np.fft.fft(iq)
+		f = np.log10(np.abs(f))*20.
+		fl = f.tolist()
+		r = {'freq':range(-500,501),'power':fl[960-500:960+501]}
+		return r
 		
-		
+	def deinit(self):
+		self.dev.deinit()
+
 def main():
 	uut = axi2s_u()
 	uut.dump(int(sys.argv[1],16),int(sys.argv[2],16))
