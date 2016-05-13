@@ -25,8 +25,8 @@ var option = {
             }
   , yAxis: {  type: 'value'
   					, boundaryGap: [0, '100%']
-  					, min: 0
-  					, max: 150
+  					, min: 70
+  					, max: 120
             }
   , dataZoom: [
   							{   type: 'inside'

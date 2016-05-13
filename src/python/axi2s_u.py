@@ -34,9 +34,9 @@ class axi2s_u:
 	def rfdata(self):
 		self.dev.SetOffset(0)
 		d = np.frombuffer(self.dev.mmap, dtype=np.int16, count=1920*2, offset=0)
-		d.shape = (1920,2)
-		iq = complex(1.,0.)*d[:,0]+complex(0.,1.)*d[:,1]
+		iq = complex(1.,0.)*d[::2]+complex(0.,1.)*d[1::2]
 		f = np.fft.fft(iq)
+		f = np.fft.fftshift(f)
 		f = np.log10(np.abs(f))*20.
 		fl = f.tolist()
 		r = {'freq':range(-500,501),'power':fl[960-500:960+501]}
