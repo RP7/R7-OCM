@@ -39,7 +39,9 @@ class axi2s_u:
 		f = np.fft.fftshift(f)
 		f = np.log10(np.abs(f))*20.
 		fl = f.tolist()
-		r = {'freq':range(-500,501),'power':fl[960-500:960+501]}
+		i = d[::2]
+		q = d[1::2]
+		r = {'freq':range(-500,501),'power':fl[960-500:960+501],'i':i.tolist(),'q':q.tolist()}
 		return r
 		
 	def deinit(self):

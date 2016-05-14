@@ -10,6 +10,7 @@ urls = ('/','index','/data','data','/freq','freq')
 class index:
 	def GET(self):
 		web.redirect('static/index.html')
+		
 class data:
 	def GET(self):
 		ocm = axi2s_u.axi2s_u()

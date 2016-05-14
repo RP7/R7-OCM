@@ -1688,19 +1688,19 @@ WAIT_CALDONE	TXCP,100	// Wait for CP cal to complete, Max TXCP Cal time: 737.280
 SPIWrite	23D,00	// Disable RX CP Calibration since the CP Cal start bit is not self-clearing.  Only important if the script is run again without restting the DUT
 SPIWrite	27D,00	// Disable TX CP Calibration since the CP Cal start bit is not self-clearing.  Only important if the script is run again without restting the DUT
 //************************************************************
-// FDD RX,TX Synth Frequency: 800.000000,835.000000 MHz
+// FDD RX,TX Synth Frequency: 940.000000,900.000000 MHz
 //************************************************************
 //************************************************************
 // Setup Rx Frequency-Dependent Syntheisizer Registers
 //************************************************************
 SPIWrite	23A,4A	// Set VCO Output level[3:0]
-SPIWrite	239,C3	// Set Init ALC Value[3:0] and VCO Varactor[3:0]
-SPIWrite	242,1F	// Set VCO Bias Tcf[1:0] and VCO Bias Ref[2:0]
+SPIWrite	239,C1	// Set Init ALC Value[3:0] and VCO Varactor[3:0]
+SPIWrite	242,0E	// Set VCO Bias Tcf[1:0] and VCO Bias Ref[2:0]
 SPIWrite	238,78	// Set VCO Cal Offset[3:0]
 SPIWrite	245,00	// Set VCO Cal Ref Tcf[2:0]
-SPIWrite	251,0C	// Set VCO Varactor Reference[3:0]
+SPIWrite	251,0B	// Set VCO Varactor Reference[3:0]
 SPIWrite	250,70	// Set VCO Varactor Ref Tcf[2:0] and VCO Varactor Offset[3:0]
-SPIWrite	23B,94	// Set Synth Loop Filter charge pump current (Icp)
+SPIWrite	23B,97	// Set Synth Loop Filter charge pump current (Icp)
 SPIWrite	23E,F4	// Set Synth Loop Filter C2 and C1
 SPIWrite	23F,DF	// Set Synth Loop Filter  R1 and C3
 SPIWrite	240,0A	// Set Synth Loop Filter R3
@@ -1715,7 +1715,7 @@ SPIWrite	278,78	// Set VCO Cal Offset[3:0]
 SPIWrite	285,00	// Set VCO Cal Ref Tcf[2:0]
 SPIWrite	291,0E	// Set VCO Varactor Reference[3:0]
 SPIWrite	290,70	// Set VCO Varactor Ref Tcf[2:0] and VCO Varactor Offset[3:0]
-SPIWrite	27B,9D	// Set Synth Loop Filter charge pump current (Icp)
+SPIWrite	27B,99	// Set Synth Loop Filter charge pump current (Icp)
 SPIWrite	27E,F4	// Set Synth Loop Filter C2 and C1
 SPIWrite	27F,DF	// Set Synth Loop Filter  R1 and C3
 SPIWrite	280,0A	// Set Synth Loop Filter R3
@@ -1723,17 +1723,17 @@ SPIWrite	280,0A	// Set Synth Loop Filter R3
 //************************************************************
 // Write Rx and Tx Frequency Words
 //************************************************************
-SPIWrite	233,00	// Write Rx Synth Fractional Freq Word[7:0]
-SPIWrite	234,00	// Write Rx Synth Fractional Freq Word[15:8]
-SPIWrite	235,00	// Write Rx Synth Fractional Freq Word[22:16]
+SPIWrite	233,2D	// Write Rx Synth Fractional Freq Word[7:0]
+SPIWrite	234,33	// Write Rx Synth Fractional Freq Word[15:8]
+SPIWrite	235,33	// Write Rx Synth Fractional Freq Word[22:16]
 SPIWrite	232,00	// Write Rx Synth Integer Freq Word[10:8]
-SPIWrite	231,80	// Write Rx Synth Integer Freq Word[7:0]
+SPIWrite	231,96	// Write Rx Synth Integer Freq Word[7:0]
 SPIWrite	005,22	// Set LO divider setting
-SPIWrite	273,C4	// Write Tx Synth Fractional Freq Word[7:0]
-SPIWrite	274,CC	// Write Tx Synth Fractional Freq Word[15:8]
-SPIWrite	275,4C	// Write Tx Synth Fractional Freq Word[22:16]
+SPIWrite	273,00	// Write Tx Synth Fractional Freq Word[7:0]
+SPIWrite	274,00	// Write Tx Synth Fractional Freq Word[15:8]
+SPIWrite	275,00	// Write Tx Synth Fractional Freq Word[22:16]
 SPIWrite	272,00	// Write Tx Synth Integer Freq Word[10:8]
-SPIWrite	271,85	// Write Tx Synth Integer Freq Word[7:0] (starts VCO cal)
+SPIWrite	271,90	// Write Tx Synth Integer Freq Word[7:0] (starts VCO cal)
 SPIWrite	005,22	// Set LO divider setting
 SPIRead	247	// Check RX RF PLL lock status (0x247[1]==1 is locked)
 SPIRead	287	// Check TX RF PLL lock status (0x287[1]==1 is locked)

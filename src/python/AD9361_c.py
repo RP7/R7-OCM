@@ -179,7 +179,7 @@ class AD9361_c:
 		self.writeByte(5,div)
 		self.API_WAIT_CALDONE(["TXCP","100"])
 		self.Check_FDD()
-		
+
 	def Check_FDD(self):
 		r = self.ENSM(1)
 		timeout = 10
@@ -215,13 +215,29 @@ class AD9361_c:
 		self.API_WAIT_CALDONE(["RXCP","100"])
 		self.Check_FDD()
 		
-		
 	def ENSM(self,p=None):
 		r = self.readByte(0x17)&0xf
 		if p and r<12:
 			print 'ENSM:',r,self.ensm_db[r]
 		return r
 
+	def CalRXQUAD(self):
+		"""
+		1) Refer to the AD9361 Evaluation Software generated script for setup values for registers 0x186, 0x187, 0x168, 0x16F
+		2) Move the AD9361 into the ALERT state
+		3) Ensure both RF synthesizers are enabled (FDD mode). 0x013=0x01(ENSM FDD) and 0x015[2] (Dual synth mode) is set.
+		4) Set 0x169=0xC0 //Verify free run mode is disabled in 0x169[3].
+		5) Set 0x057=0x33 //Power down TX mixer. This improves the calibration result.
+		6) Set TX LO frequency to the RX LO frequency + BBBW/2. This places the TX LO in the passband of the RX spectrum. If the
+		TX LO integer frequency word was written, allow time for the TX VCO calibration to complete.
+		7) Set 0x016=0x20 //Start the RX Quadrature Calibration
+		8) Wait for calibration to complete (when 0x016 = 0x00).
+		9) Set TX LO back to its original frequency.
+		10) Set 0x057=0x30 //Re-enable TX mixer for normal operation.
+		11) Return to TDD operation if desired by setting register 0x013=0x00 and clear 0x015[2] (Dual synth mode).
+		"""
+		pass
+		
 def main():
 	uut = AD9361_c()
 	

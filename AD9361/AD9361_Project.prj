@@ -2,9 +2,9 @@
 Device = 1    
 Device Rev = 2    
 SW Version = "Version 2.1.3"
-RX Frequency = "800.000000"
+RX Frequency = "940.000000"
 RX Capture Time = "0.001000"
-TX Frequency = "835.000000"
+TX Frequency = "900.000000"
 TX1 Attenuation = "10.000000"
 TX2 Attenuation = "10.000000"
 TX1 Data File = ""
