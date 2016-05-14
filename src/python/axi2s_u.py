@@ -43,7 +43,12 @@ class axi2s_u:
 		q = d[1::2]
 		r = {'freq':range(-500,501),'power':fl[960-500:960+501],'i':i.tolist(),'q':q.tolist()}
 		return r
-		
+	
+	def cleanTx(self):
+		buf = (c_int32*16384)()
+		for x in range(len(buf)):
+			buf[x]=0
+		self.dev.memwrite(0,buf)
 	def deinit(self):
 		self.dev.deinit()
 

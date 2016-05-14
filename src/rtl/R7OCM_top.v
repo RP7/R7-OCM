@@ -487,7 +487,7 @@ ad9361_1t1r ad_if
     .rx_I(Rx_I),
     .rx_Q(Rx_Q),
     .tx_I(Sout[11:0]),
-    .tx_Q(Sout[27:0]),
+    .tx_Q(Sout[27:16]),
     .rx_ce(Ien),
     .tx_ce(Oen)       
   );

@@ -10,7 +10,7 @@ urls = ('/','index','/data','data','/freq','freq')
 class index:
 	def GET(self):
 		web.redirect('static/index.html')
-		
+
 class data:
 	def GET(self):
 		ocm = axi2s_u.axi2s_u()
@@ -43,12 +43,15 @@ if __name__ == "__main__":
 	ad.Check_FDD()
 	ad.deinit()
 	
+	ocm = axi2s_u.axi2s_u()
+	ocm.clean()
+	ocm.deinit()
+	
 	uut = axi2s_c.axi2s_c()
 	uut.init()
 
 	uut.check()
 	uut.deinit()
-
 
 	app = web.application(urls, globals())
 	app.run()
