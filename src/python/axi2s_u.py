@@ -2,6 +2,7 @@ import dev_mem
 from const import *
 import sys
 import numpy as np
+from ctypes import *
 
 class axi2s_u:
 	def __init__(self):
@@ -49,6 +50,7 @@ class axi2s_u:
 		for x in range(len(buf)):
 			buf[x]=0
 		self.dev.memwrite(0,buf)
+
 	def deinit(self):
 		self.dev.deinit()
 

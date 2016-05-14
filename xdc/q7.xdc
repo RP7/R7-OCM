@@ -135,15 +135,6 @@ set_property DIFF_TERM TRUE [get_ports {AD9361_RX_DATA_P[5]}]
 
 create_clock -period 6.667 -name AD9361_DATA_CLK_P [get_ports AD9361_DATA_CLK_P]
 create_clock -period 6.667 -name AD9361_DATA_CLK_N [get_ports AD9361_DATA_CLK_N]
-set_input_delay -clock [get_clocks AD9361_DATA_CLK_P] -max 1.250 [get_ports {AD9361_RX_DATA_P[0] AD9361_RX_DATA_P[1] AD9361_RX_DATA_P[2] AD9361_RX_DATA_P[3] AD9361_RX_DATA_P[4] AD9361_RX_DATA_P[5] AD9361_RX_Frame_P}]
-set_input_delay -clock [get_clocks AD9361_DATA_CLK_P] -clock_fall -max -add_delay 1.250 [get_ports {AD9361_RX_DATA_P[0] AD9361_RX_DATA_P[1] AD9361_RX_DATA_P[2] AD9361_RX_DATA_P[3] AD9361_RX_DATA_P[4] AD9361_RX_DATA_P[5] AD9361_RX_Frame_P}]
-set_input_delay -clock [get_clocks AD9361_DATA_CLK_P] -min 0.250 [get_ports {AD9361_RX_DATA_P[0] AD9361_RX_DATA_P[1] AD9361_RX_DATA_P[2] AD9361_RX_DATA_P[3] AD9361_RX_DATA_P[4] AD9361_RX_DATA_P[5] AD9361_RX_Frame_P}]
-set_input_delay -clock [get_clocks AD9361_DATA_CLK_P] -clock_fall -min -add_delay 0.250 [get_ports {AD9361_RX_DATA_P[0] AD9361_RX_DATA_P[1] AD9361_RX_DATA_P[2] AD9361_RX_DATA_P[3] AD9361_RX_DATA_P[4] AD9361_RX_DATA_P[5] AD9361_RX_Frame_P}]
-set_input_delay -clock [get_clocks AD9361_DATA_CLK_N] -max 1.250 [get_ports {AD9361_DATA_CLK_N[0] AD9361_DATA_CLK_N[1] AD9361_DATA_CLK_N[2] AD9361_DATA_CLK_N[3] AD9361_DATA_CLK_N[4] AD9361_DATA_CLK_N[5] AD9361_RX_Frame_N}]
-set_input_delay -clock [get_clocks AD9361_DATA_CLK_N] -clock_fall -max -add_delay 1.250 [get_ports {AD9361_DATA_CLK_N[0] AD9361_DATA_CLK_N[1] AD9361_DATA_CLK_N[2] AD9361_DATA_CLK_N[3] AD9361_DATA_CLK_N[4] AD9361_DATA_CLK_N[5] AD9361_RX_Frame_N}]
-set_input_delay -clock [get_clocks AD9361_DATA_CLK_N] -min 0.250 [get_ports {AD9361_DATA_CLK_N[0] AD9361_DATA_CLK_N[1] AD9361_DATA_CLK_N[2] AD9361_DATA_CLK_N[3] AD9361_DATA_CLK_N[4] AD9361_DATA_CLK_N[5] AD9361_RX_Frame_N}]
-set_input_delay -clock [get_clocks AD9361_DATA_CLK_N] -clock_fall -min -add_delay 0.250 [get_ports {AD9361_DATA_CLK_N[0] AD9361_DATA_CLK_N[1] AD9361_DATA_CLK_N[2] AD9361_DATA_CLK_N[3] AD9361_DATA_CLK_N[4] AD9361_DATA_CLK_N[5] AD9361_RX_Frame_N}]
-
 
 # GMII
 

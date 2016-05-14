@@ -44,7 +44,7 @@ if __name__ == "__main__":
 	ad.deinit()
 	
 	ocm = axi2s_u.axi2s_u()
-	ocm.clean()
+	ocm.cleanTx()
 	ocm.deinit()
 	
 	uut = axi2s_c.axi2s_c()

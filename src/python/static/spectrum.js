@@ -171,24 +171,32 @@ var option = {
         },
         {
             name: 'IQ',
-            type: 'line',
+            type: 'scatter',
             xAxisIndex: [1],
             yAxisIndex: [1],
             data: []
         },
         {
-            name: 'I',
-            type: 'line',
-            xAxisIndex: [2],
-            yAxisIndex: [2],
-            data: []
+              name: 'I'
+            , type: 'line'
+            , smooth:true
+            , symbol: 'none'
+            , sampling: 'average'
+            , itemStyle: { normal: { color: 'rgb(70, 255, 131)' }}
+            , xAxisIndex: [2]
+            , yAxisIndex: [2]
+            , data: []
         },
         {
-            name: 'Q',
-            type: 'line',
-            xAxisIndex: [3],
-            yAxisIndex: [3],
-            data: []
+              name: 'Q'
+            , type: 'line'
+            , smooth:true
+            , symbol: 'none'
+            , sampling: 'average'
+            , itemStyle: { normal: { color: 'rgb(70, 255, 131)' }}
+            , xAxisIndex: [3]
+            , yAxisIndex: [3]
+            , data: []
         }
     ]
 };
