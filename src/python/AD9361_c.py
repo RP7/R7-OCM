@@ -15,6 +15,7 @@ class AD9361_c:
 		self.order = {
 			  'SPIWrite'     : self.API_SPIWrite
 			, 'SPIRead'      : self.API_SPIRead
+			, 'RESET_DUT'    : self.API_RESET_DUT
 			, 'WAIT'         : self.API_WAIT
 			, 'WAIT_CALDONE' : self.API_WAIT_CALDONE
 			}
@@ -109,8 +110,9 @@ class AD9361_c:
 	def RESET_FPGA(self):
 		pass
 
-	def RESET_DUT(self):
-		pass
+	def API_RESET_DUT(self):
+		self.cntrWrite('AD9361_RST',0)
+		self.cntrWrite('AD9361_RST',1)
 
 	def BlockWrite(self):
 		pass
