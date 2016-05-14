@@ -110,7 +110,7 @@ class AD9361_c:
 	def RESET_FPGA(self):
 		pass
 
-	def API_RESET_DUT(self):
+	def API_RESET_DUT(self,args):
 		self.cntrWrite('AD9361_RST',0)
 		self.cntrWrite('AD9361_RST',1)
 
@@ -178,6 +178,9 @@ class AD9361_c:
 		self.writeByte(0x275,FH)
 		self.writeByte(5,div)
 		self.API_WAIT_CALDONE(["TXCP","100"])
+		self.Check_FDD()
+		
+	def Check_FDD(self):
 		r = self.ENSM(1)
 		timeout = 10
 		while r!=0xa:
@@ -210,17 +213,8 @@ class AD9361_c:
 		self.writeByte(0x235,FH)
 		self.writeByte(5,div)
 		self.API_WAIT_CALDONE(["RXCP","100"])
-		r = self.ENSM(1)
-		timeout = 10
-		while r!=0xa:
-			self.cntrWrite('AD9361_EN',0)
-			time.sleep(1)
-			self.cntrWrite('AD9361_EN',1)
-			time.sleep(1)
-			r = self.ENSM(1)
-			timeout -= 1
-			if timeout<0:
-				break
+		self.Check_FDD()
+		
 		
 	def ENSM(self,p=None):
 		r = self.readByte(0x17)&0xf

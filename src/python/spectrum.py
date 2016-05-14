@@ -39,10 +39,12 @@ if __name__ == "__main__":
 	ad = AD9361_c.AD9361_c()
 	for x in f.readlines():
 		adscripts.parse(x,ad.order)
+	ad.Check_FDD()
 	ad.deinit()
+	
 	uut = axi2s_c.axi2s_c()
 	uut.init()
-	uut.write('AD9361_EN',1)
+
 	uut.check()
 	uut.deinit()
 
