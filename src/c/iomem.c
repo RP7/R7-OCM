@@ -1,17 +1,18 @@
 #include "iomem.h"
+#include <stdio.h>
 
 void *iommap(IOMEM* io)
 {
 	io->fd = 0;
 
-	io->fd = open(dev , O_RDWR | O_SYNC);
+	io->fd = open(io->dev , O_RDWR | O_SYNC);
 	if(io->fd < 0)
 	{
-		printf("%s Can't Open %s\n" , TAG , dev);
+		printf("%s Can't Open %s\n" ,io->TAG , io->dev);
 		return NULL;
 	}
-	printf("%s Open %s Success \n" , TAG , dev);
-	printf("%s fd is : %d\n" , TAG , fd);
+	printf("%s Open %s Success \n" ,io->TAG , io->dev);
+	printf("%s fd is : %d\n" ,io->TAG , io->fd);
 	io->mem = (void *)0;
 
 	io->mem = mmap(0 , io->size , PROT_READ|PROT_WRITE ,  MAP_FILE|MAP_SHARED , io->fd , io->addr);

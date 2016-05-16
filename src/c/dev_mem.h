@@ -5,8 +5,8 @@
 #define FPGA_BASE 0x40000000
 #define FPGA_SIZE 0x40000
 
-#define SPIdevice "/dev/mem"
-#define FOGAdevice "/dev/mem"
+#define SPIDevice "/dev/mem"
+#define FPGAdevice "/dev/mem"
 
 /* AXI2S Write only Reg */
 #define AXI2S_EN        0x00000
