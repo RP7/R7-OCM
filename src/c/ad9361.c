@@ -153,6 +153,7 @@ int readNoWait(int addr)
 {
 	int timeout,H8,HL,ret;
 	clearSPIRxFIFO();
+	SPI_REG(SPI_RX_thres) = 3;
 	SPI_REG(SPI_Config) = 0x15;
 	addr &= 0x3ff;
 	H8 = addr>>8;
@@ -164,13 +165,13 @@ int readNoWait(int addr)
 	while(ret==0)
 	{
 		ret = SPI_REG(SPI_Intr_status);
-		printf("%s spi read no wait A=[%03x] S=[%02x]\n",ad9361_spi.TAG,addr,ret);
 		ret &= 0x10;
 		timeout++;
 		if(timeout>SPITIMEOUT)
 			printf("%s spi read no wait timeout A=[%03x]\n",ad9361_spi.TAG,addr);
 			break;
 	}
+	usleep(1);
 	H8 = SPI_REG(SPI_Rx_data);
 	HL = SPI_REG(SPI_Rx_data);
 	ret = SPI_REG(SPI_Rx_data);

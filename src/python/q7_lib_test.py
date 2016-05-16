@@ -38,7 +38,7 @@ def main_0():
 	elif len(sys.argv)==3:
 		uut.writeSPI_C(int(sys.argv[1],16),int(sys.argv[2],16))
 
-def main():
+def main_1():
 	c_lib.init()
 	#c_lib.lib.RESET_AD9361()
 	uut = spi()
@@ -47,7 +47,7 @@ def main():
 	elif len(sys.argv)==3:
 		uut.writeByte(int(sys.argv[1],16),int(sys.argv[2],16))
 
-def main_2():
+def main():
 	c_lib.init()
 	#c_lib.lib.RESET_AD9361()
 	uut = spi()
