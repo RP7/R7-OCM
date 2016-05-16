@@ -46,3 +46,5 @@ R7OCM.*/*
 *.tar.gz
 *.btree
 *.log
+
+lib/*
