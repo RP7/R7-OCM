@@ -52,7 +52,7 @@ fn = path+"/../rtl/reg_define.v"
 
 addr = loadFromVerilog(fn,addr)
 
-fn = path+"/../c/ad9361_spi.h"
+fn = path+"/../c/spi.h"
 addr = loadFromC(fn,addr)
 
 #print addr
