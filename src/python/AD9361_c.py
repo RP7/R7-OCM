@@ -244,7 +244,7 @@ def main():
 	if len(sys.argv)>1:
 		if sys.argv[1]=='S':
 			if len(sys.argv)==3:
-				uut.readreg(sys.argv[2])
+				print hex(uut.readreg(sys.argv[2]))
 			elif len(sys.argv)==4:
 				uut.writereg(sys.argv[2],int(sys.argv[3],16))
 		elif sys.argv[1]=='R':
