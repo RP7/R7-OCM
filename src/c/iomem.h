@@ -10,6 +10,7 @@ typedef struct iomem_struct {
 	size_t size;
 	int fd;
 	void *mem;
+	int cnt;
 } IOMEM;
 
 void *iommap(IOMEM* io);

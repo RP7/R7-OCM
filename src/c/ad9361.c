@@ -17,7 +17,8 @@ static IOMEM ad9361_spi = {
 	.addr = AD9361_SP_BASE,
 	.size = AD9361_SPI_SIZE,
 	.fd = 0,
-	.mem = NULL
+	.mem = NULL,
+	.cnt = 0
 };
 
 static IOMEM fpga_io = {
@@ -39,12 +40,14 @@ static IOMEM ocm_mem = {
 };
 
 #define FPGA_IO(x) (*((int *)io_off(&fpga_io,x)))
+#define SPI_REG(x) (*((int *)io_off(&ad9361_spi,x)))
 
 void ad9361_init()
 {
 	iommap(&ad9361_spi);
 	iommap(&fpga_io);
 	iommap(&ocm_mem);
+	ad9361_spi.cnt = 0;
 
 }
 
@@ -59,25 +62,26 @@ int ad9361_spi_op(int addr,int data)
 {
 	int H8,HL,ret;
 	int timeout = 0;
-	SPIREG *reg = (SPIREG *)(ad9361_spi.mem);
 	H8 = addr>>8;
-	reg->reg_Config = 0x4015;
-	reg->reg_Tx_data = H8;
-	reg->reg_Tx_data = addr;
-	reg->reg_Tx_data = data;
+	SPI_REG(SPI_RX_thres) = 3;
+	SPI_REG(SPI_Config) = 0x4015;
+	SPI_REG(SPI_Tx_data) = H8;
+	SPI_REG(SPI_Tx_data) = addr;
+	SPI_REG(SPI_Tx_data) = data;
 	ret = 0;
 	while(ret==0)
 	{
-		ret = reg->reg_Intr_status&0x4;
+		ret = SPI_REG(SPI_Intr_status)&0x10;
 		timeout++;
 		if(timeout>SPITIMEOUT)
 			printf("%s spi op timeout A=[%03x] D=[%02x]\n",ad9361_spi.TAG,addr,data);
 			break;
 	}
-	reg->reg_Config = 0x7c15;
-	H8 = reg->reg_Rx_data;
-	HL = reg->reg_Rx_data;
-	ret = reg->reg_Rx_data;
+	usleep(1);
+	SPI_REG(SPI_Config) = 0x7c15;
+	H8 = SPI_REG(SPI_Rx_data);
+	HL = SPI_REG(SPI_Rx_data);
+	ret = SPI_REG(SPI_Rx_data);
 	return ret;
 }
 
@@ -114,32 +118,24 @@ void clearSPIRxFIFO()
 {
 	int r;
 	int timeout = 0;
-	SPIREG *reg = (SPIREG *)(ad9361_spi.mem);
-	while((reg->reg_Intr_status&0x10)==0x0)
+	while(ad9361_spi.cnt>0)
 	{
-		r = reg->reg_Rx_data;
-		timeout++;
-		if(timeout>SPITIMEOUT)
-		{	
-			printf("%s spi clear rx fifo timeout\n",ad9361_spi.TAG);
-			break;
-		}
+		r = SPI_REG(SPI_Rx_data);
+		ad9361_spi.cnt--;
 	}
-	if(reg->reg_Intr_status&0x01) reg->reg_Intr_status = 0x01;
 }
 
 void writeNoWait(int *buf, int len)
 {
-	SPIREG *reg = (SPIREG *)(ad9361_spi.mem);
 	int i = 0;
 	int timeout;
-	if(reg->reg_Intr_status&0x40) reg->reg_Intr_status = 0x40;
-	reg->reg_Config = 0x15;
-	reg->reg_TX_thres = 120;
+	if(SPI_REG(SPI_Intr_status)&0x40) SPI_REG(SPI_Intr_status) = 0x40;
+	SPI_REG(SPI_Config) = 0x15;
+	SPI_REG(SPI_TX_thres) = 120;
 	for(i=0;i<len;i++)
 	{
 		timeout = 0;
-		while((reg->reg_Intr_status&0x4)==0x0)
+		while((SPI_REG(SPI_Intr_status)&0x4)==0x0)
 		{
 			timeout++;
 			if(timeout>SPITIMEOUT)
@@ -147,38 +143,36 @@ void writeNoWait(int *buf, int len)
 				printf("%s spi write no wait timeout [%d]\n",ad9361_spi.TAG,i);
 				break;
 			}
-			clearSPIRxFIFO();
 		}
-		reg->reg_Tx_data = buf[i];
+		SPI_REG(SPI_Tx_data) = buf[i];
+		ad9361_spi.cnt++;
 	}
-	clearSPIRxFIFO();
 }
 
 int readNoWait(int addr)
 {
-	SPIREG *reg = (volatile SPIREG *)(ad9361_spi.mem);
 	int timeout,H8,HL,ret;
-	reg->reg_Config = 0x15;
-	reg->reg_RX_thres = 0;
-	H8 = reg->reg_Rx_data;
+	clearSPIRxFIFO();
+	SPI_REG(SPI_Config) = 0x15;
 	addr &= 0x3ff;
 	H8 = addr>>8;
-	reg->reg_Tx_data = H8;
-	reg->reg_Tx_data = addr;
-	reg->reg_Tx_data = 0xff;
+	SPI_REG(SPI_Tx_data) = H8;
+	SPI_REG(SPI_Tx_data) = addr;
+	SPI_REG(SPI_Tx_data) = 0xff;
 	ret = 0;
 	timeout = 0;
 	while(ret==0)
 	{
-		ret = reg->reg_Intr_status&0x14;
+		ret = SPI_REG(SPI_Intr_status);
+		printf("%s spi read no wait A=[%03x] S=[%02x]\n",ad9361_spi.TAG,addr,ret);
+		ret &= 0x10;
 		timeout++;
 		if(timeout>SPITIMEOUT)
 			printf("%s spi read no wait timeout A=[%03x]\n",ad9361_spi.TAG,addr);
 			break;
 	}
-	reg->reg_Config = 0x15;
-	H8 = reg->reg_Rx_data;
-	HL = reg->reg_Rx_data;
-	ret = reg->reg_Rx_data;
+	H8 = SPI_REG(SPI_Rx_data);
+	HL = SPI_REG(SPI_Rx_data);
+	ret = SPI_REG(SPI_Rx_data);
 	return ret;
 }
