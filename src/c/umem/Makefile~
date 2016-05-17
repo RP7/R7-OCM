@@ -1,8 +1,0 @@
-obj-m += umem.o
-
-KDIR:=/lib/modules/3.19.0-15-generic/build
-all:
-	make -C $(KDIR) M=`pwd` modules
-clean:
-	make -C $(KDIR) M=`pwd` modules clean
-	rm -f modules.order
