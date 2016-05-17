@@ -1,4 +1,6 @@
 #include <linux/proc_fs.h>
+#include <linux/module.h>
+
 static struct proc_dir_entry *umem_root = NULL;  
 static struct proc_dir_entry *init_entry = NULL;
 static struct proc_dir_entry *deinit_entry = NULL;
@@ -112,7 +114,7 @@ err_out_init:
 	return -1; 
 }
 
-static int deinit_umem(void)
+static void deinit_umem(void)
 {
 	remove_proc_entry(UMEM_INIT,init_entry);
 	remove_proc_entry(UMEM_INIT,deinit_entry);
