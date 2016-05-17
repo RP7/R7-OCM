@@ -6,4 +6,4 @@ all:
 clean:
 	make -C $(KDIR) M=`pwd` modules clean
 	rm -f modules.order
-	rm *~
+	rm -f *~
