@@ -108,17 +108,17 @@ static int init_umem(void)
 	return 0; 
 	
 err_out_deinit: 
-	remove_proc_entry(UMEM_INIT,init_entry); 
+	remove_proc_entry(UMEM_INIT,umem_root); 
 err_out_init: 
-	remove_proc_entry(UMEM_ROOT_DIR,umem_root); 
+	proc_remove(umem_root); 
 	return -1; 
 }
 
 static void deinit_umem(void)
 {
-	remove_proc_entry(UMEM_INIT,init_entry);
-	remove_proc_entry(UMEM_INIT,deinit_entry);
-	remove_proc_entry(UMEM_ROOT_DIR,umem_root);
+	remove_proc_entry(UMEM_INIT,umem_root);
+	remove_proc_entry(UMEM_DEINIT,umem_root);
+	proc_remove(umem_root);
 }
 
 static int __init umem_init(void) 
