@@ -92,7 +92,7 @@ static int init_umem(void)
 		   UMEM_ROOT_DIR,UMEM_INIT);  
 	
 	// Create deinit under UMEM_ROOT_DIR 
-	deinit_entry = proc_create(UMEM_DEINIT, 0666, umem_root, &deinit_fops); 
+	deinit_entry = create_proc_entry(UMEM_DEINIT, 0666, umem_root, &deinit_fops); 
 	if ( NULL == deinit_entry ) 
 	{ 
 		printk(KERN_ALERT"Create entry %s under /proc/%s error!\n", 
