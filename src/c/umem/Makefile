@@ -1,6 +1,6 @@
 obj-m += umem.o
-
-KDIR:=/lib/modules/3.19.0-15-generic/build
+RELEASE = `uname -r`
+KDIR:=/lib/modules/$(RELEASE)/build
 all:
 	make -C $(KDIR) M=`pwd` modules
 clean:

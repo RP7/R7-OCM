@@ -9,8 +9,9 @@ static struct proc_dir_entry *deinit_entry = NULL;
 
 static char last_init_result[256];
 static char last_deinit_result[256];
-static int umem_init_writeproc(struct file *file,const char *buffer,
-			      unsigned long count,void *data)
+
+static size_t umem_init_writeproc(struct file *file,const char *buffer,
+						size_t count, loff_t *data)
 {
 	char Name[128];
 	char Len[128];
@@ -36,16 +37,15 @@ static int umem_init_writeproc(struct file *file,const char *buffer,
 	return count;
 }
 
-
-static int umem_init_readproc(struct file * file, char __user *page, 
+static size_t umem_init_readproc(struct file * file, char __user *page, 
 	size_t count, loff_t *data)
 {
 	count = sprintf(page,"%s", last_init_result);
 	return count;
 }
 
-static int umem_deinit_writeproc(struct file *file,const char *buffer,
-						unsigned long count,void *data)
+static size_t umem_deinit_writeproc(struct file *file,const char *buffer,
+						size_t count, loff_t *data)
 {
 	char Name[128];
 	sscanf(buffer,"%s", Name);
@@ -53,7 +53,7 @@ static int umem_deinit_writeproc(struct file *file,const char *buffer,
 	return count;
 }
 
-static int umem_deinit_readproc(struct file * file, char __user *page, 
+static size_t umem_deinit_readproc(struct file * file, char __user *page, 
 	size_t count, loff_t *data)
 {
 	count = sprintf(page,"%s", last_deinit_result);
@@ -112,7 +112,7 @@ err_out_init:
 	return -1; 
 }
 
-static int deinit_umem()
+static int deinit_umem(void)
 {
 	remove_proc_entry(UMEM_INIT,init_entry);
 	remove_proc_entry(UMEM_INIT,deinit_entry);
