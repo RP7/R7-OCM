@@ -51,14 +51,25 @@ static int init_umem(void)
 	return 0; 
 	
 err_out_deinit: 
-	deinit_entry->read_proc =NULL; 
-	deinit_entry->write_proc= NULL;
+	deinit_entry->read_proc  =NULL; 
+	deinit_entry->write_proc = NULL;
 	remove_proc_entry(UMEM_INIT,init_entry); 
 err_out_init: 
-	init_entry->read_proc =NULL; 
-	init_entry->write_proc= NULL;
+	init_entry->read_proc  =NULL; 
+	init_entry->write_proc = NULL;
 	remove_proc_entry(UMEM_ROOT_DIR,umem_root); 
 	return -1; 
+}
+
+static int deinit_umem()
+{
+	remove_proc_entry(UMEM_INIT,init_entry);
+	remove_proc_entry(UMEM_INIT,deinit_entry);
+	remove_proc_entry(UMEM_ROOT_DIR,umem_root);
+	deinit_entry->read_proc  = NULL; 
+	deinit_entry->write_proc = NULL;
+	init_entry->read_proc    = NULL; 
+	init_entry->write_proc   = NULL;
 }
 
 static int umem_init_writeproc(struct file *file,const char *buffer,
@@ -123,3 +134,10 @@ static void __exit umem_exit(void)
 {
 	deinit_umem();
 }
+
+module_init(test_init);
+module_exit(test_exit);
+
+MODULE_LICENSE("GPL");
+MODULE_AUTHOR("a4a881d4");
+MODULE_VERSION("1.0");
