@@ -108,7 +108,6 @@ static int init_umem(void)
 	return 0; 
 	
 err_out_deinit: 
-	remove_proc_entry(UMEM_INIT,umem_root); 
 err_out_init: 
 	proc_remove(umem_root); 
 	return -1; 
@@ -118,10 +117,8 @@ static void deinit_umem(void)
 {
 	printk(KERN_INFO"remove /proc/%s/%s\n", 
 		   UMEM_ROOT_DIR,UMEM_INIT);  
-	remove_proc_entry(UMEM_INIT,umem_root);
 	printk(KERN_INFO"remove /proc/%s/%s\n", 
 		   UMEM_ROOT_DIR,UMEM_DEINIT);  
-	remove_proc_entry(UMEM_DEINIT,umem_root);
 	printk(KERN_INFO"remove /proc/%s\n", 
 		   UMEM_ROOT_DIR);  
 	proc_remove(umem_root);
