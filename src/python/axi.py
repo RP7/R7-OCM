@@ -1,5 +1,6 @@
 import dev_mem
 from const import *
+import sys
 
 class axi:
 	def __init__(self):
@@ -22,9 +23,25 @@ class axi:
 		r = self.dev.ioread(0x240)
 		print 'reset ok',hex(r)
 				
-
+	def read(self,reg):
+		r = self.dev.ioread(reg)
+		print 'R:',hex(reg), hex(r)
+		return r
+	
+	def write(self,reg,data):
+		self.dev.iowrite(reg,data)
+		print 'W:',hex(reg), hex(data)
 
 def main():
+	uut = axi()
+	if len(sys.argv)==2:
+		uut.read(int(sys.argv[1],16))
+	elif len(sys.argv)==3:
+		uut.write(int(sys.argv[1],16),int(sys.argv[2],16))
+	else:
+		main_0()
+
+def main_0():
 	uut = axi()
 	uut.reset()
 	uut.dump()

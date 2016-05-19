@@ -3,6 +3,7 @@
 
 /* AXI2S Write only Reg */
 `define AXI2S_EN        18'h00000
+`define AXI2S_TEST      18'h00004
 `define AXI2S_IBASE     18'h00010
 `define AXI2S_ISIZE     18'h00014
 `define AXI2S_OBASE     18'h00018

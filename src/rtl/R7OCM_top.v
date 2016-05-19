@@ -206,7 +206,7 @@ module R7OCM_top
   wire AXI_HP0_wvalid;
 
   wire rst,Sclk,sync;
-  wire Ien,Oen;
+  wire Ien,Oen,ad9361_Ien;
 
   wire [31:0]Sin;
   wire [31:0]Sout;
@@ -230,10 +230,11 @@ module R7OCM_top
   wire [31:0] AXI2S_REG_DOUT;
   wire [31:0] AD9361_REG_DOUT;
   
-  wire axi_nrst;
+  wire test;
+
   wire [31:0]axiresp;
   wire [31:0]axistatus;
-
+  wire [31:0]testD;
 
 armocm_wrapper core
   (
@@ -429,7 +430,7 @@ AXI2SREG axi2s_reg_space
     .wen(BRAM_PORTA_we),
     .ien(sys_Ien),
     .oen(sys_Oen),
-    .axi_nrst(axi_nrst),
+    .test(test),
     //.tddmode(sys_Mode),
     .ibase(AXI_IBASE),
     .isize(AXI_ISIZE),
@@ -482,7 +483,13 @@ CBusReadMerge cbmerge
     .axi2s_dout(AXI2S_REG_DOUT),
     .ad9361_dout(AD9361_REG_DOUT)  
   );
-
+cntSrc testSrc
+  (
+    .clk(Sclk),
+    .en(Ien&sys_Ien),
+    .rst(1'b0),
+    .Cout(testD)
+  );
 ad9361_1t1r ad_if
 (
     .AD9361_RX_Frame_P(AD9361_RX_Frame_P),      
@@ -505,11 +512,11 @@ ad9361_1t1r ad_if
     .rx_Q(Rx_Q),
     .tx_I(Sout[11:0]),
     .tx_Q(Sout[27:16]),
-    .rx_ce(Ien),
+    .rx_ce(ad9361_Ien),
     .tx_ce(Oen)       
   );
-assign Sin[15:0]  = {Rx_I[11],Rx_I[11],Rx_I[11],Rx_I[11],Rx_I[11:0]};
-assign Sin[31:16] = {Rx_Q[11],Rx_Q[11],Rx_Q[11],Rx_Q[11],Rx_Q[11:0]};
+assign Sin = (test==1'b1)? testD : {Rx_Q[11],Rx_Q[11],Rx_Q[11],Rx_Q[11],Rx_Q[11:0],Rx_I[11],Rx_I[11],Rx_I[11],Rx_I[11],Rx_I[11:0]};
+assign Ien = (test==1'b1)? 1'b1  : ad9361_Ien;
 assign     rst = 1'b0;
 assign    sync = 1'b0;
 assign AXI_clk = FCLK_CLK1;

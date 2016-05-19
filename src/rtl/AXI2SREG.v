@@ -26,7 +26,7 @@ module AXI2SREG
 		ibcnt,
 		oacnt,
 		obcnt,
-		axi_nrst,
+		test,
 		axiresp,
     axistatus,
     axiraddr,
@@ -55,7 +55,7 @@ module AXI2SREG
 	
 	output reg [23:0]frame_adj;
 
-	output reg axi_nrst;
+	output reg test;
 
 	input [23:6]iacnt;
 	input [23:6]oacnt;
@@ -87,7 +87,7 @@ begin
 		tend      <= 24'd1919;
 		rstart    <= 24'h0;
 		rend      <= 24'd1919;
-		axi_nrst  <= 1'b1;
+		test  <= 1'b1;
 	end	
 	else if(clk) begin
 		if( en==1'b1 ) begin
@@ -99,7 +99,10 @@ begin
 						ien <= din[0];
 						oen <= din[1];
 						tddmode <= din[2];
-						axi_nrst <= din[7];
+					end
+					// define AXI2S_TEST        18'h04
+					`AXI2S_TEST: begin
+						test <= din[0];
 					end
 					// define AXI2S_IBASE     18'h10
 					`AXI2S_IBASE: begin
