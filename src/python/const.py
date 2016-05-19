@@ -7,6 +7,8 @@ OCM_BASE = 0xfffc0000
 OCM_SIZE = 0x40000
 AD9361_SPI_BASE = 0xE0007000
 AD9361_SPI_SIZE = 0x1000
+AXIC_BASE = 0xF8000000
+AXIC_SIZE = 0x10000
 
 import platform
 c_system = platform.system()

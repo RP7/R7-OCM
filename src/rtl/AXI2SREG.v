@@ -26,6 +26,11 @@ module AXI2SREG
 		ibcnt,
 		oacnt,
 		obcnt,
+		axi_nrst,
+		axiresp,
+    axistatus,
+    axiraddr,
+    axiwaddr,
 		adj_pending
 	);
 
@@ -50,11 +55,19 @@ module AXI2SREG
 	
 	output reg [23:0]frame_adj;
 
+	output reg axi_nrst;
+
 	input [23:6]iacnt;
 	input [23:6]oacnt;
 
 	input [31:0]ibcnt;
 	input [31:0]obcnt;
+
+	input [31:0]axiresp;
+	input [31:0]axistatus;
+
+	input [31:0]axiraddr;
+	input [31:0]axiwaddr;
 
 	input adj_pending;
 	
@@ -74,6 +87,7 @@ begin
 		tend      <= 24'd1919;
 		rstart    <= 24'h0;
 		rend      <= 24'd1919;
+		axi_nrst  <= 1'b1;
 	end	
 	else if(clk) begin
 		if( en==1'b1 ) begin
@@ -85,6 +99,7 @@ begin
 						ien <= din[0];
 						oen <= din[1];
 						tddmode <= din[2];
+						axi_nrst <= din[7];
 					end
 					// define AXI2S_IBASE     18'h10
 					`AXI2S_IBASE: begin
@@ -162,6 +177,22 @@ always @(*) begin
 			// define AXI2S_OBCNT     18'h1c
 			`AXI2S_OBCNT: begin
 				dout <= obcnt;
+			end
+			// define AXI_WRESP       18'h20
+			`AXI_WRESP: begin
+				dout <= axiresp;
+			end
+			// define AXI_STATUS     18'h24
+			`AXI_STATUS: begin
+				dout <= axistatus;
+			end
+			// define AXI_RADDR       18'h28
+			`AXI_RADDR: begin
+				dout <= axiraddr;
+			end
+			// define AXI_WADDR     18'h2c
+			`AXI_WADDR: begin
+				dout <= axiwaddr;
 			end
 		endcase
 	end

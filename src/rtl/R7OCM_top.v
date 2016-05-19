@@ -230,6 +230,11 @@ module R7OCM_top
   wire [31:0] AXI2S_REG_DOUT;
   wire [31:0] AD9361_REG_DOUT;
   
+  wire axi_nrst;
+  wire [31:0]axiresp;
+  wire [31:0]axistatus;
+
+
 armocm_wrapper core
   (
   .BRAM_PORTA_addr(BRAM_PORTA_addr),
@@ -325,7 +330,14 @@ armocm_wrapper core
 
   .test_led_tri_o(TEST_LED)
   );
-
+AXIwriteResp wresp
+  (
+  .clk(AXI_clk),
+  .valid(AXI_HP0_bvalid),
+  .resp(AXI_HP0_bresp),
+  .ready(AXI_HP0_bready),
+  .respOut(axiresp)
+  );
 GE_patch gep
    (
     .SYS_CLK(SYS_CLK),
@@ -417,6 +429,7 @@ AXI2SREG axi2s_reg_space
     .wen(BRAM_PORTA_we),
     .ien(sys_Ien),
     .oen(sys_Oen),
+    .axi_nrst(axi_nrst),
     //.tddmode(sys_Mode),
     .ibase(AXI_IBASE),
     .isize(AXI_ISIZE),
@@ -433,7 +446,11 @@ AXI2SREG axi2s_reg_space
     .iacnt(AXI_IACNT),
     .ibcnt(AXI_IBCNT),
     .oacnt(AXI_OACNT),
-    .obcnt(AXI_OBCNT)//,
+    .obcnt(AXI_OBCNT),
+    .axiresp(axiresp),
+    .axistatus(axistatus),
+    .axiraddr(AXI_HP0_araddr),
+    .axiwaddr(AXI_HP0_awaddr)//,
     //adj_pending
   );
 
@@ -501,5 +518,16 @@ assign AD9361_SPI_CLK = SCK;
 assign AD9361_SPI_DI  = MOSI;
 assign AD9361_SPI_DO  = MISO;
 assign AD9361_SPI_ENB = SS;
+
+assign axistatus = { 24'h0
+                  , AXI_HP0_arvalid
+                  , AXI_HP0_arready
+                  , AXI_HP0_awvalid
+                  , AXI_HP0_awready
+                  , AXI_HP0_rready
+                  , AXI_HP0_rvalid
+                  , AXI_HP0_wready
+                  , AXI_HP0_wvalid
+};
 
 endmodule

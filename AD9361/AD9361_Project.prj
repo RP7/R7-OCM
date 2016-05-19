@@ -12,24 +12,24 @@ TX2 Data File = ""
 
 [RF Settings]
 Input Structure = 1    
-Project Profile = 10    
+Project Profile = 5    
 Reg 004 = 3    
 
 [Clock/Filter Settings]
 BBPLL = "983.040000"
-Reg002 = 78    
+Reg002 = 94    
 Reg065 = 224    
 Reg003 = 94    
 Reg0F6 = 2    
-TxFIR = "/D/Program Files (x86)/Analog Devices/AD9361R2 Evaluation Software 2.1.3/DigitalFilters/LTE20_MHz.ftr"
-RxFIR = "/D/Program Files (x86)/Analog Devices/AD9361R2 Evaluation Software 2.1.3/DigitalFilters/LTE20_MHz.ftr"
-Tx Rate(MSPS) = "30.720000"
-RX RF Bandwidth = "18.000000"
-Reg00A = 9    
+TxFIR = "/D/Program Files (x86)/Analog Devices/AD9361R2 Evaluation Software 2.1.3/DigitalFilters/LTE1p4_MHz.ftr"
+RxFIR = "/D/Program Files (x86)/Analog Devices/AD9361R2 Evaluation Software 2.1.3/DigitalFilters/LTE1p4_MHz.ftr"
+Tx Rate(MSPS) = "1.920000"
+RX RF Bandwidth = "1.080000"
+Reg00A = 5    
 Reg2AA = 4    
 Reg2AB = 7    
 Reg2AC = 255    
-Rx Rate(MSPS) = "30.720000"
+Rx Rate(MSPS) = "1.920000"
 REFCLK_In = "25.000000"
 Reg0F5 = 224    
 CustomTxFIR = FALSE    
@@ -38,7 +38,7 @@ REFCLK Path = 0
 Reg045 = 0    
 DCXO Coarse[5:0] = 8    
 DCXO Fine[12:0] = 4096    
-TX RF Bandwidth = "18.000000"
+TX RF Bandwidth = "1.080000"
 
 [Digital Interface Settings]
 reg010 = 200    
@@ -47,8 +47,8 @@ reg012 = 16
 reg006 (Delay Cell) = 15    
 reg007 = 0    
 reg03C LVDS = 33    
-reg03D LVDS Invert = 255    
-reg03E LVDS Invert = 255    
+reg03D LVDS Invert = 0    
+reg03E LVDS Invert = 0    
 Reg035 = 0    
 Reg036 = 255    
 

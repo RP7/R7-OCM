@@ -20,7 +20,7 @@ clean:
 	rm temp/* -f
 
 backup:
-	tar -czvf ../R7OCM.tgz .
+	tar -X .gitignore -czvf ../R7OCM.tgz .
 
 
 	

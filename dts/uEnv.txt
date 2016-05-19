@@ -1,0 +1,3 @@
+fdt_high=0x10000000
+initrd_high=0x10000000
+bootargs=console=ttyPS0,115200 root=/dev/ram rw earlyprintk mem=480M

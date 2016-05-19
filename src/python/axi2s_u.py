@@ -5,8 +5,8 @@ import numpy as np
 from ctypes import *
 
 class axi2s_u:
-	def __init__(self):
-		self.dev = dev_mem.dev_mem(OCM_BASE,OCM_SIZE)
+	def __init__(self,base=OCM_BASE,size=OCM_SIZE):
+		self.dev = dev_mem.dev_mem(base,size)
 
 	def dump(self,offset,length):
 		iLen = (length+3)/4
@@ -55,8 +55,14 @@ class axi2s_u:
 		self.dev.deinit()
 
 def main():
-	uut = axi2s_u()
-	uut.dump(int(sys.argv[1],16),int(sys.argv[2],16))
+	if sys.argv[1]=='DRAM':
+		base = 0x1e000000 #OCM_BASE
+		size = 0x2000000  #OCM_SIZE
+	else:
+		base = OCM_BASE
+		size = OCM_SIZE
+	uut = axi2s_u(base,size)
+	uut.dump(int(sys.argv[2],16),int(sys.argv[3],16))
 
 if __name__ == '__main__':
 	main()
