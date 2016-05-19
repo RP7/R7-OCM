@@ -32,8 +32,13 @@ class axi:
 		self.dev.iowrite(reg,data)
 		print 'W:',hex(reg), hex(data)
 
+	def ocm_tz(self):
+		self.write(0x400,0xffffffff)
+		self.write(0x404,0xffffffff)
+
 def main():
 	uut = axi()
+	uut.ocm_tz()
 	if len(sys.argv)==2:
 		uut.read(int(sys.argv[1],16))
 	elif len(sys.argv)==3:
