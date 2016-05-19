@@ -155,7 +155,7 @@ blk_mem_axi2s axi2s (
 
 assign AXI_arid      = 6'b111111;
 assign AXI_arlen     = 4'hf;
-assign AXI_arsize    = 3'b010;   //size: 4byte
+assign AXI_arsize    = 3'b000;   //size: 4byte
 assign AXI_arburst   = 2'b01;    //"01"; --incr
 assign AXI_arlock    = 2'b00;    //"00";
 assign AXI_arcache   = 4'h0;     //x"0";
@@ -168,7 +168,7 @@ assign AXI_awsize    = 3'b010;   //size: 4byte
 assign AXI_awburst   = 2'b01;    //"01"; --incr            
 assign AXI_awlock    = 2'b00;    //"00";
 assign AXI_awcache   = 4'h0;     //x"0";
-assign AXI_awprot    = 3'b010;   //"000";
+assign AXI_awprot    = 3'b000;   //"000";
 assign AXI_awqos     = 4'h0;     //x"0";
 assign AXI_bready    = 1'b1;     //'1';
 assign AXI_wstrb     = 4'hf; 

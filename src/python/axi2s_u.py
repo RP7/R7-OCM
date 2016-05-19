@@ -48,7 +48,7 @@ class axi2s_u:
 	def cleanTx(self):
 		buf = (c_int32*16384)()
 		for x in range(len(buf)):
-			buf[x]=0
+			buf[x]=0x1a
 		self.dev.memwrite(0,buf)
 
 	def deinit(self):
@@ -62,6 +62,7 @@ def main():
 		base = OCM_BASE
 		size = OCM_SIZE
 	uut = axi2s_u(base,size)
+	uut.cleanTx()
 	uut.dump(int(sys.argv[2],16),int(sys.argv[3],16))
 
 if __name__ == '__main__':
