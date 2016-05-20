@@ -12,6 +12,17 @@ class AD9361_c:
 	def __init__(self):
 		if c_system=='Linux':
 			self.dev = dev_mem.dev_mem(AD9361_SPI_BASE,AD9361_SPI_SIZE)
+			self.ref = 25e6
+		
+		self.webapi = {
+			"tx":{  "set":{"freq":self.Set_Tx_freq,"gain":self.Set_Tx_Gain}
+						, "get":{"freq":self.Get_Tx_freq,"gain":self.Get_Tx_Gain}
+						}
+		,	"rx":{  "set":{"freq":self.Set_Rx_freq,"gain":self.Set_Rx_Gain}
+						, "get":{"freq":self.Get_Rx_freq,"gain":self.Get_Rx_Gain}
+						}
+		};
+
 		self.order = {
 			  'SPIWrite'     : self.API_SPIWrite
 			, 'SPIRead'      : self.API_SPIRead
@@ -19,6 +30,7 @@ class AD9361_c:
 			, 'WAIT'         : self.API_WAIT
 			, 'WAIT_CALDONE' : self.API_WAIT_CALDONE
 			}
+
 		"""
 		Reg 0x16
     D7   D6   D5     D4     D3     D2        D1   D0
@@ -151,34 +163,49 @@ class AD9361_c:
 				time.sleep(0.01)
 				t -= 10
 
-	def RFFreqCalc(self,ref,f):
+	def RFFreqCalc(self,f):
 		VCO_Divider = math.floor(math.log(12e9/f)/math.log(2.))
 		F_RFPLL = (2**VCO_Divider)*f
-		n = F_RFPLL/(ref*2)
+		n = F_RFPLL/(self.ref*2)
 		N_integer = int(math.floor(n))
 		N_fractional = int(round(8388593.*(n-N_integer)))
 		return (int(VCO_Divider)-1,N_integer,N_fractional)
 
-	def Set_Tx_freq(self,ref,f):
+	def RFWord2Freq(self,VCO_Divider,F):
+		VCO_Divider += 1
+		N_F = F[4]*65536+F[3]*256+F[2]
+		N_I = F[1]*256+F[0]
+		n = float(N_I)+float(N_F)/8388593.
+		f = (n*self.ref*2.)/float(2**VCO_Divider) 
+		return f
+
+	def Get_freq(self,Base=0x271):
+		div = self.readByte(0x5)
+		div = (div>>4)&0xf
+		F = []
+		for i in range(5):
+			F.append(self.readByte(Base))
+			Base += 1
+		return self.RFWord2Freq(div,F)
+	
+	def Set_freq(self,f,Base=0x271):
 		self.cntrWrite('AD9361_EN',0)
-		(D,I,F)=self.RFFreqCalc(ref,f)
+		(D,I,F)=self.RFFreqCalc(f)
 		div = self.readByte(0x5)
 		div &= 0xf
 		div |= D<<4
-		IL = I&0xff
-		IH = I>>8
-		IH &= 0x3
-		FL = F&0xff
-		FM = (F>>8)&0xff
-		FH = (F>>16)&0x7f
-		self.writeByte(0x271,IL)
-		self.writeByte(0x272,IH)
-		self.writeByte(0x273,FL)
-		self.writeByte(0x274,FM)
-		self.writeByte(0x275,FH)
+		W = []
+		W.append(I&0xff)
+		W.append((I>>8)&0x3)
+		W.append(F&0xff)
+		F >>= 8
+		W.append(F&0xff)
+		F >>= 8
+		W.append(F&0x7f)
+		for i in range(5):
+			self.writeByte(Base,W[i])
+			Base += 1
 		self.writeByte(5,div)
-		self.API_WAIT_CALDONE(["TXCP","100"])
-		self.Check_FDD()
 
 	def Check_FDD(self):
 		r = self.ENSM(1)
@@ -193,28 +220,60 @@ class AD9361_c:
 			if timeout<0:
 				break
 
-		
-	def Set_Rx_freq(self,ref,f):
-		self.cntrWrite('AD9361_EN',0)
-		(D,I,F)=self.RFFreqCalc(ref,f)
-		div = self.readByte(0x5)
-		div &= 0xf0
-		div |= D
-		IL = I&0xff
-		IH = I>>8
-		IH &= 0x3
-		FL = F&0xff
-		FM = (F>>8)&0xff
-		FH = (F>>16)&0x7f
-		self.writeByte(0x231,IL)
-		self.writeByte(0x232,IH)
-		self.writeByte(0x233,FL)
-		self.writeByte(0x234,FM)
-		self.writeByte(0x235,FH)
-		self.writeByte(5,div)
+	def Set_Tx_freq(self,f):
+		self.Set_freq(f,0x271)
+		self.API_WAIT_CALDONE(["TXCP","100"])
+		self.Check_FDD()
+
+	
+	def Set_Rx_freq(self,f):
+		self.Set_freq(f,0x231)
 		self.API_WAIT_CALDONE(["RXCP","100"])
 		self.Check_FDD()
 		
+	def Get_Tx_freq(self):
+		return self.Get_freq(0x271)
+
+	def Get_Rx_freq(self):
+		return self.Get_freq(0x231)
+	
+	def Set_Tx_Gain(self,g,p):
+		d = int(round(0-g*4.))
+		if d>=0 and d<360:
+			if p==1:
+				Base = 0x73
+			else:
+				Base = 0x75
+			self.writeByte(Base,d&0xff)
+			self.writeByte(Base+1,(d>>8)&1)
+
+	def Get_Tx_Gain(self,p):
+		if p==1:
+			Base = 0x73
+		else:
+			Base = 0x75
+		d =	self.readByte(Base+1)&1
+		d *= 256
+ 		d += self.readByte(Base)&0xff
+ 		g = 0.-float(d)/4.
+ 		return g
+
+	def Set_Rx_Gain(self,g,p):
+		d = int(g)
+		if d>=0 and d<=0x4c:
+			if p==1:
+				Base = 0x109
+			else:
+				Base = 0x10c
+			self.writeByte(Base,d)
+
+	def Get_Rx_Gain(self,p):
+		if p==1:
+			Base = 0x109
+		else:
+			Base = 0x10c
+		return self.readByte(Base)
+
 	def ENSM(self,p=None):
 		r = self.readByte(0x17)&0xf
 		if p and r<12:

@@ -7,22 +7,52 @@ import sys
 class axi2s_c:
 	def __init__(self):
 		self.dev = dev_mem.dev_mem(FPGA_BASE,FPGA_SIZE)
+		self.api = {
+			  'ver':self.apiversion
+			, 'rreg':self.apiread
+			, 'wreg':self.apiwrite
+		}
+
+	def apiversion(self,argv):
+		ver = self.version()
+		return {'ret':'ok','data':ver}
+
+	def apiread(self,argv):
+		if 'reg' in argv:
+			if argv.reg in reg.addr:
+				return {'ret':'ok','data':hex(self.dev.ioread(reg.addr[argv.reg]))}
+			else:
+				return {'ret':'err','res':'reg not exit'}
+		else:
+			return {'ret':'err','res':'reg not given'}
+
+	def apiwrite(self,argv):
+		if 'reg' in argv and 'value' in argv:
+			v = int(argv.value,16)
+			if argv.reg in reg.addr:
+				self.dev.iowrite(reg.addr[argv.reg],v)
+				return {'ret':'ok'}
+			else:
+				return {'ret':'err','res':'reg not exit'}
+		else:
+			return {'ret':'err','res':'reg or value not given'}
 
 	def version(self):
-		major = self.read('VER_MAJOR')
-		minor_reg = reg.addr['VER_MINOR0']
+		vreg = reg.addr['VER_MAJOR']
+		major = self.dev.ioread(vreg)
 		minor = []
+		vreg = reg.addr['VER_MINOR0']
 		for i in range(5):
-			regname = 'VER_MINOR%d'%i
-			minor.append(self.read(regname))
-			minor_reg += 4
+			minor.append(self.dev.ioread(vreg))
+			vreg += 4
 		i = 4
-		print 'git hash:'
+		minstr = ""
 		while i>=0:
-			print '%08x'%(minor[i]),
+			minstr +='%08x'%(minor[i])
 			i -= 1
-		print ''
-
+		ver = 'VER: %08x-%s'%(major,minstr)
+		return ver
+		
 	def check(self):
 		time.sleep(1)
 		self.read('AXI2S_IACNT')
@@ -34,7 +64,7 @@ class axi2s_c:
 		self.read('AXI_STATUS')
 		self.read('AXI_RADDR')
 		self.read('AXI_WADDR')
-		self.version()
+		print self.version()
 
 	def init(self):
 		self.read('AXI2S_STATE')
