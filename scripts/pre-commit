@@ -1,2 +1,2 @@
-exec git log --pretty=format:'`define VERSION 160'h%H' -n 1 > ./.git/version.v
+exec git log --pretty=format:"\`define VERSION 160'h%H" -n 1 > ./.git/version.v
 
