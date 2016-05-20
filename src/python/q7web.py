@@ -10,6 +10,7 @@ urls = ( '/'      ,'index'
 	     , '/tx'    ,'tx'
 	     , '/rx'    ,'rx'
 	     , '/txbuf' ,'txbuf'
+	     , '/rxbuf' ,'rxbuf'
 	     , '/misc'  ,'misc'
 	     )
 
@@ -62,12 +63,57 @@ class rx(txrx):
 		web.header('Content-Type', 'text/json')
 		return json.dumps(ret)
 
+class paser:
+	def paser(self,member,i):
+		if member in i:
+			ret = int(i[member])
+		else:
+			ret = 0
+		return ret
+	
+	def paser3(self,i):
+		self.axi2s = axi2s_c.axi2s_c()
+		self.axi2s.getCNT()
+		self.start = self.paser('start',i)
+		self.len = self.paser('samples',i)*4
+		self.frame = self.paser('frame',i)
+
 class txbuf:
 	def POST(self):
 		i = web.input()
 		print i
 		web.header('Content-Type', 'text/json')
 		return json.dumps({'ret':'ok'})
+
+class rxbuf(paser):
+	def GET(self):
+		i = web.input()
+		paser.paser3(self,i)
+		if self.frame==0:
+			self.frame = self.axi2s.cnt['AXI2S_IBCNT']
+		sp = self.axi2s.IinBuf(self.frame,self.start)
+		ep = self.axi2s.IinBuf(self.frame,self.start+self.len)
+		ret = {'cnt':self.axi2s.cnt,'start':self.start,'frame':self.frame,'len':self.len}
+		print 'sp',sp,'ep',ep	
+		if sp==0 and ep==0:
+			mem = axi2s_u.axi2s_u(self.axi2s.base['AXI2S_IBASE'],self.axi2s.base['AXI2S_ISIZE'])
+			web.header('Content-Type', 'application/octet-stream')
+			if self.start+self.len<=self.axi2s.base['AXI2S_ISIZE']:
+				return mem.dev.mmap[self.start:self.start+self.len]
+			else:
+				return mem.dev.mmap[self.start:]+mem.dev.mmap[:self.start+self.len-self.axi2s.base['AXI2S_ISIZE']]
+		else:
+			web.header('Content-Type', 'text/json')
+			if sp>0:
+				return json.dumps({'ret':'err','res':'Data not ready','data':ret})
+			elif ep>0 and sp==0:
+				return json.dumps({'ret':'err','res':'Data not all ready','data':ret})
+			elif ep==0 and sp<0:
+				return json.dumps({'ret':'err','res':'Data not all valid','data':ret})
+			elif ep<0:
+				return json.dumps({'ret':'err','res':'Data not in buf','data':ret})
+		web.header('Content-Type', 'text/json')
+		return json.dumps({'ret':'err','res':'unknow','cnt':self.axi2s.cnt,'data':ret})
 
 class misc:
 	def GET(self):
@@ -79,6 +125,20 @@ class misc:
 			ret = {'ret':'err','res':'undefined fun or miss fun'}
 		web.header('Content-Type', 'text/json')
 		return json.dumps(ret)
+	
+	def POST(self):
+		i = web.input()
+		web.header('Content-Type', 'text/json')
+		if 'adscripts' in i:
+			ad = AD9361_c.AD9361_c()
+			lines = i.adscripts.split('\n')
+			for x in lines:
+				adscripts.parse(x,ad.order)
+			return json.dumps({'ret':'ok'})
+		else:
+			return json.dumps({'ret':'err','res':'no scripts upload'})
+
+		
 
 
 def init():

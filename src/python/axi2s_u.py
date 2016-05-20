@@ -6,6 +6,7 @@ from ctypes import *
 
 class axi2s_u:
 	def __init__(self,base=OCM_BASE,size=OCM_SIZE):
+		print 'axi2s_u',hex(base),hex(size)
 		self.dev = dev_mem.dev_mem(base,size)
 
 	def dump(self,offset,length):

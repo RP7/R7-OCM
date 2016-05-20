@@ -12,6 +12,9 @@ class axi2s_c:
 			, 'rreg':self.apiread
 			, 'wreg':self.apiwrite
 		}
+		self.base = {}
+		self.status()
+		self.cnt = {}
 
 	def apiversion(self,argv):
 		ver = self.version()
@@ -84,6 +87,33 @@ class axi2s_c:
 		self.write('AXI2S_EN',IEN|OEN)
 		self.read('AXI2S_STATE')
 
+	def status(self):
+		self.base = {'AXI2S_IBASE':0x1ffc0000, 'AXI2S_ISIZE':0x10000, 'AXI2S_OBASE':0xfffd0000, 'AXI2S_OSIZE':0x10000}
+		for r in self.base:
+			self.write(r,self.base[r])
+		
+	
+	def getCNT(self):
+		regcnt  = ['AXI2S_IACNT', 'AXI2S_IBCNT', 'AXI2S_OACNT', 'AXI2S_OBCNT']
+		for r in regcnt:
+			self.cnt[r] =  self.dev.ioread(reg.addr[r])
+
+	def IinBuf(self,f,s):
+		dis = (self.cnt['AXI2S_IBCNT']-f)*self.base['AXI2S_ISIZE']+(self.cnt['AXI2S_IACNT']-s)	
+		if dis<0:
+			return 1  #early
+		if dis>self.base['AXI2S_ISIZE']-self.base['AXI2S_ISIZE']/64:
+			return -1 #too late
+		return 0
+
+	def OinBuf(self,f,s):
+		dis = (self.cnt['AXI2S_OBCNT']-f)*self.base['AXI2S_OSIZE']+(self.cnt['AXI2S_OACNT']-s)	
+		if dis>0: 
+			return -1 #late
+		if dis<-self.base['AXI2S_OSIZE']+self.base['AXI2S_OSIZE']/64:
+			return 1  #too early
+		return 0
+		
 	def read(self,regname):
 		r = self.dev.ioread(reg.addr[regname])
 		print 'R:',regname, hex(r)
