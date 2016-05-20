@@ -206,11 +206,11 @@ always @(*) begin
 			end
 			// define VER_MAJ         18'h40
 			`VER_MAJ: begin
-				dout <= VERSIO_MAJOR;
+				dout <= VERSION_MAJOR;
 			end
 			// define VER_MIN         18'h44
 			`VER_MAJ: begin
-				dout <= VERSIO_MINOR;
+				dout <= VERSION_MINOR;
 			end
 		endcase
 	end
