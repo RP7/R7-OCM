@@ -38,7 +38,7 @@ class axi:
 
 def main():
 	uut = axi()
-	uut.ocm_tz()
+	#uut.ocm_tz()
 	if len(sys.argv)==2:
 		uut.read(int(sys.argv[1],16))
 	elif len(sys.argv)==3:

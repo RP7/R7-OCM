@@ -1,4 +1,4 @@
-module AXIwriteResp
+module AXIResp
 (
 	clk,
 	valid,

@@ -232,7 +232,8 @@ module R7OCM_top
   
   wire test;
 
-  wire [31:0]axiresp;
+  wire [31:0]axiwresp;
+  wire [31:0]axirresp;
   wire [31:0]axistatus;
   wire [31:0]testD;
 
@@ -331,13 +332,20 @@ armocm_wrapper core
 
   .test_led_tri_o(TEST_LED)
   );
-AXIwriteResp wresp
+AXIResp wresp
   (
   .clk(AXI_clk),
   .valid(AXI_HP0_bvalid),
   .resp(AXI_HP0_bresp),
   .ready(AXI_HP0_bready),
-  .respOut(axiresp)
+  .respOut(axiwresp)
+  );
+AXIResp rresp
+  (
+  .clk(AXI_clk),
+  .valid(AXI_HP0_rvalid&AXI_HP0_rready),
+  .resp(AXI_HP0_rresp),
+  .respOut(axirresp)
   );
 GE_patch gep
    (
@@ -448,7 +456,8 @@ AXI2SREG axi2s_reg_space
     .ibcnt(AXI_IBCNT),
     .oacnt(AXI_OACNT),
     .obcnt(AXI_OBCNT),
-    .axiresp(axiresp),
+    .axiwresp(axiwresp),
+    .axirresp(axirresp),
     .axistatus(axistatus),
     .axiraddr(AXI_HP0_araddr),
     .axiwaddr(AXI_HP0_awaddr)//,

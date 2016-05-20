@@ -194,7 +194,7 @@ add_files -norecurse src/rtl/reg_define.v
 add_files -norecurse src/rtl/CBusReadMerge.v
 add_files -norecurse src/rtl/AD9361REG.v
 add_files -norecurse src/rtl/ad9361_1t1r.v
-add_files -norecurse src/rtl/AXIwriteResp.v
+add_files -norecurse src/rtl/AXIResp.v
 add_files -norecurse src/rtl/cntSrc.v
 
 set_property top R7OCM_top [current_fileset]

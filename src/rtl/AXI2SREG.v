@@ -27,7 +27,8 @@ module AXI2SREG
 		oacnt,
 		obcnt,
 		test,
-		axiresp,
+		axiwresp,
+    axirresp,
     axistatus,
     axiraddr,
     axiwaddr,
@@ -63,7 +64,8 @@ module AXI2SREG
 	input [31:0]ibcnt;
 	input [31:0]obcnt;
 
-	input [31:0]axiresp;
+	input [31:0]axiwresp;
+	input [31:0]axirresp;
 	input [31:0]axistatus;
 
 	input [31:0]axiraddr;
@@ -79,7 +81,7 @@ begin
 		tddmode   <= 1'b0;
 		ibase     <= 32'hfffc0000;
 		isize     <= 18'h400;
-		obase     <= 32'hfffc0000;
+		obase     <= 32'hfffd0000;
 		osize     <= 18'h400;
 		frame_len <= 24'd1920;
 		frame_len <= 24'd1920;
@@ -87,7 +89,7 @@ begin
 		tend      <= 24'd1919;
 		rstart    <= 24'h0;
 		rend      <= 24'd1919;
-		test  <= 1'b1;
+		test  		<= 1'b0;
 	end	
 	else if(clk) begin
 		if( en==1'b1 ) begin
@@ -181,19 +183,23 @@ always @(*) begin
 			`AXI2S_OBCNT: begin
 				dout <= obcnt;
 			end
-			// define AXI_WRESP       18'h20
-			`AXI_WRESP: begin
-				dout <= axiresp;
+			// define AXI_RRESP       18'h20
+			`AXI_RRESP: begin
+				dout <= axirresp;
 			end
-			// define AXI_STATUS     18'h24
+			// define AXI_WRESP       18'h24
+			`AXI_WRESP: begin
+				dout <= axiwresp;
+			end
+			// define AXI_STATUS      18'h28
 			`AXI_STATUS: begin
 				dout <= axistatus;
 			end
-			// define AXI_RADDR       18'h28
+			// define AXI_RADDR       18'h30
 			`AXI_RADDR: begin
 				dout <= axiraddr;
 			end
-			// define AXI_WADDR     18'h2c
+			// define AXI_WADDR       18'h34
 			`AXI_WADDR: begin
 				dout <= axiwaddr;
 			end

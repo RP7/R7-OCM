@@ -20,10 +20,11 @@
 `define AXI2S_IBCNT     18'h00014
 `define AXI2S_OACNT     18'h00018
 `define AXI2S_OBCNT     18'h0001c
-`define AXI_WRESP       18'h00020
-`define AXI_STATUS      18'h00024
-`define AXI_RADDR       18'h00028
-`define AXI_WADDR       18'h0002c
+`define AXI_RRESP       18'h00020
+`define AXI_WRESP       18'h00024
+`define AXI_STATUS      18'h00028
+`define AXI_RADDR       18'h00030
+`define AXI_WADDR       18'h00034
 
 /* AD9361 Control Signal */
 `define AD9361_RST			18'h00100

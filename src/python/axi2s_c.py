@@ -14,6 +14,7 @@ class axi2s_c:
 		self.read('AXI2S_IBCNT')
 		self.read('AXI2S_OACNT')
 		self.read('AXI2S_OBCNT')
+		self.read('AXI_RRESP')
 		self.read('AXI_WRESP')
 		self.read('AXI_STATUS')
 		self.read('AXI_RADDR')
