@@ -73,7 +73,7 @@ module AXI2SREG
 	input [31:0]axiwaddr;
 
 	input adj_pending;
-    wire [159:0]version_git;
+  wire [159:0]version_git;
 	
 always @(posedge clk or posedge rst)
 begin
@@ -210,25 +210,25 @@ always @(*) begin
 				dout <= `VERSION_MAJOR;
 			end
 			// define VER_MINOR0       18'h50
-            `VER_MINOR0: begin
-                dout <= version_git[31:0];
-            end
+     `VER_MINOR0: begin
+      	dout <= version_git[31:0];
+      end
 			// define VER_MINOR1       18'h54
-            `VER_MINOR1: begin
-                dout <= version_git[63:32];
-            end
+     `VER_MINOR1: begin
+      	dout <= version_git[63:32];
+      end
 			// define VER_MINOR2       18'h58
-            `VER_MINOR2: begin
-                dout <= version_git[95:64];
-            end
+     `VER_MINOR2: begin
+      	dout <= version_git[95:64];
+      end
 			// define VER_MINOR3       18'h5c
-            `VER_MINOR3: begin
-                dout <= version_git[127:96];
-            end
+     `VER_MINOR3: begin
+      	dout <= version_git[127:96];
+      end
 			// define VER_MINOR4       18'h60
-            `VER_MINOR4: begin
-                dout <= version_git[159:128];
-            end
+     `VER_MINOR4: begin
+      	dout <= version_git[159:128];
+      end
 		endcase
 	end
 	else dout <= 32'h0;	

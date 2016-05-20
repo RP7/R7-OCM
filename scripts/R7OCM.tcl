@@ -73,6 +73,8 @@ set_property -dict [list CONFIG.PCW_USE_HIGH_OCM {1}] [get_bd_cells processing_s
 endgroup
 assign_bd_address [get_bd_addr_segs {processing_system7_0/S_AXI_HP0/HP0_HIGH_OCM }]
 assign_bd_address [get_bd_addr_segs {processing_system7_0/S_AXI_HP0/HP0_DDR_LOWOCM }]
+set_property range 32M [get_bd_addr_segs {S_AXI_HP0/SEG_processing_system7_0_HP0_DDR_LOWOCM}]
+set_property offset 0x1E000000 [get_bd_addr_segs {S_AXI_HP0/SEG_processing_system7_0_HP0_DDR_LOWOCM}]
 
 startgroup
 set_property -dict [list CONFIG.PCW_FPGA1_PERIPHERAL_FREQMHZ {100} CONFIG.PCW_EN_CLK1_PORT {1}] [get_bd_cells processing_system7_0]

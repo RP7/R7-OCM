@@ -8,6 +8,21 @@ class axi2s_c:
 	def __init__(self):
 		self.dev = dev_mem.dev_mem(FPGA_BASE,FPGA_SIZE)
 
+	def version(self):
+		major = self.read('VER_MAJOR')
+		minor_reg = reg.addr['VER_MINOR0']
+		minor = []
+		for i in range(5):
+			regname = 'VER_MINOR%d'%i
+			minor.append(self.read(regname))
+			minor_reg += 4
+		i = 4
+		print 'git hash:'
+		while i>=0:
+			print '%08x'%(minor[i]),
+			i -= 1
+		print ''
+
 	def check(self):
 		time.sleep(1)
 		self.read('AXI2S_IACNT')
@@ -19,7 +34,7 @@ class axi2s_c:
 		self.read('AXI_STATUS')
 		self.read('AXI_RADDR')
 		self.read('AXI_WADDR')
-
+		self.version()
 
 	def init(self):
 		self.read('AXI2S_STATE')

@@ -25,12 +25,12 @@
 `define AXI_STATUS      18'h00028
 `define AXI_RADDR       18'h00030
 `define AXI_WADDR       18'h00034
-`define VER_MAJOR		18'h00040
-`define VER_MINOR0		18'h00050
-`define VER_MINOR1		18'h00054
-`define VER_MINOR2		18'h00058
-`define VER_MINOR3		18'h0005c
-`define VER_MINOR4		18'h00060
+`define VER_MAJOR       18'h00040
+`define VER_MINOR0      18'h00050
+`define VER_MINOR1      18'h00054
+`define VER_MINOR2      18'h00058
+`define VER_MINOR3      18'h0005c
+`define VER_MINOR4      18'h00060
 
 /* AD9361 Control Signal */
 `define AD9361_RST			18'h00100
