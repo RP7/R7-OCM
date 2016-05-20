@@ -1,5 +1,5 @@
-`include "version.v"
 `include "reg_define.v"
+`include "version.v"
 
 module AXI2SREG
 	(
@@ -204,13 +204,13 @@ always @(*) begin
 			`AXI_WADDR: begin
 				dout <= axiwaddr;
 			end
-			// define VER_MAJ         18'h40
-			`VER_MAJ: begin
-				dout <= VERSION_MAJOR;
+			// define VER_MAJOR       18'h40
+			`VER_MAJOR: begin
+				dout <= `VERSION_MAJOR;
 			end
-			// define VER_MIN         18'h44
-			`VER_MAJ: begin
-				dout <= VERSION_MINOR;
+			// define VER_MINOR       18'h44
+			`VER_MINOR: begin
+				dout <= `VERSION_MINOR;
 			end
 		endcase
 	end
