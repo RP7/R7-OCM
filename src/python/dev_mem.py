@@ -24,6 +24,11 @@ class dev_mem:
         memmove(buf,self.mmap.read(4*len),4*len)
         return buf
     
+    def bufread(self,addr,len):
+        self.mmap.seek(addr)
+        buf=self.mmap.read(len)
+        return buf
+    
     def SetOffset(self,offset):
         self.mmap.seek(offset)
 
@@ -33,6 +38,13 @@ class dev_mem:
 
     def deinit(self):
         self.mmap.close()
+
+def main():
+    uut = dev_mem(0xfffc0000,0x10000)
+    print uut.mmap[:5]
+
+if __name__ == '__main__':
+    main()
 
 
 

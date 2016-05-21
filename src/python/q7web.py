@@ -7,7 +7,7 @@ import axi2s_c
 import json
 import time
 from download import downloadThread 
-
+import base64
 
 urls = ( '/'      ,'index'
 	     , '/tx'    ,'tx'
@@ -100,12 +100,13 @@ class rxbuf(paser):
 		ret = {'cnt':self.axi2s.cnt,'start':self.start,'frame':self.frame,'len':self.len}
 		print 'sp',sp,'ep',ep	
 		if sp==0 and ep==0:
-			mem = axi2s_u.axi2s_u(self.axi2s.base['AXI2S_IBASE'],self.axi2s.base['AXI2S_ISIZE'])
+			mem = axi2s_u.axi2s_u()
 			web.header('Content-Type', 'application/octet-stream')
 			if self.start+self.len<=self.axi2s.base['AXI2S_ISIZE']:
-				return mem.dev.mmap[self.start:self.start+self.len]
-			else:
-				return mem.dev.mmap[self.start:]+mem.dev.mmap[:self.start+self.len-self.axi2s.base['AXI2S_ISIZE']]
+				buf = mem.dev.bufread(self.start,self.len)
+				b64 = base64.urlsafe_b64encode(buf)
+				print b64[:5],buf[:5]
+				return b64
 		else:
 			web.header('Content-Type', 'text/json')
 			if sp>0:
