@@ -5,6 +5,9 @@ import AD9361_c
 import adscripts
 import axi2s_c
 import json
+import time
+from download import downloadThread 
+
 
 urls = ( '/'      ,'index'
 	     , '/tx'    ,'tx'
@@ -12,6 +15,7 @@ urls = ( '/'      ,'index'
 	     , '/txbuf' ,'txbuf'
 	     , '/rxbuf' ,'rxbuf'
 	     , '/misc'  ,'misc'
+	     , '/data'  ,'data'
 	     )
 
 class index:
@@ -119,8 +123,11 @@ class misc:
 	def GET(self):
 		i = web.input(fun=None)
 		axi2s = axi2s_c.axi2s_c()
+		ad = AD9361_c.AD9361_c()
 		if i.fun in axi2s.api:
 			ret = axi2s.api[i.fun](i)
+		elif i.fun in ad.api:
+			ret = ad.api[i.fun](i)
 		else:
 			ret = {'ret':'err','res':'undefined fun or miss fun'}
 		web.header('Content-Type', 'text/json')
@@ -135,9 +142,21 @@ class misc:
 			for x in lines:
 				adscripts.parse(x,ad.order)
 			return json.dumps({'ret':'ok'})
-		else:
-			return json.dumps({'ret':'err','res':'no scripts upload'})
+		elif 'bit' in i:
+			f = open('/tmp/bit','w')
+			f.write(i.bit)
+			f.close()
+			downloadThread('download','/tmp/bit').start()
+			return json.dumps({'ret':'ok'})
+		return json.dumps({'ret':'err','res':'not bit or adscripts'})
 
+class data:
+	def GET(self):
+		ocm = axi2s_u.axi2s_u()
+		r = ocm.rfdata()
+		ocm.deinit()
+		web.header('Content-Type', 'text/json')
+		return json.dumps(r)
 		
 
 

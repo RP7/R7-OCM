@@ -13,7 +13,10 @@ class AD9361_c:
 		if c_system=='Linux':
 			self.dev = dev_mem.dev_mem(AD9361_SPI_BASE,AD9361_SPI_SIZE)
 			self.ref = 25e6
-		
+		self.api = {
+			  'arreg':self.apiread
+			, 'awreg':self.apiwrite
+		}
 		self.webapi = {
 			"tx":{  "set":{"freq":self.Set_Tx_freq,"gain":self.Set_Tx_Gain}
 						, "get":{"freq":self.Get_Tx_freq,"gain":self.Get_Tx_Gain}
@@ -30,6 +33,8 @@ class AD9361_c:
 			, 'WAIT'         : self.API_WAIT
 			, 'WAIT_CALDONE' : self.API_WAIT_CALDONE
 			}
+
+
 
 		"""
 		Reg 0x16
@@ -60,6 +65,21 @@ class AD9361_c:
 		}
 		self.ensm_db = ['SLEEP/WAIT','CALIBRATION','CALIBRATION', 'CALIBRATION', 'WAIT to ALERT delay', 'ALERT', 'TX', 'TX FLUSH', 'RX', 'RX FLUSH', 'FDD', 'FDD FLUSH']
 		self.cntr = axi2s_c.axi2s_c()
+	
+	def apiread(self,argv):
+		if 'reg' in argv:
+			return {'ret':'ok','data':hex(self.readByte(int(argv.reg,16)))}
+		else:
+			return {'ret':'err','res':'reg not given'}
+
+	def apiwrite(self,argv):
+		if 'reg' in argv and 'value' in argv:
+			self.writeByte(int(argv.reg,16),int(argv.value,16))
+			return {'ret':'ok'}
+		else:
+			return {'ret':'err','res':'reg or value not given'}
+
+
 	def cntrWrite(self,addr,d):
 		self.cntr.write(addr,d)
 

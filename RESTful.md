@@ -60,21 +60,30 @@
 
 ## 读取RX缓冲区
 
-	
-		curl -o rx.data http://192.168.1.110:8080/rxbuf?sample=1920&start=100:0
+		curl -o temp/rx.dat -G -d 'samples=1920&start=0' http://192.168.1.110:8080/rxbuf
 		return in rx.data
 		sample 	         数据长度
-		start(option)    数据起点 frame：pos 
+		start            数据起点 
+		frame            帧号，缺省当前帧 
 
 
 ## 填充TX缓冲区
 
-		curl -F data=@tx.dat -F "sample=120" -F "frame=100" -F "start=0" http://192.168.1.110:8080/txbuf
+		curl -F data=@tx.dat -F "samples=120" -F "frame=100" -F "start=0" http://192.168.1.110:8080/txbuf
 		return {"ret": "ok"}
 		数据在    tx.dat
 		sample   数据长度
 		start    数据起点 
 		frame	 帧号 
+
+## 读取频谱
+		
+		curl http://192.168.1.110:8080/data
+		return {  "i": [2047, 2010, 1115, 1747, 2047, 391, -2048.....]
+				, "q": [-1636, -2048, 123, 2047, 2047, 1255, 1771...]
+				, "freq": [-500,-499...499,500]
+				, "power": [100.03597595669271, 100.42172402828378, 98.85927007812113...]
+				}
 
 ## 杂项
 
@@ -83,6 +92,25 @@
 		curl -G -d 'fun=ver' http://192.168.1.110:8080/misc
 		return {"data": "VER: 00000100-04c2fe7eb88757798a6a5927fdaa1e781664cb31", "ret": "ok"}
 
+2. 运行ADI的脚本文件
+
+		curl -F adscripts=@'AD9361/ad9361_config.reg' http://192.168.1.110:8080/misc
+		return {"ret": "ok"}
+
+2. 下载bit文件
+
+		curl -F bit=@'R7OCM.runs/impl_1/R7OCM_top.bit' http://192.168.1.110:8080/misc
+		return {"ret": "ok"}
+
+2. 读AD9361寄存器
+
+		curl -G -d 'fun=arreg&reg=109' http://192.168.1.110:8080/misc
+		return {"data": "0x4cL", "ret": "ok"}
+
+2. 写AD9361寄存器
+
+		curl -G -d 'fun=awreg&reg=109&value=38' http://192.168.1.110:8080/misc
+		return {"data": "0x4cL", "ret": "ok"}
 
 2. 读寄存器
 

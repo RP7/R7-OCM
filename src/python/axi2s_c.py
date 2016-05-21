@@ -89,8 +89,8 @@ class axi2s_c:
 
 	def status(self):
 		self.base = {'AXI2S_IBASE':0x1ffc0000, 'AXI2S_ISIZE':0x10000, 'AXI2S_OBASE':0xfffd0000, 'AXI2S_OSIZE':0x10000}
-		for r in self.base:
-			self.write(r,self.base[r])
+		#for r in self.base:
+		#	self.write(r,self.base[r])
 		
 	
 	def getCNT(self):
