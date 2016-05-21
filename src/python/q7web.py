@@ -104,9 +104,7 @@ class rxbuf(paser):
 			web.header('Content-Type', 'application/octet-stream')
 			if self.start+self.len<=self.axi2s.base['AXI2S_ISIZE']:
 				buf = mem.dev.bufread(self.start,self.len)
-				b64 = base64.urlsafe_b64encode(buf)
-				print b64[:5],buf[:5]
-				return b64
+				return buf
 		else:
 			web.header('Content-Type', 'text/json')
 			if sp>0:
