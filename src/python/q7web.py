@@ -8,6 +8,7 @@ import json
 import time
 from download import downloadThread 
 import base64
+import ad9361_fir
 
 urls = ( '/'      ,'index'
 	     , '/tx'    ,'tx'
@@ -16,6 +17,7 @@ urls = ( '/'      ,'index'
 	     , '/rxbuf' ,'rxbuf'
 	     , '/misc'  ,'misc'
 	     , '/data'  ,'data'
+	     , '/fir'   ,'fir'
 	     )
 
 class index:
@@ -148,6 +150,46 @@ class misc:
 			downloadThread('download','/tmp/bit').start()
 			return json.dumps({'ret':'ok'})
 		return json.dumps({'ret':'err','res':'not bit or adscripts'})
+
+class fir:
+	def POST(self):
+		i = web.input()
+		web.header('Content-Type', 'text/json')
+		ad = AD9361_c.AD9361_c()
+		ftr = ad9361_fir.ad9361_fir(port=3)
+		if 'fir' in i:
+			lines = i.fir.split('\n')
+			ftr.fromlines(lines)
+			for n in ftr.fir:
+				if n in ['tx','rx']:
+					ftr.txrx = n
+					if 'port' in ftr.fir[n]:
+						ftr.port = ftr.fir[n]['port']
+					ftr.build(ftr.fir[n]['coeffs'],ftr.fir[n]['gain'])
+			ad.cntrWrite('AD9361_EN',0)
+			ftr.download(ad.SPIWrite)
+			ad.Check_FDD()
+			return json.dumps({'ret':'ok'})
+		elif 'chead' in i:
+			if 'rx' in i:
+				ftr.txrx = 'rx'
+			elif 'tx' in i:
+				ftr.txrx = 'tx'
+			else:
+				ftr.txrx = 'rx'
+			if 'port' in i:
+				ftr.port = int(i.port)
+			if 'gain' in i:
+				g = int(i.gain)
+			else:
+				g = 0
+			coeffs = ftr.fromchead(i.chead)
+			ftr.build(coeffs,g)
+			ad.cntrWrite('AD9361_EN',0)
+			ftr.download(ad.SPIWrite)
+			ad.Check_FDD()
+			return json.dumps({'ret':'ok'})	
+		return json.dumps({'ret':'err','res':'not fir coeff'})
 
 class data:
 	def GET(self):

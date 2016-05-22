@@ -58,6 +58,11 @@
 		curl http://192.168.1.110:8080/rx?gain=50
 		return {'ret':'ok'}
 
+## 上传FIR滤波器系数
+
+		curl -F fir=@'AD9361/LTE1p4_MHz.ftr' http://192.168.1.110:8080/fir
+		return {"ret": "ok"}
+
 ## 读取RX缓冲区
 
 		curl -o temp/rx.dat -G -d 'samples=1920&start=0' http://192.168.1.110:8080/rxbuf
