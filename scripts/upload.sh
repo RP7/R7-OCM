@@ -1,5 +1,5 @@
 #! /bin/bash
-hostip = $1
+hostip=$1
 echo "pack project"
 make backup
 echo "make dir in tmp"

@@ -25,8 +25,8 @@ backup:
 install:
 	chmod +x scripts/upload.sh
 	chmod +x scripts/curlinit.sh
-	cp scripts/post-commit .git/hook/
-	chmod +x .git/hook/post-commit
+	cp scripts/post-commit .git/hooks/
+	chmod +x .git/hooks/post-commit
 	
 	
 	
