@@ -199,6 +199,7 @@ add_files -norecurse src/rtl/ad9361_1t1r.v
 add_files -norecurse src/rtl/AXIResp.v
 add_files -norecurse src/rtl/cntSrc.v
 add_files -norecurse src/rtl/gitversion.v
+add_files -norecurse src/rtl/version.v
 
 set_property top R7OCM_top [current_fileset]
 

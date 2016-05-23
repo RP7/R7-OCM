@@ -22,7 +22,12 @@ clean:
 backup:
 	tar -X .gitignore -czf ../R7OCM.tgz .
 
-
+install:
+	chmod +x scripts/upload.sh
+	chmod +x scripts/curlinit.sh
+	cp scripts/post-commit .git/hook/
+	chmod +x .git/hook/post-commit
+	
 	
 	
 	
