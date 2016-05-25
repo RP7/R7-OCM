@@ -1,0 +1,12 @@
+#-----------------------------------------------------------
+# Webtalk v2016.1 (64-bit)
+# SW Build 1538259 on Fri Apr  8 15:45:23 MDT 2016
+# IP Build 1537824 on Fri Apr  8 04:28:57 MDT 2016
+# Start of session at: Wed May 25 17:04:46 2016
+# Process ID: 3474
+# Current directory: /home/zhaom/works/R7-OCM
+# Command line: wbtcv -mode batch -source /home/zhaom/works/R7-OCM/R7OCM.hw/webtalk/labtool_webtalk.tcl -notrace
+# Log file: /home/zhaom/works/R7-OCM/webtalk.log
+# Journal file: /home/zhaom/works/R7-OCM/webtalk.jou
+#-----------------------------------------------------------
+source /home/zhaom/works/R7-OCM/R7OCM.hw/webtalk/labtool_webtalk.tcl -notrace

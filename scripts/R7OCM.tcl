@@ -154,6 +154,7 @@ startgroup
 create_bd_port -dir O -type clk FCLK_CLK1
 connect_bd_net [get_bd_pins /processing_system7_0/FCLK_CLK1] [get_bd_ports FCLK_CLK1]
 endgroup
+set_property CONFIG.ASSOCIATED_BUSIF {S_AXI_HP0} [get_bd_ports /FCLK_CLK1]
 
 regenerate_bd_layout
 save_bd_design
