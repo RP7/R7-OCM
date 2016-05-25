@@ -170,7 +170,6 @@ assign AXI_awlock    = 2'b00;    //"00";
 assign AXI_awcache   = 4'h0;     //x"0";
 assign AXI_awprot    = 3'b000;   //"000";
 assign AXI_awqos     = 4'h0;     //x"0";
-assign AXI_bready    = 1'b1;     //'1';
 assign AXI_wstrb     = 4'hf; 
 
 S2A_controller cs2a(
