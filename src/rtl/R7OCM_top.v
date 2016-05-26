@@ -284,7 +284,7 @@ armocm_wrapper core
   .FIXED_IO_ps_srstb(FIXED_IO_ps_srstb),
 
   .FCLK_CLK1(FCLK_CLK1),
-  .axi_aresetn(axi_rst_n),
+  .FCLK_RESET1_N(axi_rst_n),
   
   .S_AXI_HP0_araddr(AXI_HP0_araddr),
   .S_AXI_HP0_arburst(AXI_HP0_arburst),
