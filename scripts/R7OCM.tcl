@@ -63,18 +63,10 @@ set_property -dict [list CONFIG.PCW_USE_M_AXI_GP1 {0} CONFIG.PCW_USE_S_AXI_HP0 {
 endgroup
 
 startgroup
-create_bd_intf_port -mode Slave -vlnv xilinx.com:interface:aximm_rtl:1.0 S_AXI_HP0
-set_property -dict [list CONFIG.DATA_WIDTH [get_property CONFIG.DATA_WIDTH [get_bd_intf_pins processing_system7_0/S_AXI_HP0]] CONFIG.PROTOCOL [get_property CONFIG.PROTOCOL [get_bd_intf_pins processing_system7_0/S_AXI_HP0]] CONFIG.ID_WIDTH [get_property CONFIG.ID_WIDTH [get_bd_intf_pins processing_system7_0/S_AXI_HP0]] CONFIG.NUM_READ_OUTSTANDING [get_property CONFIG.NUM_READ_OUTSTANDING [get_bd_intf_pins processing_system7_0/S_AXI_HP0]] CONFIG.NUM_WRITE_OUTSTANDING [get_property CONFIG.NUM_WRITE_OUTSTANDING [get_bd_intf_pins processing_system7_0/S_AXI_HP0]] CONFIG.MAX_BURST_LENGTH [get_property CONFIG.MAX_BURST_LENGTH [get_bd_intf_pins processing_system7_0/S_AXI_HP0]]] [get_bd_intf_ports S_AXI_HP0]
-connect_bd_intf_net [get_bd_intf_pins processing_system7_0/S_AXI_HP0] [get_bd_intf_ports S_AXI_HP0]
-endgroup
-
-startgroup
 set_property -dict [list CONFIG.PCW_USE_HIGH_OCM {1}] [get_bd_cells processing_system7_0]
 endgroup
 assign_bd_address [get_bd_addr_segs {processing_system7_0/S_AXI_HP0/HP0_HIGH_OCM }]
 assign_bd_address [get_bd_addr_segs {processing_system7_0/S_AXI_HP0/HP0_DDR_LOWOCM }]
-set_property range 32M [get_bd_addr_segs {S_AXI_HP0/SEG_processing_system7_0_HP0_DDR_LOWOCM}]
-set_property offset 0x1E000000 [get_bd_addr_segs {S_AXI_HP0/SEG_processing_system7_0_HP0_DDR_LOWOCM}]
 
 startgroup
 set_property -dict [list CONFIG.PCW_FPGA1_PERIPHERAL_FREQMHZ {100} CONFIG.PCW_EN_CLK1_PORT {1}] [get_bd_cells processing_system7_0]
@@ -154,7 +146,31 @@ startgroup
 create_bd_port -dir O -type clk FCLK_CLK1
 connect_bd_net [get_bd_pins /processing_system7_0/FCLK_CLK1] [get_bd_ports FCLK_CLK1]
 endgroup
-set_property CONFIG.ASSOCIATED_BUSIF {S_AXI_HP0} [get_bd_ports /FCLK_CLK1]
+
+startgroup
+create_bd_cell -type ip -vlnv xilinx.com:ip:jtag_axi:1.0 jtag_axi_0
+endgroup
+startgroup
+create_bd_intf_port -mode Slave -vlnv xilinx.com:interface:aximm_rtl:1.0 S_AXI_HP0
+set_property -dict [list CONFIG.DATA_WIDTH [get_property CONFIG.DATA_WIDTH [get_bd_intf_pins processing_system7_0/S_AXI_HP0]] CONFIG.PROTOCOL [get_property CONFIG.PROTOCOL [get_bd_intf_pins processing_system7_0/S_AXI_HP0]] CONFIG.ID_WIDTH [get_property CONFIG.ID_WIDTH [get_bd_intf_pins processing_system7_0/S_AXI_HP0]] CONFIG.NUM_READ_OUTSTANDING [get_property CONFIG.NUM_READ_OUTSTANDING [get_bd_intf_pins processing_system7_0/S_AXI_HP0]] CONFIG.NUM_WRITE_OUTSTANDING [get_property CONFIG.NUM_WRITE_OUTSTANDING [get_bd_intf_pins processing_system7_0/S_AXI_HP0]] CONFIG.MAX_BURST_LENGTH [get_property CONFIG.MAX_BURST_LENGTH [get_bd_intf_pins processing_system7_0/S_AXI_HP0]]] [get_bd_intf_ports S_AXI_HP0]
+endgroup
+startgroup
+apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {Master "/jtag_axi_0/M_AXI" Clk "/processing_system7_0/FCLK_CLK1 (100 MHz)" }  [get_bd_intf_pins processing_system7_0/S_AXI_HP0]
+endgroup
+delete_bd_objs [get_bd_intf_nets jtag_axi_0_M_AXI] [get_bd_cells jtag_axi_0]
+
+startgroup
+connect_bd_intf_net [get_bd_intf_ports S_AXI_HP0] -boundary_type upper [get_bd_intf_pins axi_mem_intercon/S00_AXI]
+endgroup
+
+startgroup
+assign_bd_address [get_bd_addr_segs {processing_system7_0/S_AXI_HP0/HP0_DDR_LOWOCM }]
+assign_bd_address [get_bd_addr_segs {processing_system7_0/S_AXI_HP0/HP0_HIGH_OCM }]
+endgroup
+
+set_property range 32M [get_bd_addr_segs {S_AXI_HP0/SEG_processing_system7_0_HP0_DDR_LOWOCM}]
+set_property offset 0x1E000000 [get_bd_addr_segs {S_AXI_HP0/SEG_processing_system7_0_HP0_DDR_LOWOCM}]
+
 
 regenerate_bd_layout
 save_bd_design
