@@ -2,7 +2,7 @@
 hostip=$1
 echo "download bit"
 echo ${hostip}
-curl -F bit=@'R7OCM.runs/impl_1/R7OCM_top.bit' http://${hostip}:8080/misc
+#curl -F bit=@'R7OCM.runs/impl_1/R7OCM_top.bit' http://${hostip}:8080/misc
 echo ""
 echo "wait 2 s"
 sleep 2
