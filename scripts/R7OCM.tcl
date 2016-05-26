@@ -148,7 +148,7 @@ connect_bd_net [get_bd_pins /processing_system7_0/FCLK_CLK1] [get_bd_ports FCLK_
 endgroup
 
 startgroup
-create_bd_cell -type ip -vlnv xilinx.com:ip:jtag_axi:1.0 jtag_axi_0
+create_bd_cell -type ip -vlnv xilinx.com:ip:jtag_axi:1.* jtag_axi_0
 endgroup
 startgroup
 create_bd_intf_port -mode Slave -vlnv xilinx.com:interface:aximm_rtl:1.0 S_AXI_HP0
@@ -170,7 +170,7 @@ endgroup
 
 set_property range 32M [get_bd_addr_segs {S_AXI_HP0/SEG_processing_system7_0_HP0_DDR_LOWOCM}]
 set_property offset 0x1E000000 [get_bd_addr_segs {S_AXI_HP0/SEG_processing_system7_0_HP0_DDR_LOWOCM}]
-
+set_property CONFIG.ASSOCIATED_BUSIF {S_AXI_HP0} [get_bd_ports /FCLK_CLK1]
 
 regenerate_bd_layout
 save_bd_design

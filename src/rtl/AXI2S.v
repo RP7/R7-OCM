@@ -165,6 +165,7 @@ assign AXI_arprot    = 3'b000;   //"000";
 assign AXI_arqos     = 4'h0;     //x"0";
 
 assign AXI_awid      = 6'b111111; 
+assign AXI_wid      = 6'b111111; 
 assign AXI_awlen     = 4'hf;     //x"F"; burst length: 16
 assign AXI_awsize    = 3'b010;   //size: 4byte     
 assign AXI_awburst   = 2'b01;    //"01"; --incr            
