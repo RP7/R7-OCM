@@ -22,6 +22,7 @@ module AXI2S
     obcnt,
 
     AXI_clk,
+    AXI_rst_n,
     AXI_araddr,
     AXI_arburst,
     AXI_arcache,
@@ -71,6 +72,7 @@ module AXI2S
   input sync;
 
   input AXI_clk;
+  input AXI_rst_n;
   output [31:0]AXI_araddr;
   output [1:0]AXI_arburst;
   output [3:0]AXI_arcache;
@@ -186,6 +188,7 @@ S2A_controller cs2a(
   .ibcnt(ibcnt),
 
   .AXI_clk(AXI_clk),
+  .AXI_rst_n(AXI_rst_n),
   .AXI_awaddr(AXI_awaddr),
   .AXI_awvalid(AXI_awvalid),
   .AXI_awready(AXI_awready),
@@ -210,6 +213,7 @@ A2S_controller ca2s(
   .obcnt(obcnt),
 
   .AXI_clk(AXI_clk),
+  .AXI_rst_n(AXI_rst_n),
   .AXI_araddr(AXI_araddr),
   .AXI_arvalid(AXI_arvalid),
   .AXI_arready(AXI_arready),

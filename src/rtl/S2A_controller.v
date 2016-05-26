@@ -17,6 +17,7 @@ module S2A_controller(
 
   // AXI Bus Signal
   AXI_clk,
+  AXI_rst_n,
   AXI_awaddr,
   AXI_awvalid,
   AXI_awready,
@@ -39,6 +40,7 @@ module S2A_controller(
   output[4:0] Iaddr;
   
   input AXI_clk;
+  input AXI_rst_n;
   input AXI_awready;
   input AXI_wready;
 
@@ -72,7 +74,7 @@ begin
     cnt <= 22'h0;
     bcnt <= 32'h0;
   end
-  else if(Sclk) begin
+  else begin
   	if ( sync==1'b1 ) begin
       start <= 1'b0;
       cnt <= 22'h0;
@@ -100,9 +102,9 @@ end
 
 assign s2a_en = (AXI_wvalid & AXI_wready & ~AXI_wlast) | s2a_pre;
 
-always @(posedge AXI_clk or posedge rst)
+always @(posedge AXI_clk or negedge AXI_rst_n)
 begin
-  if( rst==1'b1 ) begin
+  if( !AXI_rst_n ) begin
     start_d0      <= 1'b0;
     start_d1      <= 1'b0;
     axi_start     <= 1'b0;
@@ -112,10 +114,10 @@ begin
     AXI_awvalid   <= 1'b0;
     AXI_wvalid    <= 1'b0;
     AXI_wlast     <= 1'b0;
-
+    AXI_awaddr    <= ibase;
     state         <= s0;
   end
-  else if(AXI_clk) begin
+  else begin
   	start_d0 <= start;
   	start_d1 <= start_d0;
   	axi_start <= (~start_d1) & start_d0;

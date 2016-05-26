@@ -163,7 +163,7 @@ module R7OCM_top
 
 // AXI HP wire
   wire FCLK_CLK1;
-  wire FCLK_RESET1_N;
+  wire axi_rst_n;
 
   wire AXI_clk;
   wire [31:0]AXI_HP0_araddr;
@@ -284,7 +284,7 @@ armocm_wrapper core
   .FIXED_IO_ps_srstb(FIXED_IO_ps_srstb),
 
   .FCLK_CLK1(FCLK_CLK1),
-  .FCLK_RESET1_N(FCLK_RESET1_N),
+  .axi_aresetn(axi_rst_n),
   
   .S_AXI_HP0_araddr(AXI_HP0_araddr),
   .S_AXI_HP0_arburst(AXI_HP0_arburst),
@@ -387,6 +387,7 @@ AXI2S a2s
     .obcnt(AXI_OBCNT),
 
     .AXI_clk(AXI_clk),
+    .AXI_rst_n(axi_rst_n),
     .AXI_araddr(AXI_HP0_araddr),
     .AXI_arburst(AXI_HP0_arburst),
     .AXI_arcache(AXI_HP0_arcache),

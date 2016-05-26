@@ -17,6 +17,7 @@ module A2S_controller(
 
   // AXI Bus Signal
   AXI_clk,
+  AXI_rst_n,
   AXI_araddr,
   AXI_arvalid,
   AXI_arready,
@@ -39,6 +40,7 @@ module A2S_controller(
   output[4:0] Oaddr;
 
   input AXI_clk;
+  input AXI_rst_n;
   output reg[31:0] AXI_araddr;
   input AXI_arready,AXI_rvalid;
   output reg AXI_rready,AXI_arvalid;
@@ -75,7 +77,7 @@ begin
     cnt <= 22'h0;
     bcnt <= 32'h0;
   end
-  else if(Sclk) begin
+  else begin
   	if ( sync==1'b1 ) begin
       start <= 1'b0;
       cnt <= 22'h0;
@@ -101,9 +103,9 @@ end
 
 assign a2s_en = AXI_rvalid & AXI_rready;
 
-always @(posedge AXI_clk or posedge rst)
+always @(posedge AXI_clk or negedge AXI_rst_n)
 begin
-  if( rst==1'b1 ) begin
+  if( !AXI_rst_n ) begin
     start_d0      <= 1'b0;
     start_d1      <= 1'b0;
     axi_start     <= 1'b0;
@@ -112,10 +114,10 @@ begin
 
     AXI_arvalid   <= 1'b0;
     AXI_rready    <= 1'b0;
-    
+    AXI_araddr    <= obase;
     state         <= s0;
   end
-  else if(AXI_clk) begin
+  else begin
   	start_d0 <= start;
   	start_d1 <= start_d0;
   	axi_start <= (~start_d1) & start_d0;
