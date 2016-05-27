@@ -22,6 +22,15 @@ curl -G -d 'fun=wreg&reg=AXI2S_OSIZE&value=0x10000' http://${hostip}:8080/misc
 echo ""
 curl -G -d 'fun=wreg&reg=AXI2S_EN&value=3' http://${hostip}:8080/misc
 echo ""
+echo "set rx fir"
+curl -F chead=@'AD9361/200K_1920K.h' http://${hostip}:8080/fir
+echo ""
+echo "enable AD9361"
+curl -G -d 'fun=wreg&reg=AD9361_EN&value=0' http://${hostip}:8080/misc
+echo ""
+echo "set rx gain"
+curl -G -d 'gain=68' http://${hostip}:8080/rx
+echo ""
 echo "enable AD9361"
 curl -G -d 'fun=wreg&reg=AD9361_EN&value=1' http://${hostip}:8080/misc
 echo ""
