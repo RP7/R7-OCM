@@ -1,3 +1,5 @@
+`include "config.v"
+
 module AXI2S
    (
    	rst,
@@ -126,7 +128,6 @@ module AXI2S
   wire [4:0] Iaddr,Oaddr,s2a_addr,a2s_addr;
   wire s2a_en,s2a_wea,a2s_en,a2s_wea;
   wire [31:0] s2a_cnt,a2s_cnt;
-  wire a2s_err;
 
 assign s2a_wea = Ien;
 assign a2s_wea = a2s_en;
@@ -222,8 +223,7 @@ A2S_controller ca2s(
   .AXI_rvalid(AXI_rvalid),
   .AXI_rlast(AXI_rlast),
   .a2s_addr(a2s_addr),
-  .a2s_en(a2s_en),
-  .a2s_err(a2s_err)
+  .a2s_en(a2s_en)
   );
 
 endmodule

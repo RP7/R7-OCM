@@ -102,7 +102,7 @@ end
 
 assign s2a_en = (AXI_wvalid & AXI_wready & ~AXI_wlast) | s2a_pre;
 
-always @(posedge AXI_clk or negedge AXI_rst_n)
+always @(posedge AXI_clk)
 begin
   if( !AXI_rst_n ) begin
     start_d0      <= 1'b0;

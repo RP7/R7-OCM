@@ -1,3 +1,5 @@
+`include "config.v"
+
 module A2S_controller(
 	// system reset
   rst,
@@ -26,9 +28,7 @@ module A2S_controller(
   AXI_rlast,
 	// Buffer write  
   a2s_addr,
-  a2s_en,
-  // output counter
-  a2s_err
+  a2s_en
 );
 
   parameter s0 = 3'd0;
@@ -44,7 +44,6 @@ module A2S_controller(
   output reg[31:0] AXI_araddr;
   input AXI_arready,AXI_rvalid;
   output reg AXI_rready,AXI_arvalid;
-  output reg a2s_err;
 
   input AXI_rlast;
 
@@ -103,7 +102,7 @@ end
 
 assign a2s_en = AXI_rvalid & AXI_rready;
 
-always @(posedge AXI_clk or negedge AXI_rst_n)
+always @(posedge AXI_clk)
 begin
   if( !AXI_rst_n ) begin
     start_d0      <= 1'b0;
@@ -146,8 +145,6 @@ begin
     				if( AXI_rlast==1'b1 ) begin
     					state <= s0;
     					AXI_rready <= 1'b0;
-              if( a2s_addr[3:0]==4'hf ) a2s_err <= 1'b0;
-              else a2s_err <= 1'b1;
   				  end
   				end
   			end

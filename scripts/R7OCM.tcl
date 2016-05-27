@@ -32,21 +32,21 @@ startgroup
 set_property -dict [list CONFIG.PCW_TTC0_PERIPHERAL_ENABLE {1}] [get_bd_cells processing_system7_0]
 endgroup
 
-create_bd_cell -type ip -vlnv xilinx.com:ip:axi_gpio:2.0 axi_gpio_0
+#create_bd_cell -type ip -vlnv xilinx.com:ip:axi_gpio:2.0 axi_gpio_0
 endgroup
 startgroup
 create_bd_cell -type ip -vlnv xilinx.com:ip:axi_bram_ctrl:4.0 axi_bram_ctrl_0
 endgroup
 set_property -dict [list CONFIG.SINGLE_PORT_BRAM {1}] [get_bd_cells axi_bram_ctrl_0]
 startgroup
-apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {Master "/processing_system7_0/M_AXI_GP0" Clk "Auto" }  [get_bd_intf_pins axi_gpio_0/S_AXI]
-apply_bd_automation -rule xilinx.com:bd_rule:board  [get_bd_intf_pins axi_gpio_0/GPIO]
+#apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {Master "/processing_system7_0/M_AXI_GP0" Clk "Auto" }  [get_bd_intf_pins axi_gpio_0/S_AXI]
+#apply_bd_automation -rule xilinx.com:bd_rule:board  [get_bd_intf_pins axi_gpio_0/GPIO]
 apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {Master "/processing_system7_0/M_AXI_GP0" Clk "Auto" }  [get_bd_intf_pins axi_bram_ctrl_0/S_AXI]
 endgroup
 set_property range 256K [get_bd_addr_segs {processing_system7_0/Data/SEG_axi_bram_ctrl_0_Mem0}]
-set_property -dict [list CONFIG.C_GPIO_WIDTH {4} CONFIG.C_ALL_OUTPUTS {1}] [get_bd_cells axi_gpio_0]
+#set_property -dict [list CONFIG.C_GPIO_WIDTH {4} CONFIG.C_ALL_OUTPUTS {1}] [get_bd_cells axi_gpio_0]
 
-set_property name TEST_LED [get_bd_intf_ports gpio_rtl]
+#set_property name TEST_LED [get_bd_intf_ports gpio_rtl]
 
 startgroup
 create_bd_intf_port -mode Master -vlnv xilinx.com:interface:bram_rtl:1.0 BRAM_PORTA
@@ -163,6 +163,28 @@ endgroup
 set_property range 32M [get_bd_addr_segs {S_AXI_HP0/SEG_processing_system7_0_HP0_DDR_LOWOCM}]
 set_property offset 0x1E000000 [get_bd_addr_segs {S_AXI_HP0/SEG_processing_system7_0_HP0_DDR_LOWOCM}]
 
+#startgroup
+#set_property -dict [list CONFIG.PCW_USE_M_AXI_GP1 {1}] [get_bd_cells processing_system7_0]
+#endgroup
+#connect_bd_net [get_bd_pins processing_system7_0/M_AXI_GP1_ACLK] [get_bd_pins processing_system7_0/FCLK_CLK1]
+#startgroup
+#create_bd_port -dir O -type clk FCLK_CLK0
+#connect_bd_net [get_bd_pins /processing_system7_0/FCLK_CLK0] [get_bd_ports FCLK_CLK0]
+#endgroup
+#startgroup
+#create_bd_port -dir O -type rst FCLK_RESET0_N
+#connect_bd_net [get_bd_pins /processing_system7_0/FCLK_RESET0_N] [get_bd_ports FCLK_RESET0_N]
+#endgroup
+#startgroup
+#create_bd_intf_port -mode Master -vlnv xilinx.com:interface:aximm_rtl:1.0 M_AXI_GP1
+#set_property -dict [list CONFIG.PROTOCOL [get_property CONFIG.PROTOCOL [get_bd_intf_pins processing_system7_0/M_AXI_GP1]] CONFIG.FREQ_HZ [get_property CONFIG.FREQ_HZ [get_bd_intf_pins processing_system7_0/M_AXI_GP1]] CONFIG.HAS_REGION [get_property CONFIG.HAS_REGION [get_bd_intf_pins processing_system7_0/M_AXI_GP1]] CONFIG.NUM_READ_OUTSTANDING [get_property CONFIG.NUM_READ_OUTSTANDING [get_bd_intf_pins processing_system7_0/M_AXI_GP1]] CONFIG.NUM_WRITE_OUTSTANDING [get_property CONFIG.NUM_WRITE_OUTSTANDING [get_bd_intf_pins processing_system7_0/M_AXI_GP1]]] [get_bd_intf_ports M_AXI_GP1]
+#connect_bd_intf_net [get_bd_intf_pins processing_system7_0/M_AXI_GP1] [get_bd_intf_ports M_AXI_GP1]
+#endgroup
+#assign_bd_address [get_bd_addr_segs {M_AXI_GP1/Reg }]
+#set_property offset 0x80000000 [get_bd_addr_segs {processing_system7_0/Data/SEG_M_AXI_GP1_Reg}]
+#set_property range 256K [get_bd_addr_segs {processing_system7_0/Data/SEG_M_AXI_GP1_Reg}]
+#set_property CONFIG.ASSOCIATED_BUSIF {M_AXI_GP1} [get_bd_ports /FCLK_CLK1]
+
 regenerate_bd_layout
 save_bd_design
 generate_target all [get_files  R7OCM.srcs/sources_1/bd/armocm/armocm.bd]
@@ -208,6 +230,7 @@ add_files -norecurse src/rtl/AXIResp.v
 add_files -norecurse src/rtl/cntSrc.v
 add_files -norecurse src/rtl/gitversion.v
 add_files -norecurse src/rtl/version.v
+add_files -norecurse src/rtl/config.v
 
 set_property top R7OCM_top [current_fileset]
 

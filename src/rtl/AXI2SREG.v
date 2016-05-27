@@ -165,6 +165,7 @@ always @(*) begin
 				dout[3] <= adj_pending;
 				dout[31:4] <= 28'd0;
 			end
+			
 			// define AXI2S_IACNT     18'h10
 			`AXI2S_IACNT: begin
 				dout[23:6] <= iacnt;
@@ -185,6 +186,7 @@ always @(*) begin
 			`AXI2S_OBCNT: begin
 				dout <= obcnt;
 			end
+`ifdef DEBUG
 			// define AXI_RRESP       18'h20
 			`AXI_RRESP: begin
 				dout <= axirresp;
@@ -205,6 +207,7 @@ always @(*) begin
 			`AXI_WADDR: begin
 				dout <= axiwaddr;
 			end
+`endif			
 			// define VER_MAJOR       18'h40
 			`VER_MAJOR: begin
 				dout <= `VERSION_MAJOR;

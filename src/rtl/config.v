@@ -1,0 +1,1 @@
+`define DEBUG 1'b1
