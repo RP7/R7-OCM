@@ -7,7 +7,7 @@ ssh root@${hostip} 'mkdir /tmp/R7OCM'
 echo "copy project"
 scp ../R7OCM.tgz root@${hostip}:/tmp/R7OCM
 echo "copy bit"
-scp R7OCM.runs/impl_1/R7OCM_top.bit root@${hostip}:/tmp/R7OCM
+scp R7OCM.runs/impl_$2/R7OCM_top.bit root@${hostip}:/tmp/R7OCM
 echo "extrace project"
 ssh root@${hostip} 'cd /tmp/R7OCM; tar -xzf R7OCM.tgz'
 echo "download bit"
