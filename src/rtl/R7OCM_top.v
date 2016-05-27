@@ -431,25 +431,16 @@ AXI2SREG axi2s_reg_space
     .ien(sys_Ien),
     .oen(sys_Oen),
     .test(test),
-    //.tddmode(sys_Mode),
     .ibase(AXI_IBASE),
     .isize(AXI_ISIZE),
     .obase(AXI_OBASE),
     .osize(AXI_OSIZE),
-    /*
-    frame_len,
-    frame_adj,
-    tstart,
-    tend,
-    rstart,
-    rend,
-    */
 `ifdef DEBUG
     .axiwresp(axiwresp),
     .axirresp(axirresp),
     .axistatus(axistatus),
     .axiraddr(AXI_HP0_araddr),
-    .axiwaddr(AXI_HP0_awaddr),,
+    .axiwaddr(AXI_HP0_awaddr),
 `endif
     .iacnt(AXI_IACNT),
     .ibcnt(AXI_IBCNT),

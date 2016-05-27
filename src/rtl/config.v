@@ -1,1 +1,1 @@
-`define DEBUG 1'b1
+`define RELEASE 1'b1
