@@ -551,6 +551,7 @@ assign Ien = (test==1'b1)? 1'b1  : ad9361_Ien;
 `else 
 assign Sin = {Rx_Q[11],Rx_Q[11],Rx_Q[11],Rx_Q[11],Rx_Q[11:0],Rx_I[11],Rx_I[11],Rx_I[11],Rx_I[11],Rx_I[11:0]};
 assign Ien = ad9361_Ien;
+assign AXI_HP0_bready = 1'b1;
 `endif
 
 endmodule
