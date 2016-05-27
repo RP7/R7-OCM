@@ -14,4 +14,6 @@ echo "download bit"
 ssh root@${hostip} 'cd /tmp/R7OCM; cat R7OCM_top.bit > /dev/xdevcfg'
 echo "check version"
 ssh root@${hostip} 'cd /tmp/R7OCM/src/python;python axi2s_c.py OCM'
+echo "start web"
+ssh root@${hostip} 'cd /tmp/R7OCM/src/python;python q7web.py'
 echo "finished"
