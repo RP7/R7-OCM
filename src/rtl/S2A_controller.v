@@ -51,7 +51,7 @@ module S2A_controller(
   reg[31:0] bcnt;
   reg start;
 
-  reg start_d0,start_d1,axi_start;
+  wire axi_start;
   reg [2:0]state;
   reg s2a_pre;
   reg [31:0]AXI_awaddr_reg;
@@ -102,15 +102,16 @@ end
 
 assign s2a_en = (AXI_wvalid & AXI_wready & ~AXI_wlast) | s2a_pre;
 
+edgesync #(.e("pos")) start_sync
+(   .clk(AXI_clk)
+  , .async(start)
+  , .sync(axi_start)
+);
+
 always @(posedge AXI_clk)
 begin
   if( !AXI_rst_n ) begin
-    start_d0      <= 1'b0;
-    start_d1      <= 1'b0;
-    axi_start     <= 1'b0;
-
     s2a_addr      <= 5'b00000;
-
     AXI_awvalid   <= 1'b0;
     AXI_wvalid    <= 1'b0;
     AXI_wlast     <= 1'b0;
@@ -118,9 +119,6 @@ begin
     state         <= s0;
   end
   else begin
-  	start_d0 <= start;
-  	start_d1 <= start_d0;
-  	axi_start <= (~start_d1) & start_d0;
   	if( axi_start==1'b1 ) begin
       AXI_awaddr <= AXI_awaddr_reg;
   		state <= s1;

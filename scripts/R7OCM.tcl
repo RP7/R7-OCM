@@ -163,28 +163,6 @@ endgroup
 set_property range 32M [get_bd_addr_segs {S_AXI_HP0/SEG_processing_system7_0_HP0_DDR_LOWOCM}]
 set_property offset 0x1E000000 [get_bd_addr_segs {S_AXI_HP0/SEG_processing_system7_0_HP0_DDR_LOWOCM}]
 
-#startgroup
-#set_property -dict [list CONFIG.PCW_USE_M_AXI_GP1 {1}] [get_bd_cells processing_system7_0]
-#endgroup
-#connect_bd_net [get_bd_pins processing_system7_0/M_AXI_GP1_ACLK] [get_bd_pins processing_system7_0/FCLK_CLK1]
-#startgroup
-#create_bd_port -dir O -type clk FCLK_CLK0
-#connect_bd_net [get_bd_pins /processing_system7_0/FCLK_CLK0] [get_bd_ports FCLK_CLK0]
-#endgroup
-#startgroup
-#create_bd_port -dir O -type rst FCLK_RESET0_N
-#connect_bd_net [get_bd_pins /processing_system7_0/FCLK_RESET0_N] [get_bd_ports FCLK_RESET0_N]
-#endgroup
-#startgroup
-#create_bd_intf_port -mode Master -vlnv xilinx.com:interface:aximm_rtl:1.0 M_AXI_GP1
-#set_property -dict [list CONFIG.PROTOCOL [get_property CONFIG.PROTOCOL [get_bd_intf_pins processing_system7_0/M_AXI_GP1]] CONFIG.FREQ_HZ [get_property CONFIG.FREQ_HZ [get_bd_intf_pins processing_system7_0/M_AXI_GP1]] CONFIG.HAS_REGION [get_property CONFIG.HAS_REGION [get_bd_intf_pins processing_system7_0/M_AXI_GP1]] CONFIG.NUM_READ_OUTSTANDING [get_property CONFIG.NUM_READ_OUTSTANDING [get_bd_intf_pins processing_system7_0/M_AXI_GP1]] CONFIG.NUM_WRITE_OUTSTANDING [get_property CONFIG.NUM_WRITE_OUTSTANDING [get_bd_intf_pins processing_system7_0/M_AXI_GP1]]] [get_bd_intf_ports M_AXI_GP1]
-#connect_bd_intf_net [get_bd_intf_pins processing_system7_0/M_AXI_GP1] [get_bd_intf_ports M_AXI_GP1]
-#endgroup
-#assign_bd_address [get_bd_addr_segs {M_AXI_GP1/Reg }]
-#set_property offset 0x80000000 [get_bd_addr_segs {processing_system7_0/Data/SEG_M_AXI_GP1_Reg}]
-#set_property range 256K [get_bd_addr_segs {processing_system7_0/Data/SEG_M_AXI_GP1_Reg}]
-#set_property CONFIG.ASSOCIATED_BUSIF {M_AXI_GP1} [get_bd_ports /FCLK_CLK1]
-
 regenerate_bd_layout
 save_bd_design
 generate_target all [get_files  R7OCM.srcs/sources_1/bd/armocm/armocm.bd]
@@ -226,6 +204,7 @@ add_files -norecurse src/rtl/reg_define.v
 add_files -norecurse src/rtl/CBusReadMerge.v
 add_files -norecurse src/rtl/AD9361REG.v
 add_files -norecurse src/rtl/ad9361_1t1r.v
+add_files -norecurse src/rtl/edge.v
 add_files -norecurse src/rtl/AXIResp.v
 add_files -norecurse src/rtl/cntSrc.v
 add_files -norecurse src/rtl/gitversion.v

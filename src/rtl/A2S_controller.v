@@ -53,8 +53,8 @@ module A2S_controller(
   reg[21:0] cnt;
   reg[31:0] bcnt;
 
-  reg start,start_d0,start_d1;
-  reg axi_start;
+  reg start;
+  wire axi_start;
   reg [2:0]state;
   reg [31:0]AXI_araddr_reg;
 
@@ -68,6 +68,12 @@ module A2S_controller(
 assign Oaddr = cnt[4:0];
 assign oacnt[23:6] = cnt[21:4];
 assign obcnt = bcnt;
+
+edgesync #(.e("pos")) start_sync
+(   .clk(AXI_clk)
+  , .async(start)
+  , .sync(axi_start)
+);
 
 always @(posedge Sclk or posedge rst)
 begin
@@ -105,21 +111,13 @@ assign a2s_en = AXI_rvalid & AXI_rready;
 always @(posedge AXI_clk)
 begin
   if( !AXI_rst_n ) begin
-    start_d0      <= 1'b0;
-    start_d1      <= 1'b0;
-    axi_start     <= 1'b0;
-
     a2s_addr      <= 5'b00000;
-
     AXI_arvalid   <= 1'b0;
     AXI_rready    <= 1'b0;
     AXI_araddr    <= obase;
     state         <= s0;
   end
   else begin
-  	start_d0 <= start;
-  	start_d1 <= start_d0;
-  	axi_start <= (~start_d1) & start_d0;
   	if( axi_start==1'b1 ) begin
   		state <= s1;
       AXI_araddr <= AXI_araddr_reg;

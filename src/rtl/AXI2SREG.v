@@ -12,6 +12,7 @@ module AXI2SREG
 		addr,
 		ien,
 		oen,
+		async,
 		tddmode,
 		ibase,
 		isize,
@@ -42,7 +43,7 @@ module AXI2SREG
 	input [31:0]din;
 	input [17:0]addr;
 
-	output reg ien,oen,tddmode;
+	output reg ien,oen,async,tddmode;
 	output reg [31:0]dout;
 	output reg [31:0]ibase;
 	output reg [31:0]obase;
@@ -102,7 +103,8 @@ begin
 					`AXI2S_EN: begin
 						ien <= din[0];
 						oen <= din[1];
-						tddmode <= din[2];
+						async <= din[2];
+						tddmode <= din[3];
 					end
 					// define AXI2S_TEST        18'h04
 					`AXI2S_TEST: begin

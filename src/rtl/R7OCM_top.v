@@ -227,7 +227,7 @@ module R7OCM_top
 
   wire sys_Ien,sys_Oen;
   wire MOSI,MISO,SCK,SS;
-
+  wire sys_async;
   wire [31:0] AXI2S_REG_DOUT;
   wire [31:0] AD9361_REG_DOUT;
 
@@ -430,6 +430,7 @@ AXI2SREG axi2s_reg_space
     .wen(BRAM_PORTA_we),
     .ien(sys_Ien),
     .oen(sys_Oen),
+    .async(sys_async),
     .test(test),
     .ibase(AXI_IBASE),
     .isize(AXI_ISIZE),
@@ -502,8 +503,14 @@ ad9361_1t1r ad_if
     .rx_ce(ad9361_Ien),
     .tx_ce(Oen)       
   );
+
+edgesync #(.e("neg")) axi_sync
+(   .clk(Sclk)
+  , .async(sys_async)
+  , .sync(sync)
+);
+
 assign     rst = 1'b0;
-assign    sync = 1'b0;
 assign AXI_clk = FCLK_CLK1;
 
 assign AD9361_SPI_CLK = SCK;
