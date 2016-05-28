@@ -18,7 +18,63 @@ urls = ( '/'      ,'index'
 	     , '/misc'  ,'misc'
 	     , '/data'  ,'data'
 	     , '/fir'   ,'fir'
+	     , '/init'  ,'init'
 	     )
+
+class config:
+	def __init__(slef):
+		self.AXI2S_IBASE = 0xfffc0000
+		self.AXI2S_ISIZE = 0x10000
+		self.AXI2S_OBASE = 0xfffd0000
+		self.AXI2S_OSIZE = 0x10000
+		self.rx    = {
+				'freq':940.1e6
+			, 'gain': [68,68]
+			}
+	def todict(self):
+		r = {}
+		for k in ['AXI2S_IBASE','AXI2S_ISIZE','AXI2S_OBASE','AXI2S_OSIZE','rx']:
+			r[k] = self.__dict__(k)
+		return r
+	def init(self):
+		axi2s = axi2s_c.axi2s_c(_g.todict())
+		ad = AD9361_c.AD9361_c()
+		axi2s.init()
+		self.ad.webapi['rx']['set']['freq'](self.rx['freq'])
+		self.ad.webapi['rx']['set']['gain'](self.rx['gain'][0],0)
+		self.ad.webapi['rx']['set']['gain'](self.rx['gain'][0],1)
+		return self.todict()
+
+_g = config()
+
+class init:
+	def GET(self):
+		i = web.input()
+		if 'IBASE' in i:
+			_g.AXI2S_IBASE = int(i.IBASE,16)
+		if 'ISIZE' in i:
+			_g.AXI2S_ISIZE = int(i.ISIZE,16)
+		if 'OBASE' in i:
+			_g.AXI2S_OBASE = int(i.OBASE,16)
+		if 'OSIZE' in i:
+			_g.AXI2S_OSIZE = int(i.OSIZE,16)
+		if 'rx' in i:
+			if 'freq' in i:
+				_g.rx['freq'] = float(i.freq)
+			if 'gain' in i:
+				if 'port' in i:
+					if i.port=='0':
+						_g.rx['gain'][0] = int(i.gain)
+					else:
+						_g.rx['gain'][1] = int(i.gain)
+				else:
+					_g.rx['gain'][0] = int(i.gain)
+					_g.rx['gain'][1] = int(i.gain)
+		init_res = _g.init()
+
+		ret = {'ret':'ok','data':init_res}
+		web.header('Content-Type', 'text/json')
+		return json.dumps(ret)		
 
 class index:
 	def GET(self):
@@ -78,7 +134,7 @@ class paser:
 		return ret
 	
 	def paser3(self,i):
-		self.axi2s = axi2s_c.axi2s_c()
+		self.axi2s = axi2s_c.axi2s_c(_g.todict())
 		self.axi2s.getCNT()
 		self.start = self.paser('start',i)
 		self.len = self.paser('samples',i)*4
@@ -123,7 +179,7 @@ class rxbuf(paser):
 class misc:
 	def GET(self):
 		i = web.input(fun=None)
-		axi2s = axi2s_c.axi2s_c()
+		axi2s = axi2s_c.axi2s_c(_g.todict())
 		ad = AD9361_c.AD9361_c()
 		if i.fun in axi2s.api:
 			ret = axi2s.api[i.fun](i)
@@ -193,9 +249,9 @@ class fir:
 
 class data:
 	def GET(self):
-		ocm = axi2s_u.axi2s_u()
-		r = ocm.rfdata()
-		ocm.deinit()
+		ram = axi2s_u.axi2s_u(_g.AXI2S_IBASE,)
+		r = ram.rfdata()
+		ram.deinit()
 		web.header('Content-Type', 'text/json')
 		return json.dumps(r)
 		
@@ -215,7 +271,7 @@ def init():
 	ocm.cleanTx()
 	ocm.deinit()
 	
-	uut = axi2s_c.axi2s_c()
+	uut = axi2s_c.axi2s_c(_g.todict())
 	uut.init()
 
 	uut.check()
