@@ -18,11 +18,11 @@ urls = ( '/'      ,'index'
 	     , '/misc'  ,'misc'
 	     , '/data'  ,'data'
 	     , '/fir'   ,'fir'
-	     , '/init'  ,'init'
+	     , '/init'  ,'initapi'
 	     )
 
 class config:
-	def __init__(slef):
+	def __init__(self):
 		self.AXI2S_IBASE = 0xfffc0000
 		self.AXI2S_ISIZE = 0x10000
 		self.AXI2S_OBASE = 0xfffd0000
@@ -34,20 +34,20 @@ class config:
 	def todict(self):
 		r = {}
 		for k in ['AXI2S_IBASE','AXI2S_ISIZE','AXI2S_OBASE','AXI2S_OSIZE','rx']:
-			r[k] = self.__dict__(k)
+			r[k] = self.__dict__[k]
 		return r
 	def init(self):
 		axi2s = axi2s_c.axi2s_c(_g.todict())
 		ad = AD9361_c.AD9361_c()
 		axi2s.init()
-		self.ad.webapi['rx']['set']['freq'](self.rx['freq'])
-		self.ad.webapi['rx']['set']['gain'](self.rx['gain'][0],0)
-		self.ad.webapi['rx']['set']['gain'](self.rx['gain'][0],1)
+		ad.webapi['rx']['set']['freq'](self.rx['freq'])
+		ad.webapi['rx']['set']['gain'](self.rx['gain'][0],0)
+		ad.webapi['rx']['set']['gain'](self.rx['gain'][0],1)
 		return self.todict()
 
 _g = config()
 
-class init:
+class initapi:
 	def GET(self):
 		i = web.input()
 		if 'IBASE' in i:
@@ -249,7 +249,7 @@ class fir:
 
 class data:
 	def GET(self):
-		ram = axi2s_u.axi2s_u(_g.AXI2S_IBASE,)
+		ram = axi2s_u.axi2s_u(_g.AXI2S_IBASE,_g.AXI2S_ISIZE)
 		r = ram.rfdata()
 		ram.deinit()
 		web.header('Content-Type', 'text/json')
