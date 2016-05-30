@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>FM</title>
+    <!-- 引入 echarts.js -->
+    
+</head>
+<body>
+    <!-- 为ECharts准备一个具备大小（宽高）的Dom -->
+    <div id="main" style="width: 800px;height:800px;">
+    </div>
+    <script type="text/javascript">
+
+    function myPCMSource() {
+     return Math.random() * 2 - 3;
+    }
+    var audioContext;
+    try {    window.AudioContext = window.AudioContext || window.webkitAudioContext;    
+        audioContext = new AudioContext();
+    } 
+    catch(e) {    
+        alert('Web Audio API is not supported in this browser');
+    }
+    var bufferSize = 4096;
+    var myPCMProcessingNode = audioContext.createScriptProcessor(bufferSize, 1, 1);
+    myPCMProcessingNode.onaudioprocess = function(e) {    
+        var output = e.outputBuffer.getChannelData(0);    
+        for (var i = 0; i < bufferSize; i++) 
+        {     
+            output[i] = myPCMSource();  
+        }
+    }
+    </script>
+</body>
+</html>
