@@ -46,10 +46,9 @@ R7OCM.*/*
 *.tar.gz
 *.btree
 *.log
-<<<<<<< HEAD
 temp/*
 *.pyc
-=======
 
 lib/*
 gitversion.v
+.DS_Store
