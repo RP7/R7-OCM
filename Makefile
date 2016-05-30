@@ -1,5 +1,7 @@
 SRCS = src/c/ad9361.c \
-	src/c/iomem.c 
+	src/c/iomem.c \
+	src/c/aximem.c
+	
 lib/q7.so : $(SRCS)
 	gcc -fPIC -shared -o lib/q7.so $(SRCS)
 
