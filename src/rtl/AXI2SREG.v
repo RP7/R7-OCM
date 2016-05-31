@@ -75,6 +75,9 @@ module AXI2SREG
 
 	input adj_pending;
   wire [159:0]version_git;
+
+  reg [31:0]ibcnt_reg;
+  reg [31:0]obcnt_reg;
 	
 always @(posedge clk or posedge rst)
 begin
@@ -154,7 +157,22 @@ begin
 			end
 		end
 	end
-end	
+end
+
+always @(posedge clk) begin
+	if(addr[17:8]==BASE[17:8] && en==1'b1 ) begin
+		case( addr )
+			// define AXI2S_IACNT     18'h10
+			`AXI2S_IACNT: begin
+				ibcnt_reg <= ibcnt;
+			end
+			// define AXI2S_OACNT     18'h18
+			`AXI2S_OACNT: begin
+				obcnt_reg <= obcnt;
+			end
+		endcase
+	end
+end
 
 always @(*) begin
 	if(addr[17:8]==BASE[17:8] && en==1'b1 ) begin
@@ -176,7 +194,7 @@ always @(*) begin
 			end
 			// define AXI2S_IBCNT     18'h14
 			`AXI2S_IBCNT: begin
-				dout <= ibcnt;
+				dout <= ibcnt_reg;
 			end
 			// define AXI2S_OACNT     18'h18
 			`AXI2S_OACNT: begin
@@ -186,7 +204,7 @@ always @(*) begin
 			end
 			// define AXI2S_OBCNT     18'h1c
 			`AXI2S_OBCNT: begin
-				dout <= obcnt;
+				dout <= obcnt_reg;
 			end
 `ifdef DEBUG
 			// define AXI_RRESP       18'h20
