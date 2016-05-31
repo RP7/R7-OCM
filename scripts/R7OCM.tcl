@@ -204,7 +204,7 @@ add_files -norecurse src/rtl/reg_define.v
 add_files -norecurse src/rtl/CBusReadMerge.v
 add_files -norecurse src/rtl/AD9361REG.v
 add_files -norecurse src/rtl/ad9361_1t1r.v
-add_files -norecurse src/rtl/edge.v
+add_files -norecurse src/rtl/edgesync.v
 add_files -norecurse src/rtl/AXIResp.v
 add_files -norecurse src/rtl/cntSrc.v
 add_files -norecurse src/rtl/gitversion.v

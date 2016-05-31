@@ -1,6 +1,7 @@
-#include <inttypes.h>
+#include <inttypes.h> //uint32_t,uint64_t
 #include <unistd.h>
 #include <stdio.h>
+#include <string.h> //memcpy
 
 #include "aximem.h"
 #include "iomem.h"
@@ -45,25 +46,55 @@ void axi_init(aximem_t *axi)
 		axi->u_mmap = iommap(&axi_mem);
 }
 
-#define FPGA_IO(x) (*((int *)(&(fpga_io.mem+x))))
+#define FPGA_IO(x) (*((uint32_t *)(fpga_io.mem+(x))))
 
-int axi_get(int s, int l, axiconfig_t *c)
+static inline uint64_t f2t(uint32_t f, uint32_t s, uint32_t size)
 {
-	int o = FPGA_IO[AXI2S_IACNT];
-	if (o>s && o<s+l) {
-		c->p = NULL;
-		return 0;
-	}
-	c->p = axi_mem.mem+s;
+	return (uint64_t)f*(uint64_t)(size)+(uint64_t)s;
+}
+
+static inline uint32_t t2addr(uint64_t t, axi_entity_t *e)
+{
+	return (uint32_t)(t%(uint64_t)(e->size))+e->base;
+}
+
+static inline void load_time(axi_entity_t *e,uint32_t base)
+{
+	e->acnt = FPGA_IO(base);
+	e->bcnt = FPGA_IO(base+4);
+	e->time = f2t(e->acnt,e->bcnt,e->size);
+	
+}
+
+int axi_get(uint64_t start, uint32_t l, axi_dma_t *c)
+{
+	load_time(&(c->inp),AXI2S_IACNT);
+	c->inp.data = NULL;
+	if (c->inp.time<start+l) return 0;
+	if (start<c->inp.time-c->inp.size) return -1;
+	c->inp.data = axi_mem.mem+t2addr(start,&(c->inp));
+	return l;
+}
+
+int axi_put(uint64_t start, uint32_t l, axi_dma_t *c)
+{
+	uint32_t s;
+	load_time(&(c->out),AXI2S_OACNT);
+	if( c->out.time > start ) return -1;
+	if (c->out.time+c->out.size<start+l) return 0;
+	s = t2addr(start,&(c->out));
+	if( s+l>c->out.base+out.size) return -2;
+	memcpy(axi_mem.mem+s,c->out.data,l);
 	return l;		
 }
 
-int axi_put(int s, int l, axiconfig_t *c)
+void axi_now( axi_dma_t *c )
 {
-	int o = FPGA_IO[AXI2S_OACNT];
-	if (o<s && o>s+l) 
-		memcpy(axi_mem.mem+s,c->p,l);
-		return l;		
-	}
-	return 0;
+	load_time(&(c->inp),AXI2S_IACNT);
+	load_time(&(c->out),AXI2S_OACNT);
+}
+
+int axi_base(void)
+{
+	return AXIMEM_BASE;
 }

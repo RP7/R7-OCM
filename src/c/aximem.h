@@ -9,11 +9,19 @@ typedef struct struct_aximem {
 #define FPGA_BASE 0x40000000
 #define FPGA_SIZE 0x40000
 
-typedef struct struct_axiconfig
+typedef struct struct_axi_entity
 {
-	uint32 in;
-	uint32 is;
-	uint32 out;
-	uint32 os;
-	void *p;
-} axiconfig_t;
+	uint32_t base;
+	uint32_t size;
+	uint32_t acnt;
+	uint32_t bcnt;
+	uint64_t time;
+	void *data;
+	uint32_t nop;
+} axi_entity_t;
+
+typedef struct struct_axi_dma
+{
+	axi_entity_t inp;
+	axi_entity_t out;
+} axi_dma_t;
