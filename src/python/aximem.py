@@ -12,13 +12,28 @@ class e_aximem(Structure):
 							, ("acnt", c_uint)
 							, ("bcnt", c_uint)
 							, ("time", c_ulonglong)
+							, ("start", c_ulonglong)
+							, ("length", c_uint)
 							, ("data", c_void_p)
 							]
+	def dump(self):
+		return {  "base": long(self.base)
+						, "size": long(self.size)
+						, "acnt": long(self.acnt)
+						, "bcnt": long(self.bcnt)
+						, "time": long(self.time)
+						, "start": long(self.start)
+						, "length": long(self.length)
+					}
 	
 class axi_dma(Structure):
 	_fields_ = [  ("inp", e_aximem)
 							, ("out", e_aximem)
 						]
+	def dump(self):
+		return {  "inp":self.inp.dump()
+						, "out":self.out.dump()
+						}
 
 class aximem:
 	def __init__(self,config=None):
@@ -31,14 +46,18 @@ class aximem:
 			self.dma.out.size = 0x100000
 		else:
 			base = lib.axi_base()
-			self.dma.inp.base = config['AXI_IBASE']-base
-			self.dma.inp.size = config['AXI_ISIZE']
-			self.dma.out.base = config['AXI_OBASE']-base
-			self.dma.out.size = config['AXI_OSIZE']
+			self.init()
 
 		lib.axi_init(byref(self.handle))
 		self.last_inp_end = c_ulonglong(0)
 		self.last_out_end = c_ulonglong(0)
+		self.errcnt = {0:0,-1:0}
+
+	def init(self,config):
+			self.dma.inp.base = config['AXI2S_IBASE']-base
+			self.dma.inp.size = config['AXI2S_ISIZE']
+			self.dma.out.base = config['AXI2S_OBASE']-base
+			self.dma.out.size = config['AXI2S_OSIZE']
 		
 	def dump(self):
 		reg = c_uint*32
@@ -49,7 +68,9 @@ class aximem:
 			i += 4
 
 	def get(self,s,l):
-		r = lib.axi_get(s,l,byref(self.dma))
+		self.dma.inp.start = s
+		self.dma.inp.length = l
+		r = lib.axi_get(byref(self.dma))
 		if r==l:
 			self.last_inp_end = s+l
 			return self.dma.inp.data
@@ -57,13 +78,15 @@ class aximem:
 			err = {    0:"data not ready"
 							, -1:"data out of date"}
 			if r in err:
-				print err[r]
+				self.errcnt[r] += 1
 			else:
 				print "unknow reason"
 			return None
 
 	def put(self,s,l):
-		r = lib.axi_put(s,l,byref(self.dma))
+		self.dma.out.start = s
+		self.dma.out.length = l
+		r = lib.axi_put(byref(self.dma))
 		if r==l:
 			self.last_out_end = s+l
 		else:
@@ -77,9 +100,10 @@ class aximem:
 				print "unknow reason"
 
 	def reset(self,who):
+		#print "axi mem device reset:",who
 		if who=="inp":
 			lib.axi_now(byref(self.dma))
-			self.last_inp_end = self.dma.inp.size*self.dma.inp.bcnt
+			self.last_inp_end = c_ulonglong(long(self.dma.inp.size)*long(self.dma.inp.bcnt))
 
 def main():
 	a = aximem()

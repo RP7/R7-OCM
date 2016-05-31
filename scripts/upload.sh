@@ -10,6 +10,8 @@ echo "copy bit"
 scp R7OCM.runs/impl_$2/R7OCM_top.bit root@${hostip}:/tmp/R7OCM
 echo "extrace project"
 ssh root@${hostip} 'cd /tmp/R7OCM; tar -xzf R7OCM.tgz'
+echo "make"
+ssh root@192.168.1.110 "mkdir -p /tmp/R7OCM/lib; cd /tmp/R7OCM; make"
 echo "download bit"
 ssh root@${hostip} 'cd /tmp/R7OCM; cat R7OCM_top.bit > /dev/xdevcfg'
 echo "check version"

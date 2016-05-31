@@ -66,8 +66,10 @@ static inline void load_time(axi_entity_t *e,uint32_t base)
 	
 }
 
-int axi_get(uint64_t start, uint32_t l, axi_dma_t *c)
+int axi_get(axi_dma_t *c)
 {
+	uint64_t start = c->inp.start;
+	uint32_t l = c->inp.length;
 	load_time(&(c->inp),AXI2S_IACNT);
 	c->inp.data = NULL;
 	if (c->inp.time<start+l) return 0;
@@ -76,14 +78,16 @@ int axi_get(uint64_t start, uint32_t l, axi_dma_t *c)
 	return l;
 }
 
-int axi_put(uint64_t start, uint32_t l, axi_dma_t *c)
+int axi_put(axi_dma_t *c)
 {
 	uint32_t s;
+	uint64_t start = c->out.start;
+	uint32_t l = c->out.length;
 	load_time(&(c->out),AXI2S_OACNT);
 	if( c->out.time > start ) return -1;
 	if (c->out.time+c->out.size<start+l) return 0;
 	s = t2addr(start,&(c->out));
-	if( s+l>c->out.base+out.size) return -2;
+	if( s+l>c->out.base+c->out.size) return -2;
 	memcpy(axi_mem.mem+s,c->out.data,l);
 	return l;		
 }

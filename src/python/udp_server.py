@@ -1,4 +1,4 @@
-from socket import socket
+from socket import socket, AF_INET, SOCK_DGRAM
 import threading
 from ctypes import *
 import time
@@ -17,8 +17,9 @@ class udp_package(Structure):
 class udp_server(socket):
 
 	def __init__(self,port):
+		self.port = port
 		self.myAddr = ("0.0.0.0",port)
-		socket.__init__(self,socket.AF_INET, socket.SOCK_DGRAM)
+		socket.__init__(self, AF_INET, SOCK_DGRAM)
 		self.bind(self.myAddr)
 		self.peerAddr = None
 		self.tx_en = 0
@@ -29,23 +30,23 @@ class udp_server(socket):
 		self.tx_thread = threading.Thread(target = self.tx, name = 'tx')
 		self.rx_thread = threading.Thread(target = self.rx, name = 'rx')
 	
-		self.aximem = aximem.aximem()
+		self.aximem = None
 
 	def struct2stream(self,s):
-    length  = sizeof(s)
-    p       = cast(pointer(s), POINTER(c_char * length))
-    return p.contents.raw
+		length  = sizeof(s)
+		p       = cast(pointer(s), POINTER(c_char * length))
+		return p.contents.raw
 
 	def stream2struct(self, string, stype):
-    if not issubclass(stype, Structure):
-        raise ValueError('The type of the struct is not a ctypes.Structure')
-    length      = sizeof(stype)
-    stream      = (c_char * length)()
-    stream.raw  = string
-    p           = cast(stream, POINTER(stype))
-    return p.contents
+		if not issubclass(stype, Structure):
+			raise ValueError('The type of the struct is not a ctypes.Structure')
+		length      = sizeof(stype)
+		stream      = (c_char * length)()
+		stream.raw  = string
+		p           = cast(stream, POINTER(stype))
+		return p.contents
 
-	def recv(self):
+	def recv4tx(self):
 		data,addr = self.recvfrom(sizeof(udp_package))
 		if len(data)==sizeof(udp_package):
 			self.peerAddr = addr
@@ -55,7 +56,7 @@ class udp_server(socket):
 			if p.time==0xffffffffffffffff:
 				self.peerAddr = None
 			
-	def send(self,t,o,p):
+	def send4rx(self,t,o,p):
 		if self.peerAddr==None:
 			return
 		s = udp_package()
@@ -69,9 +70,9 @@ class udp_server(socket):
 	def tx(self):
 		while(True):
 			if self.tx_en==0:
-				time.sleep(1)
+				time.sleep(0.001)
 			else:
-				package = self.recv()
+				package = self.recv4tx()
 				self.aximem.dma.out.data = pointer(package.data)
 				self.aximem.put(package.offset,1024)
 			if self.tx_stop==1:
@@ -80,13 +81,41 @@ class udp_server(socket):
 	def rx(self):
 		while(True):
 			if self.rx_en==0:
-				time.sleep(1)
+				time.sleep(0.001)
 			else:
 				start = self.aximem.last_inp_end
 				r = self.aximem.get(start,1024)
-				if (r<0):
+				if r<0:
 					self.aximem.reset("inp")
+				elif r==0:
+					time.sleep(0.01)
 				else:
-					self.send(self.aximem.inp.time,start,self.aximem.inp.data)
+					self.send4rx(self.aximem.inp.time,start,self.aximem.inp.data)
 			if self.rx_stop==1:
 				break
+
+	def stop(self):
+		self.rx_stop = 1
+		self.tx_stop = 1
+		time.sleep(0.1)
+	
+	def en(self):
+		self.rx_stop = 0
+		self.tx_stop = 0
+		self.tx_en = 1
+		self.rx_en = 1
+		
+	def exit(self):
+		self.stop()
+		self.close()
+
+
+	def run(self):
+		self.stop()
+		self.en()
+		self.tx_thread.start()
+		self.rx_thread.start()
+
+			
+
+

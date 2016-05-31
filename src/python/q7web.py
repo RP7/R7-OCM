@@ -10,6 +10,7 @@ from download import downloadThread
 import base64
 import ad9361_fir
 import config
+import udp_server
 
 urls = ( '/'      ,'index'
 	     , '/tx'    ,'tx'
@@ -20,6 +21,7 @@ urls = ( '/'      ,'index'
 	     , '/data'  ,'data'
 	     , '/fir'   ,'fir'
 	     , '/init'  ,'initapi'
+	     , '/udp'   , 'udp'
 	     )
 
 
@@ -233,6 +235,25 @@ class data:
 		web.header('Content-Type', 'text/json')
 		return json.dumps(r)
 		
+class udp:
+	def GET(self):
+		i = web.input()
+		web.header('Content-Type', 'text/json')
+		if 'stop' in i:
+			if _g.udpSrv!=None:
+				_g.udpSrv.exit()
+				_g.udpSrv = None
+			return json.dumps({"ret":"ok","data":_g.aximem.dma.dump()})
+		if 'port' in i:
+			port = int(i.port)
+		else:
+			port = 10000
+		if _g.udpSrv!=None:
+				_g.udpSrv.exit()
+		_g.udpSrv = udp_server.udp_server(port)
+		_g.udpSrv.aximem = _g.aximem
+		_g.udpSrv.run()
+		return json.dumps({"ret":"ok"})
 
 
 def init():
