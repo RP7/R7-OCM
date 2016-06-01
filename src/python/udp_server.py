@@ -83,7 +83,7 @@ class udp_server(socket):
 			if self.rx_en==0:
 				time.sleep(0.001)
 			else:
-				start = self.aximem.inp.end
+				start = self.aximem.dma.inp.end
 				r = self.aximem.get(start,1024)
 				if r<0:
 					self.aximem.reset("inp")

@@ -17,6 +17,7 @@ typedef struct struct_axi_entity
 	uint32_t bcnt;
 	uint64_t time;
 	uint64_t start;
+	uint64_t end;
 	uint32_t length;
 	void *data;
 } axi_entity_t;

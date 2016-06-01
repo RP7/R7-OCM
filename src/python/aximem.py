@@ -13,7 +13,7 @@ class e_aximem(Structure):
 							, ("bcnt", c_uint)
 							, ("time", c_ulonglong)
 							, ("start", c_ulonglong)
-							, ("end"), c_ulonglong)
+							, ("end", c_ulonglong)
 							, ("length", c_uint)
 							, ("data", c_void_p)
 							]
@@ -52,7 +52,9 @@ class aximem:
 
 		lib.axi_init(byref(self.handle))
 		
-		self.errcnt = {0:0,-1:0}
+		self.errcnt = {}
+		for i in range(0,-6,-1):
+			self.errcnt[i] = 0
 
 	def init(self,config):
 			self.dma.inp.base = config['AXI2S_IBASE']-base
@@ -96,7 +98,7 @@ class aximem:
 							, -2:"data unaligned"
 							}
 			if r in err:
-				print err[r]
+				self.errcnt[r-2] += 1
 			else:
 				print "unknow reason"
 
@@ -104,7 +106,7 @@ class aximem:
 		#print "axi mem device reset:",who
 		if who=="inp":
 			lib.axi_now(byref(self.dma))
-			self.inp.end = c_ulonglong(long(self.dma.inp.size)*long(self.dma.inp.bcnt))
+			self.dma.inp.end = c_ulonglong(long(self.dma.inp.size)*long(self.dma.inp.bcnt))
 
 def main():
 	a = aximem()
