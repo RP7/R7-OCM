@@ -13,17 +13,19 @@ class e_aximem(Structure):
 							, ("bcnt", c_uint)
 							, ("time", c_ulonglong)
 							, ("start", c_ulonglong)
+							, ("end"), c_ulonglong)
 							, ("length", c_uint)
 							, ("data", c_void_p)
 							]
 	def dump(self):
-		return {  "base": long(self.base)
-						, "size": long(self.size)
-						, "acnt": long(self.acnt)
-						, "bcnt": long(self.bcnt)
-						, "time": long(self.time)
-						, "start": long(self.start)
-						, "length": long(self.length)
+		return {  "base": hex(self.base)
+						, "size": hex(self.size)
+						, "acnt": hex(self.acnt)
+						, "bcnt": hex(self.bcnt)
+						, "time": hex(self.time)
+						, "start": hex(self.start)
+						, "end": hex(self.end)
+						, "length": hex(self.length)
 					}
 	
 class axi_dma(Structure):
@@ -49,8 +51,7 @@ class aximem:
 			self.init()
 
 		lib.axi_init(byref(self.handle))
-		self.last_inp_end = c_ulonglong(0)
-		self.last_out_end = c_ulonglong(0)
+		
 		self.errcnt = {0:0,-1:0}
 
 	def init(self,config):
@@ -72,7 +73,7 @@ class aximem:
 		self.dma.inp.length = l
 		r = lib.axi_get(byref(self.dma))
 		if r==l:
-			self.last_inp_end = s+l
+			self.inp.end = long(s)+l
 			return self.dma.inp.data
 		else:
 			err = {    0:"data not ready"
@@ -88,7 +89,7 @@ class aximem:
 		self.dma.out.length = l
 		r = lib.axi_put(byref(self.dma))
 		if r==l:
-			self.last_out_end = s+l
+			self.out.end = long(s)+l
 		else:
 			err = {    0:"buffer full"
 							, -1:"buffer overrun"
@@ -103,7 +104,7 @@ class aximem:
 		#print "axi mem device reset:",who
 		if who=="inp":
 			lib.axi_now(byref(self.dma))
-			self.last_inp_end = c_ulonglong(long(self.dma.inp.size)*long(self.dma.inp.bcnt))
+			self.inp.end = c_ulonglong(long(self.dma.inp.size)*long(self.dma.inp.bcnt))
 
 def main():
 	a = aximem()
