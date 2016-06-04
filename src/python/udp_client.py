@@ -5,11 +5,12 @@ import time
 import aximem
 from udp_header import *
 
-class udp_server(socket):
+class udp_client(socket):
 
-	def __init__(self,port):
+	def __init__(self,ip,port):
 		self.port = port
-		self.myAddr = ("0.0.0.0",port)
+		self.ip = ip
+		self.myAddr = (ip,port)
 		socket.__init__(self, AF_INET, SOCK_DGRAM)
 		self.setsockopt(SOL_SOCKET,SO_REUSEADDR,1)
 		self.bind(self.myAddr)
@@ -24,13 +25,27 @@ class udp_server(socket):
 	
 		self.aximem = None
 
+	def struct2stream(self,s):
+		length  = sizeof(s)
+		p       = cast(pointer(s), POINTER(c_char * length))
+		return p.contents.raw
+
+	def stream2struct(self, string, stype):
+		if not issubclass(stype, Structure):
+			raise ValueError('The type of the struct is not a ctypes.Structure')
+		length      = sizeof(stype)
+		stream      = (c_char * length)()
+		stream.raw  = string
+		p           = cast(stream, POINTER(stype))
+		return p.contents
+
 	def recv4tx(self):
 		data,addr = self.recvfrom(sizeof(udp_package))
 		if len(data)==sizeof(udp_package):
 			self.peerAddr = addr
-			return stream2struct(data,udp_package)
+			return self.stream2struct(data,udp_package)
 		if len(data)>sizeof(udp_header):
-			p = stream2struct(data[:sizeof(udp_header)],udp_header)
+			p = self.stream2struct(data[:sizeof(udp_header)],udp_header)
 			if p.time==0xffffffffffffffff:
 				self.peerAddr = None
 			
@@ -41,7 +56,7 @@ class udp_server(socket):
 		s.header.time = t
 		s.header.offset = o
 		memcpy(s.data,p,1024)
-		cs = struct2stream(s)
+		cs = self.struct2stream(s)
 		self.sendto(cs,self.peerAddr)
 		return sizeof(s)
 
@@ -94,13 +109,6 @@ class udp_server(socket):
 		self.tx_thread.start()
 		self.rx_thread.start()
 
-	def dump(self):
-		s = ["myAddr","peerAddr","tx_en","tx_stop","rx_en","rx_stop"]
-		r = {}
-		for x in s:
-			r[x] = self.__dict__[x]
-		return r
-		
 			
 
 

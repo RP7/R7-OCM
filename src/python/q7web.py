@@ -244,6 +244,11 @@ class udp:
 				_g.udpSrv.exit()
 				_g.udpSrv = None
 			return json.dumps({"ret":"ok","data":_g.aximem.dma.dump(),"err":_g.aximem.errcnt})
+		if 'info' in i:
+			if _g.udpSrv!=None:
+				return json.dumps({"ret":"ok","data":_g.aximem.dma.dump(),"err":_g.aximem.errcnt,"server":_g.udpSrv.dump()})
+			else:
+				return json.dumps({"ret":"ok","data":_g.aximem.dma.dump(),"err":_g.aximem.errcnt})
 		if 'port' in i:
 			port = int(i.port)
 		else:

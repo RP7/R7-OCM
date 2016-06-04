@@ -75,7 +75,7 @@ class aximem:
 		self.dma.inp.length = l
 		r = lib.axi_get(byref(self.dma))
 		if r==l:
-			self.inp.end = long(s)+l
+			self.dma.inp.end = long(s)+l
 			return self.dma.inp.data
 		else:
 			err = {    0:"data not ready"
@@ -91,7 +91,7 @@ class aximem:
 		self.dma.out.length = l
 		r = lib.axi_put(byref(self.dma))
 		if r==l:
-			self.out.end = long(s)+l
+			self.dma.out.end = long(s)+l
 		else:
 			err = {    0:"buffer full"
 							, -1:"buffer overrun"
