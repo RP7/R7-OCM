@@ -62,7 +62,7 @@ static inline void load_time(axi_entity_t *e,uint32_t base)
 {
 	e->acnt = FPGA_IO(base);
 	e->bcnt = FPGA_IO(base+4);
-	e->time = f2t(e->acnt,e->bcnt,e->size);
+	e->time = f2t(e->bcnt,e->acnt,e->size);
 	
 }
 

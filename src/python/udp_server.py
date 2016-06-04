@@ -68,7 +68,7 @@ class udp_server(socket):
 				elif r==0:
 					time.sleep(0.01)
 				else:
-					self.send4rx(self.aximem.inp.time,start,self.aximem.inp.data)
+					self.send4rx(self.aximem.dma.inp.time,start,self.aximem.dma.inp.data)
 			if self.rx_stop==1:
 				break
 
@@ -100,7 +100,7 @@ class udp_server(socket):
 		for x in s:
 			r[x] = self.__dict__[x]
 		return r
-		
+
 			
 
 

@@ -47,7 +47,7 @@ class aximem:
 			self.dma.out.base = 0x1f00000
 			self.dma.out.size = 0x100000
 		else:
-			base = lib.axi_base()
+			self.base = lib.axi_base()
 			self.init()
 
 		lib.axi_init(byref(self.handle))
@@ -57,10 +57,11 @@ class aximem:
 			self.errcnt[i] = 0
 
 	def init(self,config):
-			self.dma.inp.base = config['AXI2S_IBASE']-base
-			self.dma.inp.size = config['AXI2S_ISIZE']
-			self.dma.out.base = config['AXI2S_OBASE']-base
-			self.dma.out.size = config['AXI2S_OSIZE']
+		self.base = lib.axi_base()
+		self.dma.inp.base = config['AXI2S_IBASE']-self.base
+		self.dma.inp.size = config['AXI2S_ISIZE']
+		self.dma.out.base = config['AXI2S_OBASE']-self.base
+		self.dma.out.size = config['AXI2S_OSIZE']
 		
 	def dump(self):
 		reg = c_uint*32

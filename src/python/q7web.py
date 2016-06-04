@@ -255,8 +255,12 @@ class udp:
 			port = 10000
 		if _g.udpSrv!=None:
 				_g.udpSrv.exit()
+		c = _g.todict()
+		axi2s = axi2s_c.axi2s_c(c)
 		_g.udpSrv = udp_server.udp_server(port)
 		_g.udpSrv.aximem = _g.aximem
+		_g.udpSrv.aximem.init(c)
+		axi2s.init()
 		_g.udpSrv.run()
 		return json.dumps({"ret":"ok"})
 
