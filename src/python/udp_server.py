@@ -40,7 +40,7 @@ class udp_server(socket):
 		s = udp_package()
 		s.header.time = t
 		s.header.offset = o
-		memmove(s.data,p,1024)
+		memmove(byref(s,16),p,1024)
 		cs = struct2stream(s)
 		self.sendto(cs,self.peerAddr)
 		return sizeof(s)
@@ -51,8 +51,8 @@ class udp_server(socket):
 				time.sleep(0.001)
 			else:
 				package = self.recv4tx()
-				self.aximem.dma.out.data = pointer(package.data)
-				self.aximem.put(package.offset,1024)
+				self.aximem.dma.out.data = addressof(package)+16
+				self.aximem.put(package.header.offset,1024)
 			if self.tx_stop==1:
 				break
 
