@@ -2,19 +2,20 @@ from socket import socket, AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_REUSEADDR
 import threading
 from ctypes import *
 import time
-import aximem
 from udp_header import *
+import json
+import sys
+import signal
 
 class udp_client(socket):
 
 	def __init__(self,ip,port):
 		self.port = port
 		self.ip = ip
-		self.myAddr = (ip,port)
+		self.host = (ip,port)
 		socket.__init__(self, AF_INET, SOCK_DGRAM)
 		self.setsockopt(SOL_SOCKET,SO_REUSEADDR,1)
-		self.bind(self.myAddr)
-		self.peerAddr = None
+		self.connect(self.host)
 		self.tx_en = 0
 		self.rx_en = 0
 		self.tx_stop = 0
@@ -23,68 +24,65 @@ class udp_client(socket):
 		self.tx_thread = threading.Thread(target = self.tx, name = 'tx')
 		self.rx_thread = threading.Thread(target = self.rx, name = 'rx')
 	
-		self.aximem = None
+		self.rx_cnt = 0
+		self.rx_time = 0
+		self.rx_offset = 0
+		self.tx_time = 0
+		self.tx_offset = 0
+		self.data = (c_uint*0x100)()
+		memset(byref(self.data),0,0x400)
+		
 
-	def struct2stream(self,s):
-		length  = sizeof(s)
-		p       = cast(pointer(s), POINTER(c_char * length))
-		return p.contents.raw
-
-	def stream2struct(self, string, stype):
-		if not issubclass(stype, Structure):
-			raise ValueError('The type of the struct is not a ctypes.Structure')
-		length      = sizeof(stype)
-		stream      = (c_char * length)()
-		stream.raw  = string
-		p           = cast(stream, POINTER(stype))
-		return p.contents
-
-	def recv4tx(self):
-		data,addr = self.recvfrom(sizeof(udp_package))
+	def recv4rx(self):
+		data = self.recv(sizeof(udp_package))
 		if len(data)==sizeof(udp_package):
 			self.peerAddr = addr
-			return self.stream2struct(data,udp_package)
-		if len(data)>sizeof(udp_header):
-			p = self.stream2struct(data[:sizeof(udp_header)],udp_header)
+			return stream2struct(data,udp_package)
+		if len(data)>=sizeof(udp_header):
+			p = stream2struct(data[:sizeof(udp_header)],udp_header)
 			if p.time==0xffffffffffffffff:
-				self.peerAddr = None
+				print "host reset"
 			
-	def send4rx(self,t,o,p):
-		if self.peerAddr==None:
-			return
+	def send4tx(self,t,o,p):
 		s = udp_package()
-		s.header.time = t
+		s.header.time   = t
 		s.header.offset = o
 		memcpy(s.data,p,1024)
-		cs = self.struct2stream(s)
-		self.sendto(cs,self.peerAddr)
+		cs = struct2stream(s)
+		self.send(cs)
 		return sizeof(s)
-
-	def tx(self):
-		while(True):
-			if self.tx_en==0:
-				time.sleep(0.001)
-			else:
-				package = self.recv4tx()
-				self.aximem.dma.out.data = pointer(package.data)
-				self.aximem.put(package.offset,1024)
-			if self.tx_stop==1:
-				break
 
 	def rx(self):
 		while(True):
 			if self.rx_en==0:
 				time.sleep(0.001)
 			else:
-				start = self.aximem.dma.inp.end
-				r = self.aximem.get(start,1024)
-				if r<0:
-					self.aximem.reset("inp")
-				elif r==0:
-					time.sleep(0.01)
-				else:
-					self.send4rx(self.aximem.inp.time,start,self.aximem.inp.data)
+				package = self.recv4rx()
+				self.rx_cnt += 1
+				self.rx_time = package.header.time
+				self.rx_offset = package.header.offset
 			if self.rx_stop==1:
+				break
+	def now2chip(self):
+		return long(time.time()*1.92e6)
+
+	def tx(self):
+		while(True):
+			if self.tx_en==0:
+				time.sleep(0.001)
+			else:
+				tx_time = self.now2chip()
+				if tx_time>self.tx_time-0x100:
+					self.tx_time += 0x100
+					self.tx_offset += 0x100
+					if self.tx_offset < self.rx_offset:
+						self.tx_offset = self.rx_offset + 1920*4
+					if self.tx_offset > self.rx_offset + 1920*400:
+						self.tx_offset = self.rx_offset + 1920*4
+					self.send4tx(tx_time,self.tx_offset,self.data)
+				else:
+					time.sleep(0.001)
+			if self.tx_stop==1:
 				break
 
 	def stop(self):
@@ -106,9 +104,38 @@ class udp_client(socket):
 	def run(self):
 		self.stop()
 		self.en()
+		self.tx_time = self.now2chip()
 		self.tx_thread.start()
 		self.rx_thread.start()
 
-			
+	def dump(self):
+		s = [   "host"
+					, "tx_en"
+					, "tx_stop"
+					, "rx_en"
+					, "rx_stop"
+					, "tx_time"
+					, "tx_offset"
+					, "rx_time"
+					, "rx_offset"
+					, "rx_cnt"
+					]
+		r = {}
+		for x in s:
+			r[x] = self.__dict__[x]
+		return r
 
+def main():
+	c = udp_client(sys.argv[1],int(sys.argv[2]))
+	signal.signal(signal.SIGTERM,c.exit)
+	c.run()
+	cnt = 0
+	while True:
+		print json.dumps(c.dump(),indent=2)
+		time.sleep(10)
+		cnt += 1
+		print "#%08d"%cnt
+
+if __name__ == '__main__':
+	main()
 
