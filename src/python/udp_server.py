@@ -40,7 +40,7 @@ class udp_server(socket):
 		s = udp_package()
 		s.header.time = t
 		s.header.offset = o
-		memcpy(s.data,p,1024)
+		memmove(s.data,p,1024)
 		cs = struct2stream(s)
 		self.sendto(cs,self.peerAddr)
 		return sizeof(s)

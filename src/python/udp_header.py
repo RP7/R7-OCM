@@ -1,12 +1,12 @@
 from ctypes import *
 
 class udp_header(Structure):
-	_field_ =  [  ("time", c_ulonglong)
+	_fields_ =  [  ("time", c_ulonglong)
 							, ("offset", c_ulonglong)
 						]
 
 class udp_package(Structure):
-	_field_ =  [  ("header", udp_header)
+	_fields_ =  [  ("header", udp_header)
 							, ("data", c_char*1024)
 						]
 						

@@ -7,6 +7,7 @@ import json
 import sys
 import signal
 
+
 class udp_client(socket):
 
 	def __init__(self,ip,port):
@@ -25,6 +26,7 @@ class udp_client(socket):
 		self.rx_thread = threading.Thread(target = self.rx, name = 'rx')
 	
 		self.rx_cnt = 0
+		self.tx_cnt = 0
 		self.rx_time = 0
 		self.rx_offset = 0
 		self.tx_time = 0
@@ -36,7 +38,6 @@ class udp_client(socket):
 	def recv4rx(self):
 		data = self.recv(sizeof(udp_package))
 		if len(data)==sizeof(udp_package):
-			self.peerAddr = addr
 			return stream2struct(data,udp_package)
 		if len(data)>=sizeof(udp_header):
 			p = stream2struct(data[:sizeof(udp_header)],udp_header)
@@ -47,9 +48,9 @@ class udp_client(socket):
 		s = udp_package()
 		s.header.time   = t
 		s.header.offset = o
-		memcpy(s.data,p,1024)
+		memmove(s.data,p,1024)
 		cs = struct2stream(s)
-		self.send(cs)
+		self.sendto(cs,self.host)
 		return sizeof(s)
 
 	def rx(self):
@@ -80,8 +81,7 @@ class udp_client(socket):
 					if self.tx_offset > self.rx_offset + 1920*400:
 						self.tx_offset = self.rx_offset + 1920*4
 					self.send4tx(tx_time,self.tx_offset,self.data)
-				else:
-					time.sleep(0.001)
+					self.tx_cnt += 1
 			if self.tx_stop==1:
 				break
 
@@ -119,6 +119,7 @@ class udp_client(socket):
 					, "rx_time"
 					, "rx_offset"
 					, "rx_cnt"
+					, "tx_cnt"
 					]
 		r = {}
 		for x in s:
@@ -126,15 +127,16 @@ class udp_client(socket):
 		return r
 
 def main():
-	c = udp_client(sys.argv[1],int(sys.argv[2]))
+	c = udp_client("192.168.1.110",10000)
 	signal.signal(signal.SIGTERM,c.exit)
 	c.run()
 	cnt = 0
-	while True:
+	while cnt<100:
 		print json.dumps(c.dump(),indent=2)
-		time.sleep(10)
+		time.sleep(1)
 		cnt += 1
 		print "#%08d"%cnt
+	c.exit()
 
 if __name__ == '__main__':
 	main()
