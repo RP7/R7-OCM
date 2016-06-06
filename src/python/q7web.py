@@ -275,16 +275,17 @@ def init():
 	ad.Check_FDD()
 	ad.deinit()
 	
-	ocm = axi2s_u.axi2s_u()
-	ocm.cleanTx()
-	ocm.deinit()
+	# ocm = axi2s_u.axi2s_u()
+	# ocm.cleanTx()
+	# ocm.deinit()
 	
-	uut = axi2s_c.axi2s_c(_g.todict())
-	uut.init()
+	# uut = axi2s_c.axi2s_c(_g.todict())
+	# uut.init()
 
-	uut.check()
-	uut.deinit()
-
+	# uut.check()
+	# uut.deinit()
+	_g.init()
+	
 if __name__ == "__main__":
 	app = web.application(urls, globals())
 	app.run()
