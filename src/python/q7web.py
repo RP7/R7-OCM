@@ -11,6 +11,7 @@ import base64
 import ad9361_fir
 import config
 import udp_server
+import FM
 
 urls = ( '/'      ,'index'
 	     , '/tx'    ,'tx'
@@ -22,6 +23,7 @@ urls = ( '/'      ,'index'
 	     , '/fir'   ,'fir'
 	     , '/init'  ,'initapi'
 	     , '/udp'   , 'udp'
+			 , '/FM'    , 'FMAPI'
 	     )
 
 
@@ -264,6 +266,36 @@ class udp:
 		_g.udpSrv.run()
 		return json.dumps({"ret":"ok"})
 
+class FMAPI:
+	def GET(self):
+		i = web.input()
+		web.header('Content-Type', 'text/json')
+		if 'stop' in i:
+			if _g.FM!=None:
+				_g.FM.exit()
+				_g.FM = None
+			return json.dumps({"ret":"ok"})
+		if 'info' in i:
+			if _g.FM!=None:
+				return json.dumps({"ret":"ok","data":_g.FM.aximem.dma.dump(),"err":_g.FM.aximem.errcnt})
+			else:
+				return json.dumps({"ret":"ok","err":"FM not install"})
+		if 'start' in i:
+			if _g.FM!=None:
+				_g.FM.exit()
+			c = _g.todict()
+			axi2s = axi2s_c.axi2s_c(c)
+			_g.FM = FM.FM()
+			_g.FM.config(c)
+			_g.FM.aximem.init(c)
+			axi2s.init()
+			_g.FM.run()
+			return json.dumps({"ret":"ok"})
+		if 'data' in i:
+			if _g.FM!=None:
+				return json.dumps({"ret":"ok","data":_g.FM.dump()})
+			else:
+				return json.dumps({"ret":"ok","err":"FM not install"})
 
 def init():
 	path = os.path.split(os.path.realpath(__file__))[0]

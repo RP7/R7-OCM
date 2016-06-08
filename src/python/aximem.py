@@ -48,7 +48,7 @@ class aximem:
 			self.dma.out.size = 0x100000
 		else:
 			self.base = lib.axi_base()
-			self.init()
+			self.init(config)
 
 		lib.axi_init(byref(self.handle))
 		

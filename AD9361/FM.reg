@@ -1688,7 +1688,7 @@ WAIT_CALDONE	TXCP,100	// Wait for CP cal to complete, Max TXCP Cal time: 737.280
 SPIWrite	23D,00	// Disable RX CP Calibration since the CP Cal start bit is not self-clearing.  Only important if the script is run again without restting the DUT
 SPIWrite	27D,00	// Disable TX CP Calibration since the CP Cal start bit is not self-clearing.  Only important if the script is run again without restting the DUT
 //************************************************************
-// FDD RX,TX Synth Frequency: 98.000000,108.000000 MHz
+// FDD RX,TX Synth Frequency: 97.400000,108.000000 MHz
 //************************************************************
 //************************************************************
 // Setup Rx Frequency-Dependent Syntheisizer Registers
@@ -1723,11 +1723,11 @@ SPIWrite	280,0A	// Set Synth Loop Filter R3
 //************************************************************
 // Write Rx and Tx Frequency Words
 //************************************************************
-SPIWrite	233,E5	// Write Rx Synth Fractional Freq Word[7:0]
-SPIWrite	234,51	// Write Rx Synth Fractional Freq Word[15:8]
-SPIWrite	235,38	// Write Rx Synth Fractional Freq Word[22:16]
+SPIWrite	233,0E	// Write Rx Synth Fractional Freq Word[7:0]
+SPIWrite	234,04	// Write Rx Synth Fractional Freq Word[15:8]
+SPIWrite	235,56	// Write Rx Synth Fractional Freq Word[22:16]
 SPIWrite	232,00	// Write Rx Synth Integer Freq Word[10:8]
-SPIWrite	231,7D	// Write Rx Synth Integer Freq Word[7:0]
+SPIWrite	231,7C	// Write Rx Synth Integer Freq Word[7:0]
 SPIWrite	005,55	// Set LO divider setting
 SPIWrite	273,4E	// Write Tx Synth Fractional Freq Word[7:0]
 SPIWrite	274,B8	// Write Tx Synth Fractional Freq Word[15:8]
