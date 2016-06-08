@@ -1,3 +1,7 @@
+var xList = [];
+for (var i = -511; i <=512; i++) {
+  xList.push(i);
+};
 var fmoption = {
     title: {
         text: 'FM',
@@ -5,9 +9,8 @@ var fmoption = {
         y: 0
     },
     xAxis: {
-          type: 'value'
-        , min: -512
-        , max: 511
+          type: 'category'
+        , data: xList  
     },
     yAxis: {
         type: 'value'
@@ -20,8 +23,6 @@ var fmoption = {
             , symbol: 'none'
             , sampling: 'average'
             , itemStyle: { normal: { color: 'rgb(70, 255, 131)' }}
-            , xAxisIndex: [0]
-            , yAxisIndex: [0]
             , data: []
         }
     ]
