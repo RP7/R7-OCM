@@ -285,7 +285,7 @@ class FMAPI:
 				_g.FM.exit()
 			c = _g.todict()
 			axi2s = axi2s_c.axi2s_c(c)
-			_g.FM = FM.FM()
+			_g.FM = FM.FM(2048)
 			_g.FM.config(c)
 			_g.FM.aximem.init(c)
 			axi2s.init()

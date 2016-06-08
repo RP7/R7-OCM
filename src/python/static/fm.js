@@ -1,5 +1,5 @@
 var xList = [];
-for (var i = -511; i <=512; i++) {
+for (var i = -1024; i <=1023; i++) {
   xList.push(i);
 };
 var fmoption = {
