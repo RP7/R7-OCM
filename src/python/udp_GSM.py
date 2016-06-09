@@ -7,4 +7,15 @@ class udp_GSM(GSM.GSMChan):
 		self.nframes = len(rd)
 		GSM.GSMChan.__init__(self,rd)
 
-	
+def main():
+	frd = open('../../temp/rd.dat','rb')
+	buf = frd.read(1920000*4)
+	ty = c_uint*1920000
+	d = ty.from_buffer(bytearray(buf))
+	gsm = udp_GSM(d)
+	fMap,fpos,fm = gsm.fbsearch()
+	print fMap,fpos,fm
+	return fMap,fpos,fm
+
+if __name__ == '__main__':
+	fMap,fpos,fm = main()	

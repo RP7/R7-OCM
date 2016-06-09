@@ -247,6 +247,7 @@ class udp:
 				_g.udpSrv = None
 			return json.dumps({"ret":"ok","data":_g.aximem.dma.dump(),"err":_g.aximem.errcnt})
 		if 'info' in i:
+			_g.aximem.peer()
 			if _g.udpSrv!=None:
 				return json.dumps({"ret":"ok","data":_g.aximem.dma.dump(),"err":_g.aximem.errcnt,"server":_g.udpSrv.dump()})
 			else:

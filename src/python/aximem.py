@@ -33,17 +33,20 @@ class e_socket_info(Structure):
 							, ("port", c_uint)
 							, ("send_en", c_uint)
 							, ("recv_en", c_uint)
-							, ("addrLen", c_uint)
+							, ("servAddrLen", c_uint)
+							, ("peerAddrLen", c_uint)
 							, ("addr", c_char*64)
 							]
 	def dump(self):
+		d = self.addr[:2*self.servAddrLen]
 		return {
 			  "s":self.s
 			, "port":self.port
 			, "send_en":self.send_en
 			, "recv_en":self.recv_en
-			, "addrLen":self.addrLen
-			, "addr":self.addr[:2*self.addrLen]
+			, "servAddrLen":self.servAddrLen
+			, "peerAddrLen":self.peerAddrLen
+			, "addr":d[:]
 		}
 
 class axi_dma(Structure):
@@ -140,13 +143,14 @@ class aximem:
 						, -1:"data out of date"}
 		if r in err:
 			self.errcnt[r] += 1
-			print "inp:",err[r]
+			#if r!=0:
+			#	print "inp:",err[r]
 		else:
 			print "inp unknow reason"
 		return r
 
 	def udp_out(self):
-		r = lib.axi_inp_task(byref(self.dma),byref(self.inp_package))
+		r = lib.axi_out_task(byref(self.dma),byref(self.out_package))
 		err = {    0:"buffer full"
 						, -1:"buffer overrun"
 						, -2:"data unaligned"
@@ -154,12 +158,15 @@ class aximem:
 					}
 		if r in err:
 			self.errcnt[r-2] += 1
-			print "out:",err[r]
+			#if r!=0:
+			#	print "out:",err[r]
 		else:
 			print "out unknow reason"
 		return r
 	def close(self):
 		lib.axi_close(byref(self.dma))
+	def peer(self):
+		lib.axi_reportPeerIP(byref(self.dma))
 
 def main():
 	a = aximem()

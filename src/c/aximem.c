@@ -114,13 +114,17 @@ int axi_udp_send(axi_dma_t *c,void *sendline, int len)
 
 int axi_udp_recv( axi_dma_t *c, char *buf, int len )
 {
-	return recvfrom( c->sock.s
+	int l = sizeof(c->sock.peeraddr);
+	int r = recvfrom( c->sock.s
 				, buf
 				, len
 				, 0
 				, (struct sockaddr *)&(c->sock.peeraddr)
-				, (socklen_t*)&(c->sock.peerAddrLen) 
+				, (socklen_t*)&l 
 				);
+	if (l!=0)
+		c->sock.peerAddrLen=l;
+	return r;
 }
 
 int axi_inp_task( axi_dma_t *c, udp_package_t *send )
@@ -161,8 +165,11 @@ int axi_out_task( axi_dma_t *c, udp_package_t *recv )
 	{
 		l = 1024;
 		r = axi_udp_recv(c,(char *)recv,sizeof(udp_package_t));
+		//printf("%d\n",r);
+		//axi_reportPeerIP(c);
 		if(r!=sizeof(udp_package_t)) return -3;
 		start = recv->header.offset;
+		c->out.start = start;
 		load_time(&(c->out),AXI2S_OACNT);
 		if( c->out.time > start ) return -1;
 		if (c->out.time+c->out.size<start+l) return 0;
@@ -208,4 +215,11 @@ void axi_now( axi_dma_t *c )
 int axi_base(void)
 {
 	return AXIMEM_BASE;
+}
+
+int axi_reportPeerIP(axi_dma_t *c)
+{
+	printf("receive from %s:%hu\n" , inet_ntoa( c->sock.peeraddr.sin_addr ), ntohs(c->sock.peeraddr.sin_port));
+	printf("sever %s:%hu\n" , inet_ntoa( c->sock.servaddr.sin_addr ), ntohs(c->sock.servaddr.sin_port));
+	return 0;
 }

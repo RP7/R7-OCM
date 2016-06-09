@@ -159,7 +159,7 @@ class udp_server:
 		self.rx_thread.start()
 
 	def dump(self):
-		s = ["myAddr","peerAddr","tx_en","tx_stop","rx_en","rx_stop"]
+		s = ["tx_en","tx_stop","rx_en","rx_stop"]
 		r = {}
 		for x in s:
 			r[x] = self.__dict__[x]

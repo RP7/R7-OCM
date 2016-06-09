@@ -100,7 +100,6 @@ class udp_client(socket):
 						self.tx_offset = self.rx_offset + 1920*4
 					self.send4tx(tx_time,self.tx_offset,self.data)
 					self.tx_cnt += 1
-					self.tx_stop = 1
 			if self.tx_stop==1:
 				print "tx exit"
 				break
