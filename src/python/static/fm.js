@@ -19,7 +19,7 @@ var fmoption = {
         {
               name: 'Spectrum'
             , type: 'line'
-            , smooth:true
+            , smooth:false
             , symbol: 'none'
             , sampling: 'average'
             , itemStyle: { normal: { color: 'rgb(70, 255, 131)' }}

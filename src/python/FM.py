@@ -20,7 +20,7 @@ class FM:
 		iq = complex(1.,0.)*d[::2]+complex(0.,1.)*d[1::2]
 		f = np.fft.fft(iq)
 		f = np.fft.fftshift(f)
-		self.f += 0.01*(np.abs(f)-self.f)
+		self.f += 0.001*(np.abs(f)-self.f)
 
 	def recv(self):
 		while(True):

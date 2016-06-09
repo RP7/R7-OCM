@@ -15,10 +15,11 @@ class config:
 		self.aximem = aximem.aximem()
 		self.udpSrv = None
 		self.FM = None
+		self.port = 10000
 		
 	def todict(self):
 		r = {}
-		for k in ['AXI2S_IBASE','AXI2S_ISIZE','AXI2S_OBASE','AXI2S_OSIZE','rx']:
+		for k in ['AXI2S_IBASE','AXI2S_ISIZE','AXI2S_OBASE','AXI2S_OSIZE','rx','port']:
 			r[k] = self.__dict__[k]
 		return r
 	

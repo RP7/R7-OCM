@@ -252,14 +252,14 @@ class udp:
 			else:
 				return json.dumps({"ret":"ok","data":_g.aximem.dma.dump(),"err":_g.aximem.errcnt})
 		if 'port' in i:
-			port = int(i.port)
+			_g.port = int(i.port)
 		else:
-			port = 10000
+			_g.port = 10000
 		if _g.udpSrv!=None:
 				_g.udpSrv.exit()
 		c = _g.todict()
 		axi2s = axi2s_c.axi2s_c(c)
-		_g.udpSrv = udp_server.udp_server(port)
+		_g.udpSrv = udp_server.udp_server()
 		_g.udpSrv.aximem = _g.aximem
 		_g.udpSrv.aximem.init(c)
 		axi2s.init()

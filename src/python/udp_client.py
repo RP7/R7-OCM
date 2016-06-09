@@ -6,7 +6,7 @@ from udp_header import *
 import json
 import sys
 import signal
-
+import udp_GSM
 
 class udp_client(socket):
 
@@ -33,6 +33,9 @@ class udp_client(socket):
 		self.tx_offset = 0
 		self.data = (c_uint*0x100)()
 		memset(byref(self.data),0,0x400)
+		self.length = 1920000
+		self.rd = (c_uint*self.length)()
+		print len(self.rd)
 		
 
 	def recv4rx(self):
@@ -54,6 +57,10 @@ class udp_client(socket):
 		return sizeof(s)
 
 	def rx(self):
+		print "rx start"
+		cnt = 0
+		frd = open('../../temp/rd.dat','w')
+		
 		while(True):
 			if self.rx_en==0:
 				time.sleep(0.001)
@@ -62,12 +69,23 @@ class udp_client(socket):
 				self.rx_cnt += 1
 				self.rx_time = package.header.time
 				self.rx_offset = package.header.offset
+				if cnt<self.length:
+					frd.write(string_at(package.data,1024))  
+					# memmove(addressof(self.rd)+cnt*4,package.data,1024)
+					cnt+=256
+				else:
+					if frd!=None:
+						print "rx saved"
+						frd.close()
+						frd = None
 			if self.rx_stop==1:
 				break
+		
 	def now2chip(self):
 		return long(time.time()*1.92e6)
 
 	def tx(self):
+		print "tx start"
 		while(True):
 			if self.tx_en==0:
 				time.sleep(0.001)
@@ -82,7 +100,9 @@ class udp_client(socket):
 						self.tx_offset = self.rx_offset + 1920*4
 					self.send4tx(tx_time,self.tx_offset,self.data)
 					self.tx_cnt += 1
+					self.tx_stop = 1
 			if self.tx_stop==1:
+				print "tx exit"
 				break
 
 	def stop(self):
@@ -98,6 +118,8 @@ class udp_client(socket):
 		
 	def exit(self):
 		self.stop()
+		self.tx_thread.join()
+		self.rx_thread.join()
 		self.close()
 
 
@@ -130,12 +152,12 @@ def main():
 	c = udp_client("192.168.1.110",10000)
 	signal.signal(signal.SIGTERM,c.exit)
 	c.run()
-	cnt = 0
-	while cnt<100:
+	
+	count = 0
+	while count<10:
 		print json.dumps(c.dump(),indent=2)
 		time.sleep(1)
-		cnt += 1
-		print "#%08d"%cnt
+		count += 1
 	c.exit()
 
 if __name__ == '__main__':

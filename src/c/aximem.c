@@ -3,6 +3,11 @@
 #include <stdio.h>
 #include <string.h> //memcpy
 
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <sys/types.h> 
+
 #include "aximem.h"
 #include "iomem.h"
 
@@ -63,7 +68,105 @@ static inline void load_time(axi_entity_t *e,uint32_t base)
 	e->acnt = FPGA_IO(base);
 	e->bcnt = FPGA_IO(base+4);
 	e->time = f2t(e->bcnt,e->acnt,e->size);
-	
+}
+
+int axi_open(axi_dma_t *c)
+{
+	int flag = 1;
+	c->sock.servAddrLen = sizeof(struct sockaddr_in);
+	c->sock.s           = socket(PF_INET, SOCK_DGRAM, 0);
+ 	setsockopt( c->sock.s, SOL_SOCKET, SO_REUSEADDR, &flag, sizeof(int));
+  bzero(&(c->sock.servaddr), sizeof(c->sock.servaddr));
+  bzero(&(c->sock.peeraddr), sizeof(c->sock.peeraddr));
+  c->sock.servaddr.sin_family = AF_INET;
+  c->sock.servaddr.sin_port = htons(c->sock.port);
+  c->sock.servaddr.sin_addr.s_addr = htons(INADDR_ANY);
+  bind(c->sock.s, (struct sockaddr *)&(c->sock.servaddr), sizeof(c->sock.servaddr));
+  c->sock.peerAddrLen = 0;
+}
+
+int axi_close(axi_dma_t *c)
+{
+	close(c->sock.s);
+  bzero(&(c->sock.servaddr), sizeof(c->sock.servaddr));
+  bzero(&(c->sock.peeraddr), sizeof(c->sock.peeraddr));
+}
+
+int axi_udp_send(axi_dma_t *c,void *sendline, int len)
+{
+	if(c->sock.peerAddrLen!=0)
+	{
+		return sendto( c->sock.s
+					, sendline
+					, len
+					, 0
+					, (struct sockaddr *)&(c->sock.peeraddr)
+					, c->sock.peerAddrLen
+					);
+	}
+	else
+	{
+		return -1;
+	}
+}
+
+int axi_udp_recv( axi_dma_t *c, char *buf, int len )
+{
+	return recvfrom( c->sock.s
+				, buf
+				, len
+				, 0
+				, (struct sockaddr *)&(c->sock.peeraddr)
+				, (socklen_t*)&(c->sock.peerAddrLen) 
+				);
+}
+
+int axi_inp_task( axi_dma_t *c, udp_package_t *send )
+{
+	uint64_t start;
+	uint64_t l;
+	while(c->sock.send_en)
+	{
+		c->inp.start = c->inp.end;
+		start = c->inp.start;
+		l = c->inp.length;
+		load_time(&(c->inp),AXI2S_IACNT);
+		c->inp.data = NULL;
+		if (c->inp.time<start+l) 
+			return 0;
+		if (start<c->inp.time-c->inp.size) 
+		{
+			start=c->inp.time-c->inp.size/2;
+			c->inp.start = start;
+			return -1;
+		}
+		send->header.time = c->inp.time;
+		send->header.offset = c->inp.start;
+		memcpy(send->data,axi_mem.mem+t2addr(start,&(c->inp)),l);
+		axi_udp_send(c,(char *)send,sizeof(udp_package_t));
+		c->inp.end = start+l;
+	}
+	return 1;
+}
+
+int axi_out_task( axi_dma_t *c, udp_package_t *recv )
+{
+	uint64_t start;
+	uint64_t l;
+	uint32_t s;
+	while(c->sock.recv_en)
+	{
+		l = 1024;
+		axi_udp_recv(c,(char *)recv,sizeof(udp_package_t));
+		start = recv->header.offset;
+		load_time(&(c->out),AXI2S_OACNT);
+		if( c->out.time > start ) return -1;
+		if (c->out.time+c->out.size<start+l) return 0;
+		s = t2addr(start,&(c->out));
+		if( s+l>c->out.base+c->out.size ) return -2;
+		memcpy(axi_mem.mem+s,recv->data,1024);
+	}
+	return 1;
 }
 
 int axi_get(axi_dma_t *c)

@@ -1601,7 +1601,7 @@ SPIWrite	0F5,F8	// Disable clock to Rx Filter
 //************************************************************
 // Setup the Parallel Port (Digital Data Interface)
 //************************************************************
-SPIWrite	010,C8	// I/O Config.  Tx Swap IQ; Rx Swap IQ; Tx CH Swap, Rx CH Swap; Rx Frame Mode; 2R2T bit; Invert data bus; Invert DATA_CLK
+SPIWrite	010,08	// I/O Config.  Tx Swap IQ; Rx Swap IQ; Tx CH Swap, Rx CH Swap; Rx Frame Mode; 2R2T bit; Invert data bus; Invert DATA_CLK
 SPIWrite	011,00	// I/O Config.  Alt Word Order; -Rx1; -Rx2; -Tx1; -Tx2; Invert Rx Frame; Delay Rx Data
 SPIWrite	012,10	// I/O Config.  Rx=2*Tx; Swap Ports; SDR; LVDS; Half Duplex; Single Port; Full Port; Swap Bits
 SPIWrite	006,0F	// PPORT Rx Delay (adjusts Tco Dataclk->Data)
