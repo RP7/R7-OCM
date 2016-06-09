@@ -71,7 +71,7 @@ class aximem:
 		else:
 			self.init(config)
 		self.errcnt = {}
-		for i in range(0,-6,-1):
+		for i in range(0,-7,-1):
 			self.errcnt[i] = 0
 		self.inp_package = udp_package()
 		self.out_package = udp_package()
@@ -84,6 +84,8 @@ class aximem:
 		self.dma.out.size = config['AXI2S_OSIZE']
 		if 'port' in config:
 			self.dma.sock.port = config['port']
+		self.dma.inp.length = 1024
+		self.dma.out.length = 1024
 		lib.axi_init(byref(self.handle))
 		lib.axi_open(byref(self.dma))
 
@@ -138,7 +140,7 @@ class aximem:
 						, -1:"data out of date"}
 		if r in err:
 			self.errcnt[r] += 1
-			print "inp",err[r]
+			print "inp:",err[r]
 		else:
 			print "inp unknow reason"
 		return r
@@ -148,13 +150,16 @@ class aximem:
 		err = {    0:"buffer full"
 						, -1:"buffer overrun"
 						, -2:"data unaligned"
+						, -3:"recv length not matched"
 					}
 		if r in err:
 			self.errcnt[r-2] += 1
-			print "out",err[r]
+			print "out:",err[r]
 		else:
 			print "out unknow reason"
 		return r
+	def close(self):
+		lib.axi_close(byref(self.dma))
 
 def main():
 	a = aximem()

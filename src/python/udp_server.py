@@ -150,8 +150,7 @@ class udp_server:
 		
 	def exit(self):
 		self.stop()
-		self.close()
-
+		self.aximem.close()
 
 	def run(self):
 		self.stop()

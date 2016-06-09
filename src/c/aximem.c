@@ -87,6 +87,8 @@ int axi_open(axi_dma_t *c)
 
 int axi_close(axi_dma_t *c)
 {
+  c->sock.send_en = 0;
+  c->sock.recv_en = 0;
 	close(c->sock.s);
   bzero(&(c->sock.servaddr), sizeof(c->sock.servaddr));
   bzero(&(c->sock.peeraddr), sizeof(c->sock.peeraddr));
@@ -154,10 +156,12 @@ int axi_out_task( axi_dma_t *c, udp_package_t *recv )
 	uint64_t start;
 	uint64_t l;
 	uint32_t s;
+	uint32_t r;
 	while(c->sock.recv_en)
 	{
 		l = 1024;
-		axi_udp_recv(c,(char *)recv,sizeof(udp_package_t));
+		r = axi_udp_recv(c,(char *)recv,sizeof(udp_package_t));
+		if(r!=sizeof(udp_package_t)) return -3;
 		start = recv->header.offset;
 		load_time(&(c->out),AXI2S_OACNT);
 		if( c->out.time > start ) return -1;
