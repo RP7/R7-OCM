@@ -74,17 +74,14 @@ int axi_open(axi_dma_t *c)
 {
 	int flag = 1;
 	c->sock.servAddrLen = sizeof(struct sockaddr_in);
-	c->sock.recv_s           = socket(PF_INET, SOCK_DGRAM, 0);
- 	setsockopt( c->sock.recv_s, SOL_SOCKET, SO_REUSEADDR, &flag, sizeof(int));
+	c->sock.sid           = socket(PF_INET, SOCK_DGRAM, 0);
+ 	setsockopt( c->sock.sid, SOL_SOCKET, SO_REUSEADDR, &flag, sizeof(int));
   bzero(&(c->sock.servaddr), sizeof(c->sock.servaddr));
   bzero(&(c->sock.peeraddr), sizeof(c->sock.peeraddr));
   c->sock.servaddr.sin_family = AF_INET;
   c->sock.servaddr.sin_port = htons(c->sock.port);
   c->sock.servaddr.sin_addr.s_addr = htons(INADDR_ANY);
-  bind(c->sock.recv_s, (struct sockaddr *)&(c->sock.servaddr), sizeof(c->sock.servaddr));
-  c->sock.send_s           = socket(PF_INET, SOCK_DGRAM, 0);
-  setsockopt( c->sock.send_s, SOL_SOCKET, SO_REUSEADDR, &flag, sizeof(int));
-  c->sock.peeraddr.sin_family = AF_INET;
+  bind(c->sock.sid, (struct sockaddr *)&(c->sock.servaddr), sizeof(c->sock.servaddr));
   c->sock.peerAddrLen = 0;
 }
 
@@ -92,8 +89,7 @@ int axi_close(axi_dma_t *c)
 {
   c->sock.send_en = 0;
   c->sock.recv_en = 0;
-	close(c->sock.recv_s);
-	close(c->sock.send_s);
+	close(c->sock.sid);
   bzero(&(c->sock.servaddr), sizeof(c->sock.servaddr));
   bzero(&(c->sock.peeraddr), sizeof(c->sock.peeraddr));
   c->sock.peerAddrLen = 0;
@@ -103,7 +99,7 @@ int axi_udp_send(axi_dma_t *c,void *sendline, int len)
 {
 	if(c->sock.peerAddrLen!=0)
 	{
-		return sendto( c->sock.recv_s
+		return sendto( c->sock.sid
 					, sendline
 					, len
 					, 0
@@ -121,7 +117,7 @@ int axi_udp_recv( axi_dma_t *c, char *buf, int len )
 {
 	struct sockaddr_in addr;
 	int l = sizeof(addr);
-	int r = recvfrom( c->sock.recv_s
+	int r = recvfrom( c->sock.sid
 				, buf
 				, len
 				, 0

@@ -4,28 +4,20 @@ from ctypes import *
 import time
 from udp_header import *
 import json
+import sys
 
 class udp_host:
 
 	def __init__(self,ip,port):
 		self.sock = socket(AF_INET, SOCK_DGRAM)
 		self.sock.setsockopt(SOL_SOCKET,SO_REUSEADDR,1)
-		#self.sock.settimeout(0.001)
-		#self.sock.setblocking(1)
+
 		self.port = port
 		self.ip = ip
 		
 		self.q7 = (ip,port)
 		self.sock.connect(self.q7)
 
-		self.tx_en = 0
-		self.rx_en = 0
-		self.tx_s = 0
-		self.rx_s = 0
-
-		self.tx_thread = threading.Thread(target = self.tx, name = 'tx')
-		self.rx_thread = threading.Thread(target = self.rx, name = 'rx')
-	
 		self.rx_cnt = 0
 		self.tx_cnt = 0
 		self.rx_time = 0
@@ -37,10 +29,9 @@ class udp_host:
 		memset(byref(self.data),0,0x400)
 		
 		self.length = 1920000
-		self.host = None
 		
 	def recv4rx(self):
-		data,self.host = self.sock.recvfrom(sizeof(udp_package))
+		data,host = self.sock.recvfrom(sizeof(udp_package))
 		if len(data)==sizeof(udp_package):
 			return stream2struct(data,udp_package)
 		if len(data)>=sizeof(udp_header):
@@ -84,8 +75,8 @@ class udp_host:
 				self.tx_offset += 0x100
 				self.tx_cnt += 1
 				
-	def run(self):
-		self.frd = open('../../temp/rd.dat','wb')
+	def run(self,fn):
+		self.frd = open(fn,'wb')
 		self.cnt = 0
 		self.tx_time = self.now2chip()-0x1000
 		while self.cnt<self.length:
@@ -108,8 +99,8 @@ class udp_host:
 		return r
 
 def main():
-	c = udp_host("192.168.1.110",10000)
-	c.run()
+	c = udp_host(sys.argv[1],int(sys.argv[2]))
+	c.run(sys.argv[3])
 	
 	
 if __name__ == '__main__':

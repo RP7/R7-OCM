@@ -29,8 +29,7 @@ class e_aximem(Structure):
 						, "length": hex(self.length)
 					}
 class e_socket_info(Structure):
-	_fields_ = [  ("send_s", c_uint)
-							, ("recv_s", c_uint)
+	_fields_ = [  ("sid", c_uint)
 							, ("port", c_uint)
 							, ("send_en", c_uint)
 							, ("recv_en", c_uint)
@@ -41,8 +40,7 @@ class e_socket_info(Structure):
 	def dump(self):
 		d = self.addr[:2*self.servAddrLen]
 		return {
-			  "send_sock":self.send_s
-			, "recv_sock":self.recv_s
+			  "sid":self.sid
 			, "port":self.port
 			, "send_en":self.send_en
 			, "recv_en":self.recv_en
