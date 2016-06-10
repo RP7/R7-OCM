@@ -32,6 +32,7 @@ typedef struct socketInfo
 	int peerAddrLen;
 	struct sockaddr_in servaddr;
 	struct sockaddr_in peeraddr;
+	char pad[32];
 } socket_info_t;
 
 typedef struct struct_axi_dma

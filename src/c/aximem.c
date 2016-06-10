@@ -145,10 +145,12 @@ int axi_inp_task( axi_dma_t *c, udp_package_t *send )
 		c->inp.data = NULL;
 		if (c->inp.time<start+l) 
 			return 0;
+		if( c->inp.time>c->inp.size )
 		if (start<c->inp.time-c->inp.size) 
 		{
 			start=c->inp.time-c->inp.size/2;
 			c->inp.start = start;
+			c->inp.end = start;
 			return -1;
 		}
 		send->header.time = c->inp.time;
