@@ -52,3 +52,4 @@ temp/*
 lib/*
 gitversion.v
 .DS_Store
+*.stackdump
