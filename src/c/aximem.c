@@ -83,6 +83,9 @@ int axi_open(axi_dma_t *c)
   c->sock.servaddr.sin_addr.s_addr = htons(INADDR_ANY);
   bind(c->sock.sid, (struct sockaddr *)&(c->sock.servaddr), sizeof(c->sock.servaddr));
   c->sock.peerAddrLen = 0;
+  load_time(&(c->inp),AXI2S_IACNT);
+  c->inp.start = c->inp.time;
+  c->inp.end = c->inp.time;
 }
 
 int axi_close(axi_dma_t *c)
