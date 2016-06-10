@@ -52,7 +52,7 @@ class udp_client(socket):
 		s = udp_package()
 		s.header.time   = t
 		s.header.offset = o
-		memmove(s.data,p,1024)
+		memmove(byref(s,16),p,1024)
 		cs = struct2stream(s)
 		self.sendto(cs,self.host)
 		return sizeof(s)

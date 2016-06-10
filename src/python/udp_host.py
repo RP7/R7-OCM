@@ -53,7 +53,7 @@ class udp_host:
 		s = udp_package()
 		s.header.time   = t
 		s.header.offset = o
-		memmove(s.data,p,1024)
+		memmove(byref(s,16),p,1024)
 		cs = struct2stream(s)
 		return self.sock.sendto(cs,self.q7)
 		
@@ -65,7 +65,7 @@ class udp_host:
 			self.rx_offset = package.header.offset
 			buf = '\0'*1024
 			memmove(buf,byref(package,16),1024)
-			slef.frd.write(buf)  
+			self.frd.write(buf)  
 			self.cnt+=256
 			
 	def now2chip(self):
@@ -73,28 +73,24 @@ class udp_host:
 
 	def tx(self):
 		tx_time = self.now2chip()
-		#if self.tx_offset < self.rx_offset:
-		#	self.tx_offset = self.rx_offset + 1920*4
-		#if self.tx_offset > self.rx_offset + 1920*400:
-		#	self.tx_offset = self.rx_offset + 1920*4
+		if self.tx_offset < self.rx_offset:
+			self.tx_offset = self.rx_offset + 1920*4
+		if self.tx_offset > self.rx_offset + 1920*400:
+			self.tx_offset = self.rx_offset + 1920*4
 		if tx_time>self.tx_time-0x100:
 			r = self.send4tx(tx_time,self.tx_offset,self.data)
 			if r:
 				self.tx_time += 0x100
 				self.tx_offset += 0x100
-				if (self.tx_cnt%10)==0:
-					print json.dumps(self.dump(),indent=2)
 				self.tx_cnt += 1
 				
 	def run(self):
 		self.frd = open('../../temp/rd.dat','wb')
 		self.cnt = 0
 		self.tx_time = self.now2chip()-0x1000
-		self.tx()
 		while self.cnt<self.length:
+			self.tx()
 			self.rx()
-			if (self.cnt&0xfff)==0:
-				print self.host
 		self.frd.close()
 			
 	def dump(self):
