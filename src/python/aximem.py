@@ -29,7 +29,8 @@ class e_aximem(Structure):
 						, "length": hex(self.length)
 					}
 class e_socket_info(Structure):
-	_fields_ = [  ("s", c_uint)
+	_fields_ = [  ("send_s", c_uint)
+							, ("recv_s", c_uint)
 							, ("port", c_uint)
 							, ("send_en", c_uint)
 							, ("recv_en", c_uint)
@@ -40,7 +41,8 @@ class e_socket_info(Structure):
 	def dump(self):
 		d = self.addr[:2*self.servAddrLen]
 		return {
-			  "s":self.s
+			  "send_sock":self.send_s
+			, "recv_sock":self.recv_s
 			, "port":self.port
 			, "send_en":self.send_en
 			, "recv_en":self.recv_en
@@ -143,8 +145,6 @@ class aximem:
 						, -1:"data out of date"}
 		if r in err:
 			self.errcnt[r] += 1
-			#if r!=0:
-			#	print "inp:",err[r]
 		else:
 			print "inp unknow reason"
 		return r
@@ -158,13 +158,13 @@ class aximem:
 					}
 		if r in err:
 			self.errcnt[r-2] += 1
-			#if r!=0:
-			#	print "out:",err[r]
 		else:
 			print "out unknow reason"
 		return r
+
 	def close(self):
 		lib.axi_close(byref(self.dma))
+
 	def peer(self):
 		lib.axi_reportPeerIP(byref(self.dma))
 
