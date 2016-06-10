@@ -16,7 +16,7 @@ class udp_client(socket):
 		self.host = (ip,port)
 		socket.__init__(self, AF_INET, SOCK_DGRAM)
 		self.setsockopt(SOL_SOCKET,SO_REUSEADDR,1)
-		#self.connect(self.host)
+		
 		self.tx_en = 0
 		self.rx_en = 0
 		self.tx_s = 0
@@ -72,9 +72,7 @@ class udp_client(socket):
 					self.rx_time = package.header.time
 					self.rx_offset = package.header.offset
 					if cnt<self.length:
-						buf = '\0'*1024
-						memmove(buf,byref(package,16),1024)
-						frd.write(buf)  
+						memmove(byref(self.rd,cnt*4),byref(package,16),1024)
 						cnt+=256
 					else:
 						if frd!=None:
@@ -155,13 +153,14 @@ def main():
 	c = udp_client("192.168.1.110",10000)
 	c.run()
 	
-	count = 0
-	while count<3:
-		print json.dumps(c.dump(),indent=2)
-		time.sleep(1)
-		count += 1
+	time.sleep(1)
+	print json.dumps(c.dump(),indent=2)
 	c.exit()
 
+	gsm = udp_GSM.udp_GSM(c.rd)
+	fMap,fpos,fm = gsm.fbsearch()
+	return fMap,fpos,fm
+
 if __name__ == '__main__':
-	main()
+	fMap,fpos,fm = main()
 
