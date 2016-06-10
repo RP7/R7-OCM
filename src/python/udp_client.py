@@ -59,7 +59,7 @@ class udp_client(socket):
 	def rx(self):
 		print "rx start"
 		cnt = 0
-		frd = open('../../temp/rd.dat','w')
+		frd = open('../../temp/rd.dat','wb')
 		
 		while(True):
 			if self.rx_en==0:
@@ -70,8 +70,9 @@ class udp_client(socket):
 				self.rx_time = package.header.time
 				self.rx_offset = package.header.offset
 				if cnt<self.length:
-					frd.write(string_at(package.data,1024))  
-					# memmove(addressof(self.rd)+cnt*4,package.data,1024)
+					buf = '\0'*1024
+					memmove(buf,byref(package,16),1024)
+					frd.write(buf)  
 					cnt+=256
 				else:
 					if frd!=None:
@@ -100,6 +101,7 @@ class udp_client(socket):
 						self.tx_offset = self.rx_offset + 1920*4
 					self.send4tx(tx_time,self.tx_offset,self.data)
 					self.tx_cnt += 1
+					self.tx_stop = 1
 			if self.tx_stop==1:
 				print "tx exit"
 				break
