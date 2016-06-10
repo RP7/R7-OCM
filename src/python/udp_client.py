@@ -129,7 +129,7 @@ class udp_client(socket):
 	def run(self):
 		self.stop()
 		self.en()
-		self.tx_time = self.now2chip()
+		self.tx_time = self.now2chip()-0x1000
 		self.tx_thread.start()
 		self.rx_thread.start()
 

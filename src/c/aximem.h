@@ -24,7 +24,8 @@ typedef struct struct_axi_entity
 
 typedef struct socketInfo
 {
-	int s;
+	int send_s;
+	int recv_s;
 	int port;
 	int send_en;
 	int recv_en;

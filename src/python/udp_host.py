@@ -4,17 +4,14 @@ from ctypes import *
 import time
 from udp_header import *
 import json
-import sys
-import signal
-import udp_GSM
 
 class udp_host:
 
 	def __init__(self,ip,port):
 		self.sock = socket(AF_INET, SOCK_DGRAM)
 		self.sock.setsockopt(SOL_SOCKET,SO_REUSEADDR,1)
-		self.sock.settimeout(0.001)
-		self.sock.setblocking(1)
+		#self.sock.settimeout(0.001)
+		#self.sock.setblocking(1)
 		self.port = port
 		self.ip = ip
 		
@@ -40,10 +37,10 @@ class udp_host:
 		memset(byref(self.data),0,0x400)
 		
 		self.length = 1920000
-
+		self.host = None
+		
 	def recv4rx(self):
-		data,addr = self.sock.recvfrom(sizeof(udp_package))
-		print addr
+		data,self.host = self.sock.recvfrom(sizeof(udp_package))
 		if len(data)==sizeof(udp_package):
 			return stream2struct(data,udp_package)
 		if len(data)>=sizeof(udp_header):
@@ -76,10 +73,10 @@ class udp_host:
 
 	def tx(self):
 		tx_time = self.now2chip()
-		if self.tx_offset < self.rx_offset:
-			self.tx_offset = self.rx_offset + 1920*4
-		if self.tx_offset > self.rx_offset + 1920*400:
-			self.tx_offset = self.rx_offset + 1920*4
+		#if self.tx_offset < self.rx_offset:
+		#	self.tx_offset = self.rx_offset + 1920*4
+		#if self.tx_offset > self.rx_offset + 1920*400:
+		#	self.tx_offset = self.rx_offset + 1920*4
 		if tx_time>self.tx_time-0x100:
 			r = self.send4tx(tx_time,self.tx_offset,self.data)
 			if r:
@@ -92,10 +89,12 @@ class udp_host:
 	def run(self):
 		self.frd = open('../../temp/rd.dat','wb')
 		self.cnt = 0
-		self.tx_time = self.now2chip()
+		self.tx_time = self.now2chip()-0x1000
+		self.tx()
 		while self.cnt<self.length:
-			self.tx()
 			self.rx()
+			if (self.cnt&0xfff)==0:
+				print self.host
 		self.frd.close()
 			
 	def dump(self):

@@ -59,12 +59,12 @@ VCO Cal Time = 3
 reg013 = 1    
 
 [Aux IO Settings]
-reg018 = 0    
+reg018 = 255    
 reg019 = 0    
-reg01A = 0    
+reg01A = 11    
 reg01B = 0    
-reg023 = 255    
-reg026 = 0    
+reg023 = 191    
+reg026 = 128    
 reg030 = 0    
 reg031 = 0    
 reg032 = 0    
