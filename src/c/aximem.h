@@ -8,6 +8,10 @@ typedef struct struct_aximem {
 
 #define FPGA_BASE 0x40000000
 #define FPGA_SIZE 0x40000
+typedef struct preformance_monitor_s
+{
+	uint32_t counter[16];
+} pmon_t;
 
 typedef struct struct_axi_entity
 {
@@ -19,6 +23,7 @@ typedef struct struct_axi_entity
 	uint64_t start;
 	uint64_t end;
 	uint32_t length;
+	pmon_t pm;
 	void *data;
 } axi_entity_t;
 

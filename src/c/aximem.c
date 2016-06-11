@@ -83,9 +83,8 @@ int axi_open(axi_dma_t *c)
   c->sock.servaddr.sin_addr.s_addr = htons(INADDR_ANY);
   bind(c->sock.sid, (struct sockaddr *)&(c->sock.servaddr), sizeof(c->sock.servaddr));
   c->sock.peerAddrLen = 0;
-  load_time(&(c->inp),AXI2S_IACNT);
-  c->inp.start = c->inp.time;
-  c->inp.end = c->inp.time;
+  bzero(&(c->inp.pm),sizeof(pmon_t));
+	bzero(&(c->out.pm),sizeof(pmon_t));
 }
 
 int axi_close(axi_dma_t *c)
@@ -132,6 +131,8 @@ int axi_udp_recv( axi_dma_t *c, char *buf, int len )
 		c->sock.peerAddrLen=l;
 		memcpy(&(c->sock.peeraddr),&addr,sizeof(addr));
 	}
+	else
+		c->out.pm.counter[2]++; // addr error
 	return r;
 }
 
@@ -139,6 +140,7 @@ int axi_inp_task( axi_dma_t *c, udp_package_t *send )
 {
 	uint64_t start;
 	uint64_t l;
+	int r;
 	while(c->sock.send_en)
 	{
 		c->inp.start = c->inp.end;
@@ -146,21 +148,43 @@ int axi_inp_task( axi_dma_t *c, udp_package_t *send )
 		l = c->inp.length;
 		load_time(&(c->inp),AXI2S_IACNT);
 		c->inp.data = NULL;
-		if (c->inp.time<start+l) 
-			return 0;
-		if( c->inp.time>c->inp.size )
-		if (start<c->inp.time-c->inp.size) 
+		if (c->inp.time<start+l)
 		{
-			start=c->inp.time-c->inp.size/2;
-			c->inp.start = start;
-			c->inp.end = start;
-			return -1;
+			c->inp.pm.counter[2]++; //data no ready
+			return 0;
+		} 
+		if( c->inp.time>c->inp.size )
+		{
+			if( start < c->inp.time-c->inp.size ) 
+			{
+				start=c->inp.time-c->inp.size/2;
+				c->inp.start = start;
+				c->inp.end = start;
+				c->inp.pm.counter[3]++; //data out of date
+				return -1;
+			}
 		}
 		send->header.time = c->inp.time;
 		send->header.offset = c->inp.start;
 		memcpy(send->data,axi_mem.mem+t2addr(start,&(c->inp)),l);
-		axi_udp_send(c,(char *)send,sizeof(udp_package_t));
-		c->inp.end = start+l;
+		r = axi_udp_send(c,(char *)send,sizeof(udp_package_t));
+		if(r==sizeof(udp_package_t))
+		{
+			c->inp.end = start+l;
+			c->inp.pm.counter[0]++; // send ok
+		}
+		else 
+		{
+			if(r==-1)
+			{
+				c->inp.pm.counter[1]++; // not peer
+				if(c->inp.time>l)
+					c->inp.end = c->inp.time-l;
+				return -2;
+			}	
+			else
+				c->inp.pm.counter[4]++; // send failure
+		}	
 	}
 	return 1;
 }
@@ -175,15 +199,31 @@ int axi_out_task( axi_dma_t *c, udp_package_t *recv )
 	{
 		l = 1024;
 		r = axi_udp_recv(c,(char *)recv,sizeof(udp_package_t));
-		if(r!=sizeof(udp_package_t)) return -3;
+		if(r!=sizeof(udp_package_t)) 
+		{
+			c->out.pm.counter[4]++; // recv failure
+			return -3;
+		}
 		start = recv->header.offset;
 		c->out.start = start;
 		load_time(&(c->out),AXI2S_OACNT);
-		if( c->out.time > start ) return -1;
-		if (c->out.time+c->out.size<start+l) return 0;
+		if( c->out.time > start ) {
+			c->out.pm.counter[3]++; // data out of date
+			return -1;	
+		}
+		if (c->out.time+c->out.size<start+l) 
+		{
+			c->out.pm.counter[1]++; // buffer full
+			return 0;
+		}
 		s = t2addr(start,&(c->out));
-		if( s+l>c->out.base+c->out.size ) return -2;
+		if( s+l>c->out.base+c->out.size ) 
+		{
+			c->out.pm.counter[5]++; // data aligned error
+			return -2;
+		}
 		memcpy(axi_mem.mem+s,recv->data,1024);
+			c->out.pm.counter[0]++; // out ok
 	}
 	return 1;
 }
@@ -230,4 +270,11 @@ int axi_reportPeerIP(axi_dma_t *c)
 	printf("host -> %s:%hu\n" , inet_ntoa( c->sock.peeraddr.sin_addr ), ntohs(c->sock.peeraddr.sin_port));
 	printf("sever-> %s:%hu\n" , inet_ntoa( c->sock.servaddr.sin_addr ), ntohs(c->sock.servaddr.sin_port));
 	return 0;
+}
+
+int axi_inp_reset(axi_dma_t *c)
+{
+  load_time(&(c->inp),AXI2S_IACNT);
+  c->inp.start = c->inp.time;
+  c->inp.end = c->inp.time;
 }

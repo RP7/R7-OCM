@@ -264,6 +264,7 @@ class udp:
 		_g.udpSrv.aximem = _g.aximem
 		_g.udpSrv.aximem.init(c)
 		axi2s.init()
+		_g.aximem.reset("inp")
 		_g.udpSrv.run()
 		return json.dumps({"ret":"ok"})
 

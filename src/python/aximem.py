@@ -6,6 +6,13 @@ class h_aximem(Structure):
 	_fields_ = [  ("u_map", c_void_p)
 							, ("c_map", c_void_p)
 							]
+class p_monitor(Structure):
+	_fields_ = [  ("counter", c_uint*16) ]
+	def dump(self,msg):
+		r = {}
+		for k in range(len(msg)):
+			r[msg[k]] = self.counter[k]
+		return r
 
 class e_aximem(Structure):
 	_fields_ = [  ("base", c_uint)
@@ -16,9 +23,11 @@ class e_aximem(Structure):
 							, ("start", c_ulonglong)
 							, ("end", c_ulonglong)
 							, ("length", c_uint)
+							, ("pm", p_monitor)
 							, ("data", c_void_p)
 							]
-	def dump(self):
+
+	def dump(self,msg):
 		return {  "base": hex(self.base)
 						, "size": hex(self.size)
 						, "acnt": hex(self.acnt)
@@ -27,6 +36,7 @@ class e_aximem(Structure):
 						, "start": hex(self.start)
 						, "end": hex(self.end)
 						, "length": hex(self.length)
+						, "preformance_monitor_s":self.pm.dump(msg)
 					}
 class e_socket_info(Structure):
 	_fields_ = [  ("sid", c_uint)
@@ -56,14 +66,31 @@ class axi_dma(Structure):
 						]
 
 	def dump(self):
-		return {  "inp":self.inp.dump()
-						, "out":self.out.dump()
+		inp_pm_msg = [
+			  "inp_ok"
+			, "not_peer"
+			, "data_no_ready"
+			, "data_out_of_date"
+			, "send_failure"
+		]
+
+		out_pm_msg = [
+			  "out_ok"
+			, "buf_full"
+			, "addr_err"
+			, "data_out_of_date"
+			, "recv_failure"
+			, "aligned_err"
+		]
+		return {  "inp":self.inp.dump(inp_pm_msg)
+						, "out":self.out.dump(out_pm_msg)
 						, "sock":self.sock.dump()
 						}
 
 class aximem:
 	def __init__(self,config=None):
 		self.handle = h_aximem()
+
 		self.dma = axi_dma()
 		self.dma.sock.port = 10000
 		if config==None:
@@ -79,6 +106,7 @@ class aximem:
 		self.inp_package = udp_package()
 		self.out_package = udp_package()
 
+		
 	def init(self,config):
 		self.base = lib.axi_base()
 		self.dma.inp.base = config['AXI2S_IBASE']-self.base
@@ -134,30 +162,14 @@ class aximem:
 
 	def reset(self,who):
 		if who=="inp":
-			lib.axi_now(byref(self.dma))
-			self.dma.inp.end = c_ulonglong(long(self.dma.inp.size)*long(self.dma.inp.bcnt))
-
+			lib.axi_inp_reset(byref(self.dma))
+			
 	def udp_inp(self):
 		r = lib.axi_inp_task(byref(self.dma),byref(self.inp_package))
-		err = {    0:"data not ready"
-						, -1:"data out of date"}
-		if r in err:
-			self.errcnt[r] += 1
-		else:
-			print "inp unknow reason"
 		return r
 
 	def udp_out(self):
 		r = lib.axi_out_task(byref(self.dma),byref(self.out_package))
-		err = {    0:"buffer full"
-						, -1:"buffer overrun"
-						, -2:"data unaligned"
-						, -3:"recv length not matched"
-					}
-		if r in err:
-			self.errcnt[r-2] += 1
-		else:
-			print "out unknow reason"
 		return r
 
 	def close(self):
