@@ -1,7 +1,4 @@
-var xList = [];
-for (var i = -1024; i <=1023; i++) {
-  xList.push(i);
-};
+
 var fmoption = {
     title: {
         text: 'FM',
@@ -10,7 +7,7 @@ var fmoption = {
     },
     xAxis: {
           type: 'category'
-        , data: xList  
+        , data: []  
     },
     yAxis: {
         type: 'value'
@@ -30,9 +27,15 @@ var fmoption = {
 
 var fifo = Array();
 
-
 var FMdata = function() {
     $.getJSON('/FM?data').done( function(data) {
+        option.series[i].data = data.data;
+        xList = []
+        for (var i = 0; i < data.data.length; i++) {
+            xList.push(i);
+        };
+        option.xAxis.xList = xList; 
+        fmSpectrum.setOption(option);
         if(fifo.length<163840)
             fifo = fifo.concat(data.data);
     });

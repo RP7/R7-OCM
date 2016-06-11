@@ -11,8 +11,9 @@ class FM:
 		self.rx_en = 0
 		self.rx_stop = 1
 		self.f = np.zeros(self.l)
-		self.os = 8
-		self.last = np.zeros(self.os,dtype=complex)
+		self.os = 4
+		self.os2 = 10
+		self.last = 1
 
 		self.thread = threading.Thread(target = self.recv, name = 'fm')
 		self.dem = []
@@ -23,10 +24,16 @@ class FM:
 	def demod(self):
 		d = np.frombuffer(string_at(self.aximem.dma.inp.data,self.l*4), dtype=np.int16, count=self.l*2, offset=0)
 		iq = complex(1.,0.)*d[::2]+complex(0.,1.)*d[1::2]
-		for k in range(0,self.l,self.os):
-			x = (iq[k:k+self.os]*self.last.conj()).sum()
-			self.last = iq[k:k+self.os]
-			self.dem.append(x)
+		iq.shape = (self.l/self.os,self.os)
+		s = iq.sum(1)
+		ds = np.angle(s)
+		phase = ds[1:]-ds[:-1]
+		up = np.unwrap(phase)
+		
+		for k in range(0,len(up)-self.os2,self.os2):
+			x = (up[k:k+self.os2]).sum()/self.os2/np.pi
+			if(len(self.dem)<44100*4)
+				self.dem.append(x)
 
 	def recv(self):
 		while(True):
