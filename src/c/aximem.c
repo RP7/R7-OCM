@@ -151,6 +151,8 @@ int axi_inp_task( axi_dma_t *c, udp_package_t *send )
 		if (c->inp.time<start+l)
 		{
 			c->inp.pm.counter[2]++; //data no ready
+			if(start+l-c->inp.time > 2*c->inp.size)
+				axi_inp_reset(c);
 			return 0;
 		} 
 		if( c->inp.time>c->inp.size )
