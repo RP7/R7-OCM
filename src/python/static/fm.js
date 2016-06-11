@@ -28,10 +28,40 @@ var fmoption = {
     ]
 };
 
+var fifo = Array();
+
+
 var FMdata = function() {
     $.getJSON('/FM?data').done( function(data) {
-              fmoption.series[0].data = data.data;
-              fmSpectrum.setOption(fmoption);
+        if(fifo.length<163840)
+            fifo = fifo.concat(data.data);
     });
 };
 
+function myPCMSource() {
+     return Math.random() * 2 - 3;
+    }
+    
+var audioContext;
+try {    window.AudioContext = window.AudioContext || window.webkitAudioContext;    
+        audioContext = new AudioContext();
+    } 
+    catch(e) {    
+        alert('Web Audio API is not supported in this browser');
+    }
+var bufferSize = 4096;
+var myPCMProcessingNode = audioContext.createScriptProcessor(bufferSize, 1, 1);
+myPCMProcessingNode.connect(audioContext.destination); 
+myPCMProcessingNode.onaudioprocess = function(e) {    
+    var output = e.outputBuffer.getChannelData(0);    
+    for (var i = 0; i < bufferSize; i++) 
+    {     
+        if( fifo.length>0 )
+            output[i] = fifo.shift();
+        else
+            break;  
+    }
+}
+
+FMdata();   
+setInterval(FMdata, 2000);
