@@ -32,7 +32,7 @@ class FM:
 		
 		for k in range(0,len(up)-self.os2,self.os2):
 			x = (up[k:k+self.os2]).sum()/self.os2/np.pi
-			if(len(self.dem)<44100*4)
+			if len(self.dem)<44100*4:
 				self.dem.append(x)
 
 	def recv(self):
