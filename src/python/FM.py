@@ -71,7 +71,7 @@ class FM:
 		self.thread.start()
 		
 	def dump(self):
-		r = [np.angle(x)/np.pi for x in self.dem]
+		r = [x for x in self.dem]
 		self.dem = []
 		return r
 

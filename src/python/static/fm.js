@@ -29,15 +29,19 @@ var fifo = Array();
 
 var FMdata = function() {
     $.getJSON('/FM?data').done( function(data) {
-        option.series[i].data = data.data;
         xList = []
-        for (var i = 0; i < data.data.length; i++) {
-            xList.push(i);
-        };
-        option.xAxis.xList = xList; 
-        fmSpectrum.setOption(option);
-        if(fifo.length<163840)
-            fifo = fifo.concat(data.data);
+        {
+            for (var i = 0; i < data.data.length; i++) {
+                xList.push(i);
+                if(fifo.length<4800000)
+                    if(data.data[i]>0.1 || data.data[i]<-0.1)
+                        data.data[i] = 0.;
+                    fifo.push(data.data[i]);
+            }
+        }
+        fmoption.xAxis.xList = xList; 
+        fmoption.series[0].data = data.data;
+        fmSpectrum.setOption(fmoption);
     });
 };
 
