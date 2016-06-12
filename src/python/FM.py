@@ -20,14 +20,17 @@ class h_FM(Structure):
 							, ("os1", c_uint)
 							, ("os2", c_uint)
 							, ("len", c_uint)
-							, ("pre", c_short*2)
 							, ("atan_lut", c_int*131072)
+							, ("pre", c_short*2)
 							]
 	def dump(self):
 		return {
 			  "os1": self.os1
 			, "os2": self.os2
 			, "len": self.len
+			, "buf": hex(self.buf)
+			, "result" : hex(self.result)
+			, "pre" : self.pre[:]
 		}
 
 
@@ -43,14 +46,13 @@ class FM:
 		self.last = 1
 
 		self.thread = threading.Thread(target = self.recv, name = 'fm')
-		self.dem = []
 		self.h = h_FM()
 		self.h.os1 = self.os1
 		self.h.os2 = self.os2
 		self.h.len = self.l
 		self.rlen = self.l/self.os1/self.os2
 		self.rbuflen = self.rlen*48*128
-		self.result = (c_short*self.rlen)()
+		self.result = (c_short*(self.rbuflen+1024))()
 		self.h.result = addressof(self.result)
 		self.dems = 0
 		self.outs = 0
@@ -63,8 +65,8 @@ class FM:
 		if self.aximem.dma.inp.data==0:
 			print "error 64"
 		self.h.buf = self.aximem.dma.inp.data
-		self.h.result = addressof(self.result)+self.dems*2
-		r = lib.fm_demod(byref(self.h))
+		r = lib.fm_demod(byref(self.h),self.dems)
+		print self.aximem.dma.dump()
 		if r!=self.rlen:
 			print "error 67"
 
@@ -72,18 +74,6 @@ class FM:
 		if self.dems>= self.rbuflen:
 			self.dems -= self.rbuflen
 			print "128s pass"
-
-	def demod_p(self):
-		d = np.frombuffer(string_at(self.aximem.dma.inp.data,self.l*4), dtype=np.int16, count=self.l*2, offset=0)
-		iq = complex(1.,0.)*d[::self.os*2]+complex(0.,1.)*d[1::self.os*2]
-		ds = np.angle(iq)
-		phase = ds[1:]-ds[:-1]
-		up = np.unwrap(phase)
-		
-		for k in range(0,len(up)-self.os2,self.os2):
-			x = (up[k:k+self.os2]).sum()/self.os2/np.pi
-			if len(self.dem)<480000*10:
-				self.dem.append(x)
 
 	def recv(self):
 		self.dems = 0
@@ -126,25 +116,7 @@ class FM:
 		self.en()
 		self.thread.start()
 		
-	def dump(self):
-		end = self.dems
-		start = self.outs
-		l = end-start
-		if l<0:
-			l += self.rbuflen
-		if l>48000*10:
-			self.outs = end
-			return []
 
-		if end==start:
-			r = []
-		elif end>start:
-			r = self.result[start:end]
-			self.outs = end
-		else:
-			r = self.result[start:self.rbuflen]
-			self.outs = 0
-		return r
 	
 	def out(self):
 		end = self.dems
@@ -167,6 +139,8 @@ class FM:
 		return {
 			  "dem" : self.dems
 			, "out" : self.outs
+			, "fm"  : self.h.dump()
+			, "result" : hex(addressof(self.result))
 		}
 
 			

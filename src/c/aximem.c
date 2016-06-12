@@ -278,7 +278,9 @@ int axi_reportPeerIP(axi_dma_t *c)
 
 int axi_inp_reset(axi_dma_t *c)
 {
+  int64_t pos;
   load_time(&(c->inp),AXI2S_IACNT);
-  c->inp.start = c->inp.time;
-  c->inp.end = c->inp.time;
+  pos = (int64_t)c->inp.bcnt*(int64_t)c->inp.size;
+  c->inp.start = pos;
+  c->inp.end = pos;
 }

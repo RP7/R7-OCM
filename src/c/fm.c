@@ -1,5 +1,6 @@
 #include <inttypes.h> //uint32_t,uint64_t
 #include <math.h>
+#include <stdio.h>
 
 typedef struct fm_s {
 	int16_t *buf;
@@ -7,8 +8,8 @@ typedef struct fm_s {
 	int os1;
 	int os2;
 	int len;
-	int16_t pre[2];
 	int atan_lut[131072];
+	int16_t pre[2];
 } fm_t;
 
 static int atan_lut_size = 131072; /* 512 KB */
@@ -75,13 +76,18 @@ int polar_disc_lut( fm_t *c,int16_t *a, int16_t *b)
 	return 0;
 }
 
-int fm_demod(fm_t *c)
+int fm_demod(fm_t *c, int offset)
 {
 	int i, pcm, k, o;
 	int16_t *lp = c->buf;
 	int16_t *pre  = c->pre;
 	int32_t *ipre = (int32_t *)c->pre;
+	int16_t *output = (int16_t *)c->result;
+	output += offset;
 	int len = (c->len+c->os1*c->os2-1)/(c->os1*c->os2);
+	printf("%p->buf,%p\n",c,lp);
+	printf("%p->res,%p\n",c,output);
+	printf("len:%d\n",len);
 	for(i=0;i<len;i++)
 	{
 		pcm = 0;
@@ -93,8 +99,10 @@ int fm_demod(fm_t *c)
 			lp += c->os1*2;
 			k--;
 		}
-		c->result[i] = (int16_t)(pcm/c->os2);
+		*output = (int16_t)(pcm/c->os2);
+		output++;
 	}
+	printf("end,%p->res,%p\n",c,output);
 	return i;
 }
 
