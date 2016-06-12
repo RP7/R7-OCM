@@ -233,7 +233,7 @@ int axi_out_task( axi_dma_t *c, udp_package_t *recv )
 int axi_get(axi_dma_t *c)
 {
 	uint64_t start = c->inp.start;
-	uint64_t l = c->inp.length;
+	uint64_t l = (uint64_t)c->inp.length;
 	load_time(&(c->inp),AXI2S_IACNT);
 	c->inp.data = NULL;
 	if ( c->inp.time < start+l ) 

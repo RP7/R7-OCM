@@ -142,7 +142,7 @@ class aximem:
 				self.errcnt[r] += 1
 			else:
 				print "unknow reason"
-			return None
+			return r
 
 	def put(self,s,l):
 		self.dma.out.start = s

@@ -76,18 +76,15 @@ int polar_disc_lut( fm_t *c,int16_t *a, int16_t *b)
 	return 0;
 }
 
-int fm_demod(fm_t *c, int offset)
+int fm_demod(fm_t *c)
 {
 	int i, pcm, k, o;
 	int16_t *lp = c->buf;
 	int16_t *pre  = c->pre;
 	int32_t *ipre = (int32_t *)c->pre;
-	int16_t *output = (int16_t *)c->result;
-	output += offset;
+	float *output = (float *)c->result;
+	float scale = 1./c->os2/8192.;
 	int len = (c->len+c->os1*c->os2-1)/(c->os1*c->os2);
-	printf("%p->buf,%p\n",c,lp);
-	printf("%p->res,%p\n",c,output);
-	printf("len:%d\n",len);
 	for(i=0;i<len;i++)
 	{
 		pcm = 0;
@@ -99,10 +96,9 @@ int fm_demod(fm_t *c, int offset)
 			lp += c->os1*2;
 			k--;
 		}
-		*output = (int16_t)(pcm/c->os2);
+		*output = (float)pcm*scale;
 		output++;
 	}
-	printf("end,%p->res,%p\n",c,output);
 	return i;
 }
 

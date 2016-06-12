@@ -271,18 +271,20 @@ class udp:
 class FMAPI:
 	def GET(self):
 		i = web.input()
-		web.header('Content-Type', 'text/json')
 		if 'stop' in i:
+			web.header('Content-Type', 'text/json')
 			if _g.FM!=None:
 				_g.FM.exit()
 				_g.FM = None
 			return json.dumps({"ret":"ok"})
 		if 'info' in i:
+			web.header('Content-Type', 'text/json')
 			if _g.FM!=None:
 				return json.dumps({"ret":"ok","data":_g.FM.aximem.dma.dump(),"err":_g.FM.aximem.errcnt,"fm":_g.FM.info()})
 			else:
 				return json.dumps({"ret":"ok","err":"FM not install"})
 		if 'start' in i:
+			web.header('Content-Type', 'text/json')
 			if _g.FM!=None:
 				_g.FM.exit()
 			c = _g.todict()
@@ -298,8 +300,9 @@ class FMAPI:
 				web.header('Content-Type', 'application/octet-stream')
 				buf = _g.FM.out()
 				return buf
-			else:
-				return json.dumps({"ret":"ok","err":"FM not install"})
+		else:
+			web.header('Content-Type', 'text/json')
+			return json.dumps({"ret":"ok","err":"FM not install"})
 
 def init():
 	path = os.path.split(os.path.realpath(__file__))[0]

@@ -41,7 +41,7 @@ DCXO Fine[12:0] = 4096
 TX RF Bandwidth = "1.080000"
 
 [Digital Interface Settings]
-reg010 = 200    
+reg010 = 8    
 reg011 = 32    
 reg012 = 16    
 reg006 (Delay Cell) = 15    
@@ -63,8 +63,8 @@ reg018 = 0
 reg019 = 0    
 reg01A = 0    
 reg01B = 0    
-reg023 = 255    
-reg026 = 0    
+reg023 = 191    
+reg026 = 128    
 reg030 = 0    
 reg031 = 0    
 reg032 = 0    

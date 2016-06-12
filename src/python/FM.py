@@ -52,7 +52,7 @@ class FM:
 		self.h.len = self.l
 		self.rlen = self.l/self.os1/self.os2
 		self.rbuflen = self.rlen*48*128
-		self.result = (c_short*(self.rbuflen+1024))()
+		self.result = (c_float*(self.rbuflen+1024))()
 		self.h.result = addressof(self.result)
 		self.dems = 0
 		self.outs = 0
@@ -62,14 +62,10 @@ class FM:
 		self.aximem = aximem.aximem(c)
 
 	def demod(self):
-		if self.aximem.dma.inp.data==0:
-			print "error 64"
 		self.h.buf = self.aximem.dma.inp.data
-		r = lib.fm_demod(byref(self.h),self.dems)
-		print self.aximem.dma.dump()
-		if r!=self.rlen:
-			print "error 67"
-
+		self.h.result = addressof(self.result) + self.dems*sizeof(c_float)
+		r = lib.fm_demod(byref(self.h))
+		
 		self.dems += self.rlen
 		if self.dems>= self.rbuflen:
 			self.dems -= self.rbuflen
@@ -83,17 +79,14 @@ class FM:
 			if self.rx_en==0:
 				time.sleep(0.1)
 			else:
-				start = self.aximem.dma.inp.end
+				start = long(self.aximem.dma.inp.end)
 				r = self.aximem.get(start,self.l*4)
 				if r<0:
 					self.aximem.reset("inp")
 				elif r==0:
 					time.sleep(0.01)
 				else:
-					if r!=self.l*4:
-						print "error 102"
-					else:
-						self.demod()
+					self.demod()
 			if self.rx_stop==1:
 				break
 
@@ -130,8 +123,7 @@ class FM:
 		if l>48000*10:
 			return ''
 
-		#r = string_at(addressof(self.result)+start*2,l*2)
-		r  = "abc"
+		r = string_at(addressof(self.result)+start*sizeof(c_float),l*sizeof(c_float))
 		return r
 
 
@@ -141,6 +133,7 @@ class FM:
 			, "out" : self.outs
 			, "fm"  : self.h.dump()
 			, "result" : hex(addressof(self.result))
+			, "slice" : self.result[:3]
 		}
 
 			
