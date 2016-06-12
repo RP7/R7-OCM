@@ -233,13 +233,15 @@ int axi_out_task( axi_dma_t *c, udp_package_t *recv )
 int axi_get(axi_dma_t *c)
 {
 	uint64_t start = c->inp.start;
-	uint32_t l = c->inp.length;
+	uint64_t l = c->inp.length;
 	load_time(&(c->inp),AXI2S_IACNT);
 	c->inp.data = NULL;
-	if (c->inp.time<start+l) return 0;
-	if (start<c->inp.time-c->inp.size) return -1;
+	if ( c->inp.time < start+l ) 
+		return 0;
+	if ( start < c->inp.time-c->inp.size ) 
+		return -1;
 	c->inp.data = axi_mem.mem+t2addr(start,&(c->inp));
-	return l;
+	return (int)l;
 }
 
 int axi_put(axi_dma_t *c)

@@ -134,7 +134,7 @@ class aximem:
 		r = lib.axi_get(byref(self.dma))
 		if r==l:
 			self.dma.inp.end = long(s)+l
-			return self.dma.inp.data
+			return r
 		else:
 			err = {    0:"data not ready"
 							, -1:"data out of date"}

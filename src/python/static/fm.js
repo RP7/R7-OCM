@@ -30,13 +30,16 @@ var fifo = Array();
 var FMdata = function() {
     $.getJSON('/FM?data').done( function(data) {
         xList = []
+        console.log(fifo.lenght);
+                
         {
             for (var i = 0; i < data.data.length; i++) {
                 xList.push(i);
+                data.data[i] = data.data[i]/32767.;
                 if(fifo.length<4800000)
-                    if(data.data[i]>0.1 || data.data[i]<-0.1)
-                        data.data[i] = 0.;
+                {
                     fifo.push(data.data[i]);
+                }
             }
         }
         fmoption.xAxis.xList = xList; 
@@ -56,7 +59,7 @@ try {    window.AudioContext = window.AudioContext || window.webkitAudioContext;
     catch(e) {    
         alert('Web Audio API is not supported in this browser');
     }
-var bufferSize = 4096;
+var bufferSize = 16384;
 var myPCMProcessingNode = audioContext.createScriptProcessor(bufferSize, 1, 1);
 myPCMProcessingNode.connect(audioContext.destination); 
 myPCMProcessingNode.onaudioprocess = function(e) {    
@@ -66,7 +69,7 @@ myPCMProcessingNode.onaudioprocess = function(e) {
         if( fifo.length>0 )
             output[i] = fifo.shift();
         else
-            break;  
+            output[i] = 0.;  
     }
 }
 

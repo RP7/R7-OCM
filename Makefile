@@ -1,5 +1,6 @@
 SRCS = src/c/ad9361.c \
 	src/c/iomem.c \
+	src/c/fm.c \
 	src/c/aximem.c
 	
 lib/q7.so : $(SRCS)

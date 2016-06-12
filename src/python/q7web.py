@@ -279,7 +279,7 @@ class FMAPI:
 			return json.dumps({"ret":"ok"})
 		if 'info' in i:
 			if _g.FM!=None:
-				return json.dumps({"ret":"ok","data":_g.FM.aximem.dma.dump(),"err":_g.FM.aximem.errcnt})
+				return json.dumps({"ret":"ok","data":_g.FM.aximem.dma.dump(),"err":_g.FM.aximem.errcnt,"fm":_g.FM.info()})
 			else:
 				return json.dumps({"ret":"ok","err":"FM not install"})
 		if 'start' in i:
@@ -287,7 +287,7 @@ class FMAPI:
 				_g.FM.exit()
 			c = _g.todict()
 			axi2s = axi2s_c.axi2s_c(c)
-			_g.FM = FM.FM(2048)
+			_g.FM = FM.FM(2560*16)
 			_g.FM.config(c)
 			_g.FM.aximem.init(c)
 			axi2s.init()
@@ -295,7 +295,9 @@ class FMAPI:
 			return json.dumps({"ret":"ok"})
 		if 'data' in i:
 			if _g.FM!=None:
-				return json.dumps({"ret":"ok","data":_g.FM.dump()})
+				web.header('Content-Type', 'application/octet-stream')
+				buf = _g.FM.out()
+				return buf
 			else:
 				return json.dumps({"ret":"ok","err":"FM not install"})
 
