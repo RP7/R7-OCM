@@ -1,3 +1,5 @@
+#include <udp_header.h>
+
 typedef struct struct_aximem {
 	void *u_mmap;
 	void *c_mmap;
@@ -46,16 +48,4 @@ typedef struct struct_axi_dma
 	axi_entity_t out;
 	socket_info_t sock;
 } axi_dma_t;
-
-typedef struct udp_header_s
-{
-	uint64_t time;
-	uint64_t offset;
-} udp_header_t;
-
-typedef struct udp_package_s
-{
-	udp_header_t header;
-	char data[1024];
-} udp_package_t;
 
