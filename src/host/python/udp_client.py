@@ -60,8 +60,6 @@ class udp_client(socket):
 	def rx(self):
 		print "rx start"
 		cnt = 0
-		frd = open('../../temp/rd.dat','wb')
-		
 		while(True):
 			if self.rx_en==0:
 				time.sleep(0.001)
