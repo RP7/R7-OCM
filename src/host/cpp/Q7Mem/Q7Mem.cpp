@@ -9,13 +9,18 @@ Q7Mem::Q7Mem():CPBuffer()
 void Q7Mem::dumpHead()
 {
   printf("mem file name: %s\n",getName());
-  printf("mem off: %lld\n",head->_off);
+  printf("mem off: %ld\n",head->_off);
   printf("offset->%lx, now->%lx\n"
-    , head->ph.offset
-    , head->ph.time
+    , head->packet.header.offset
+    , head->packet.header.time
     );
-  printf("overSend:%lld\n",head->overSend);
+  printf("safe:%lx,maxSend:%d,overSend:%d\n"
+    , head->safe
+    , head->maxSend
+    , head->overSend      
+    );
 }
+
 void Q7Mem::attach( const char *n )
 {
   newCPBuffer( n );

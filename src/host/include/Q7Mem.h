@@ -11,11 +11,13 @@ class Q7Mem : public CPBuffer {
   public:
     struct structQ7MemHead {
       struct structCPBMeta meta;
-      long long _off;
-      udp_header_t ph;
-      long long overSend;
+      uint64_t _off;
+      uint32_t maxSend;
+      uint32_t overSend;
+      uint64_t safe;
+      udp_package_t packet;    
     };
-  private:
+  public:
     struct structQ7MemHead *head;
   public:
     
@@ -28,7 +30,9 @@ class Q7Mem : public CPBuffer {
     ~Q7Mem();
     void start();
     int64 getKey();
-    long long int getOff(){  return head->_off; };
-    void *_getBuf(long long from, int len){ head->_off = from+len; return CPBuffer::getBuf(from,len);};
+    uint64_t getOff(){  return head->_off; };
+    void setOff( uint64_t off ) { head->_off = off; };
+    void *_getBuf(uint64_t from, int len){ head->_off = from+(uint64_t)len; return CPBuffer::getBuf((long long)from,len);};
+
 };
 #endif // __Q7_Mem_H
