@@ -21,7 +21,7 @@ int main(int argc, char*argv[] )
 {
   Q7Mem *tx_mem = attachQ7Mem( "tx_udp.d" );
   tx_mem->head->maxSend = 16;
-  tx_mem->head->overSend = 1920*2*4; //2ms
+  tx_mem->head->overSend = 1920*4*4; //4ms
   dumpQ7Mem( tx_mem );
   Q7Mem *rx_mem = attachQ7Mem( "rx_udp.d" );
   dumpQ7Mem( rx_mem );
