@@ -20,7 +20,7 @@ int check(Q7Mem *tx,uint64_t rxtime)
 int main(int argc, char*argv[] )
 {
   Q7Mem *tx_mem = attachQ7Mem( "tx_udp.d" );
-  tx_mem->head->maxSend = 4;
+  tx_mem->head->maxSend = 16;
   tx_mem->head->overSend = 1920*2*4; //2ms
   dumpQ7Mem( tx_mem );
   Q7Mem *rx_mem = attachQ7Mem( "rx_udp.d" );
