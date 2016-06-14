@@ -53,3 +53,7 @@ lib/*
 gitversion.v
 .DS_Store
 *.stackdump
+
+src/host/cpp/USRT/work/*
+work/*
+
