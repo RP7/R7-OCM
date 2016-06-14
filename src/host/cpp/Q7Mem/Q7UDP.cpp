@@ -38,7 +38,7 @@ int main(int argc, char*argv[] )
     uint64_t offset = rx_mem->getOff();
     if( from != offset )
     {
-      printf("recv discontinued _off:%lx, off:%lx",offset,from);
+      printf("recv discontinued _off:%lx, off:%lx\n",offset,from);
       rx_mem->setOff(from);
     }
     void *p = (void *)rx_mem->_getBuf( from, sizeof(rx_mem->head->packet.data) );
