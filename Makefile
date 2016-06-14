@@ -31,6 +31,11 @@ install:
 	cp scripts/post-commit .git/hooks/
 	chmod +x .git/hooks/post-commit
 	
-	
+host:
+	mkdir -p work
+	mkdir -p src/host/cpp/USRT/work
+	cd src/host/cpp/USRT/work;make libUSRT.so
+	cp src/host/cpp/USRT/work/*.so work
+		
 	
 	
