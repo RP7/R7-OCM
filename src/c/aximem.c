@@ -159,7 +159,7 @@ int axi_inp_task( axi_dma_t *c, udp_package_t *send )
 		{
 			if( start < c->inp.time-c->inp.size ) 
 			{
-				start=c->inp.time-c->inp.size/2;
+				start=(c->inp.time-c->inp.size/2)&(-1024L);
 				c->inp.start = start;
 				c->inp.end = start;
 				c->inp.pm.counter[3]++; //data out of date
@@ -181,7 +181,7 @@ int axi_inp_task( axi_dma_t *c, udp_package_t *send )
 			{
 				c->inp.pm.counter[1]++; // not peer
 				if(c->inp.time>l)
-					c->inp.end = c->inp.time-l;
+					c->inp.end = (c->inp.time-l)&(-1024L);
 				return -2;
 			}	
 			else
