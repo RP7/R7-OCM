@@ -5,15 +5,14 @@ import time
 import sys
 
 class axi2s_c:
-	def __init__(self):
+	def __init__(self,d=None):
 		self.dev = dev_mem.dev_mem(FPGA_BASE,FPGA_SIZE)
 		self.api = {
 			  'ver':self.apiversion
 			, 'rreg':self.apiread
 			, 'wreg':self.apiwrite
 		}
-		self.base = {}
-		self.status()
+		self.status(d)
 		self.cnt = {}
 
 	def apiversion(self,argv):
@@ -71,26 +70,30 @@ class axi2s_c:
 
 	def init(self):
 		self.read('AXI2S_STATE')
-		self.write('AXI2S_IBASE',0xfffc0000)
-		self.write('AXI2S_ISIZE',0x10000)
-		self.write('AXI2S_OBASE',0xfffd0000)
-		self.write('AXI2S_OSIZE',0x10000)
+		self.write('AXI2S_EN',0)
+		for r in self.base:
+			self.write(r,self.base[r])
+		self.write('AXI2S_EN',4)
+		self.write('AXI2S_EN',0)
 		self.write('AXI2S_EN',IEN|OEN)
 		self.read('AXI2S_STATE')
 		
 	def initDRAM(self):
 		self.read('AXI2S_STATE')
-		self.write('AXI2S_IBASE',0x1ffc0000)
-		self.write('AXI2S_ISIZE',0x10000)
-		self.write('AXI2S_OBASE',0x1ffd0000)
-		self.write('AXI2S_OSIZE',0x10000)
+		self.write('AXI2S_IBASE',0x1e000000)
+		self.write('AXI2S_ISIZE',0x100000)
+		self.write('AXI2S_OBASE',0x1f000000)
+		self.write('AXI2S_OSIZE',0x100000)
 		self.write('AXI2S_EN',IEN|OEN)
 		self.read('AXI2S_STATE')
 
-	def status(self):
+	def status(self,d):
+
 		self.base = {'AXI2S_IBASE':0x1ffc0000, 'AXI2S_ISIZE':0x10000, 'AXI2S_OBASE':0xfffd0000, 'AXI2S_OSIZE':0x10000}
-		#for r in self.base:
-		#	self.write(r,self.base[r])
+		if d!=None:
+			for r in self.base:
+				if r in d:
+					self.base[r] = d[r] 
 		
 	
 	def getCNT(self):

@@ -12,6 +12,7 @@ module AXI2SREG
 		addr,
 		ien,
 		oen,
+		async,
 		tddmode,
 		ibase,
 		isize,
@@ -42,7 +43,7 @@ module AXI2SREG
 	input [31:0]din;
 	input [17:0]addr;
 
-	output reg ien,oen,tddmode;
+	output reg ien,oen,async,tddmode;
 	output reg [31:0]dout;
 	output reg [31:0]ibase;
 	output reg [31:0]obase;
@@ -74,6 +75,9 @@ module AXI2SREG
 
 	input adj_pending;
   wire [159:0]version_git;
+
+  reg [31:0]ibcnt_reg;
+  reg [31:0]obcnt_reg;
 	
 always @(posedge clk or posedge rst)
 begin
@@ -102,7 +106,8 @@ begin
 					`AXI2S_EN: begin
 						ien <= din[0];
 						oen <= din[1];
-						tddmode <= din[2];
+						async <= din[2];
+						tddmode <= din[3];
 					end
 					// define AXI2S_TEST        18'h04
 					`AXI2S_TEST: begin
@@ -152,7 +157,22 @@ begin
 			end
 		end
 	end
-end	
+end
+
+always @(posedge clk) begin
+	if(addr[17:8]==BASE[17:8] && en==1'b1 ) begin
+		case( addr )
+			// define AXI2S_IACNT     18'h10
+			`AXI2S_IACNT: begin
+				ibcnt_reg <= ibcnt;
+			end
+			// define AXI2S_OACNT     18'h18
+			`AXI2S_OACNT: begin
+				obcnt_reg <= obcnt;
+			end
+		endcase
+	end
+end
 
 always @(*) begin
 	if(addr[17:8]==BASE[17:8] && en==1'b1 ) begin
@@ -165,6 +185,7 @@ always @(*) begin
 				dout[3] <= adj_pending;
 				dout[31:4] <= 28'd0;
 			end
+			
 			// define AXI2S_IACNT     18'h10
 			`AXI2S_IACNT: begin
 				dout[23:6] <= iacnt;
@@ -173,7 +194,7 @@ always @(*) begin
 			end
 			// define AXI2S_IBCNT     18'h14
 			`AXI2S_IBCNT: begin
-				dout <= ibcnt;
+				dout <= ibcnt_reg;
 			end
 			// define AXI2S_OACNT     18'h18
 			`AXI2S_OACNT: begin
@@ -183,8 +204,9 @@ always @(*) begin
 			end
 			// define AXI2S_OBCNT     18'h1c
 			`AXI2S_OBCNT: begin
-				dout <= obcnt;
+				dout <= obcnt_reg;
 			end
+`ifdef DEBUG
 			// define AXI_RRESP       18'h20
 			`AXI_RRESP: begin
 				dout <= axirresp;
@@ -205,6 +227,7 @@ always @(*) begin
 			`AXI_WADDR: begin
 				dout <= axiwaddr;
 			end
+`endif			
 			// define VER_MAJOR       18'h40
 			`VER_MAJOR: begin
 				dout <= `VERSION_MAJOR;

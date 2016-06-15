@@ -49,7 +49,7 @@ class axi2s_u:
 		buf = (c_int32*16384)()
 		for x in range(len(buf)):
 			buf[x]=0x1a
-		self.dev.memwrite(0,buf)
+		self.dev.memwrite(0x10000,buf)
 
 	def deinit(self):
 		self.dev.deinit()

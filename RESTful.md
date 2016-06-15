@@ -40,6 +40,20 @@
 		curl http://192.168.1.110:8080/rx?gain
 		return {"data": {"gain": {"1": 76, "2": 76}}, "ret": "ok"}
 
+## 初始化
+
+1. **url**
+
+		curl -G -d 'IBASE=xxx&OBASE=xxx&&ISZIE=xxx&OSIZE=xxx&rx&freq=xxx&gain=xx&port=0|1'
+		return {"data":{"IBASE":xxx,"OBASE"},"ret":"ok"}
+		IBASE:option,default=0xfffc0000,如果用DRAM，可以改为0x1e000000 
+		ISIZE:option,default=0x10000,64K,16Ksamples
+		OBASE:option,default=0xfffd0000,如果用DRAM，可以改为0x1f000000 
+		OSIZE:option,default=0x10000
+		rx:option,表示修改接收配置
+		freq:option,频率值，单位Hz，浮点数
+		gain:option,增益，整数
+		port:option,天线端口，如果不指定，两个天线的增益都修改
 
 ## 设置增益
 
@@ -61,6 +75,9 @@
 ## 上传FIR滤波器系数
 
 		curl -F fir=@'AD9361/LTE1p4_MHz.ftr' http://192.168.1.110:8080/fir
+		return {"ret": "ok"}
+
+		curl -F chead=@'AD9361/200K_1920K.h' http://192.168.1.110:8080/fir
 		return {"ret": "ok"}
 
 ## 读取RX缓冲区

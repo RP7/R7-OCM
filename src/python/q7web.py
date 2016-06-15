@@ -9,6 +9,9 @@ import time
 from download import downloadThread 
 import base64
 import ad9361_fir
+import config
+import udp_server
+import FM
 
 urls = ( '/'      ,'index'
 	     , '/tx'    ,'tx'
@@ -18,7 +21,42 @@ urls = ( '/'      ,'index'
 	     , '/misc'  ,'misc'
 	     , '/data'  ,'data'
 	     , '/fir'   ,'fir'
+	     , '/init'  ,'initapi'
+	     , '/udp'   , 'udp'
+			 , '/FM'    , 'FMAPI'
 	     )
+
+
+_g = config.config()
+
+class initapi:
+	def GET(self):
+		i = web.input()
+		if 'IBASE' in i:
+			_g.AXI2S_IBASE = int(i.IBASE,16)
+		if 'ISIZE' in i:
+			_g.AXI2S_ISIZE = int(i.ISIZE,16)
+		if 'OBASE' in i:
+			_g.AXI2S_OBASE = int(i.OBASE,16)
+		if 'OSIZE' in i:
+			_g.AXI2S_OSIZE = int(i.OSIZE,16)
+		if 'rx' in i:
+			if 'freq' in i:
+				_g.rx['freq'] = float(i.freq)
+			if 'gain' in i:
+				if 'port' in i:
+					if i.port=='0':
+						_g.rx['gain'][0] = int(i.gain)
+					else:
+						_g.rx['gain'][1] = int(i.gain)
+				else:
+					_g.rx['gain'][0] = int(i.gain)
+					_g.rx['gain'][1] = int(i.gain)
+		init_res = _g.init()
+
+		ret = {'ret':'ok','data':init_res}
+		web.header('Content-Type', 'text/json')
+		return json.dumps(ret)		
 
 class index:
 	def GET(self):
@@ -78,7 +116,7 @@ class paser:
 		return ret
 	
 	def paser3(self,i):
-		self.axi2s = axi2s_c.axi2s_c()
+		self.axi2s = axi2s_c.axi2s_c(_g.todict())
 		self.axi2s.getCNT()
 		self.start = self.paser('start',i)
 		self.len = self.paser('samples',i)*4
@@ -123,7 +161,7 @@ class rxbuf(paser):
 class misc:
 	def GET(self):
 		i = web.input(fun=None)
-		axi2s = axi2s_c.axi2s_c()
+		axi2s = axi2s_c.axi2s_c(_g.todict())
 		ad = AD9361_c.AD9361_c()
 		if i.fun in axi2s.api:
 			ret = axi2s.api[i.fun](i)
@@ -193,13 +231,78 @@ class fir:
 
 class data:
 	def GET(self):
-		ocm = axi2s_u.axi2s_u()
-		r = ocm.rfdata()
-		ocm.deinit()
+		ram = axi2s_u.axi2s_u(_g.AXI2S_IBASE,_g.AXI2S_ISIZE)
+		r = ram.rfdata()
+		ram.deinit()
 		web.header('Content-Type', 'text/json')
 		return json.dumps(r)
 		
+class udp:
+	def GET(self):
+		i = web.input()
+		web.header('Content-Type', 'text/json')
+		if 'stop' in i:
+			if _g.udpSrv!=None:
+				_g.udpSrv.exit()
+				_g.udpSrv = None
+			return json.dumps({"ret":"ok","data":_g.aximem.dma.dump(),"err":_g.aximem.errcnt})
+		if 'info' in i:
+			_g.aximem.peer()
+			if _g.udpSrv!=None:
+				return json.dumps({"ret":"ok","data":_g.aximem.dma.dump(),"err":_g.aximem.errcnt,"server":_g.udpSrv.dump()})
+			else:
+				return json.dumps({"ret":"ok","data":_g.aximem.dma.dump(),"err":_g.aximem.errcnt})
+		if 'port' in i:
+			_g.port = int(i.port)
+		else:
+			_g.port = 10000
+		if _g.udpSrv!=None:
+				_g.udpSrv.exit()
+		c = _g.todict()
+		axi2s = axi2s_c.axi2s_c(c)
+		_g.udpSrv = udp_server.udp_server()
+		_g.udpSrv.aximem = _g.aximem
+		_g.udpSrv.aximem.init(c)
+		axi2s.init()
+		_g.aximem.reset("inp")
+		_g.udpSrv.run()
+		return json.dumps({"ret":"ok"})
 
+class FMAPI:
+	def GET(self):
+		i = web.input()
+		if 'stop' in i:
+			web.header('Content-Type', 'text/json')
+			if _g.FM!=None:
+				_g.FM.exit()
+				_g.FM = None
+			return json.dumps({"ret":"ok"})
+		if 'info' in i:
+			web.header('Content-Type', 'text/json')
+			if _g.FM!=None:
+				return json.dumps({"ret":"ok","data":_g.FM.aximem.dma.dump(),"err":_g.FM.aximem.errcnt,"fm":_g.FM.info()})
+			else:
+				return json.dumps({"ret":"ok","err":"FM not install"})
+		if 'start' in i:
+			web.header('Content-Type', 'text/json')
+			if _g.FM!=None:
+				_g.FM.exit()
+			c = _g.todict()
+			axi2s = axi2s_c.axi2s_c(c)
+			_g.FM = FM.FM(2560*8)
+			_g.FM.config(c)
+			_g.FM.aximem.init(c)
+			axi2s.init()
+			_g.FM.run()
+			return json.dumps({"ret":"ok"})
+		if 'data' in i:
+			if _g.FM!=None:
+				web.header('Content-Type', 'application/octet-stream')
+				buf = _g.FM.out()
+				return buf
+		else:
+			web.header('Content-Type', 'text/json')
+			return json.dumps({"ret":"ok","err":"FM not install"})
 
 def init():
 	path = os.path.split(os.path.realpath(__file__))[0]
@@ -211,16 +314,17 @@ def init():
 	ad.Check_FDD()
 	ad.deinit()
 	
-	ocm = axi2s_u.axi2s_u()
-	ocm.cleanTx()
-	ocm.deinit()
+	# ocm = axi2s_u.axi2s_u()
+	# ocm.cleanTx()
+	# ocm.deinit()
 	
-	uut = axi2s_c.axi2s_c()
-	uut.init()
+	# uut = axi2s_c.axi2s_c(_g.todict())
+	# uut.init()
 
-	uut.check()
-	uut.deinit()
-
+	# uut.check()
+	# uut.deinit()
+	_g.init()
+	
 if __name__ == "__main__":
 	app = web.application(urls, globals())
 	app.run()

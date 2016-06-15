@@ -1601,7 +1601,7 @@ SPIWrite	0F5,F8	// Disable clock to Rx Filter
 //************************************************************
 // Setup the Parallel Port (Digital Data Interface)
 //************************************************************
-SPIWrite	010,C8	// I/O Config.  Tx Swap IQ; Rx Swap IQ; Tx CH Swap, Rx CH Swap; Rx Frame Mode; 2R2T bit; Invert data bus; Invert DATA_CLK
+SPIWrite	010,08	// I/O Config.  Tx Swap IQ; Rx Swap IQ; Tx CH Swap, Rx CH Swap; Rx Frame Mode; 2R2T bit; Invert data bus; Invert DATA_CLK
 SPIWrite	011,00	// I/O Config.  Alt Word Order; -Rx1; -Rx2; -Tx1; -Tx2; Invert Rx Frame; Delay Rx Data
 SPIWrite	012,10	// I/O Config.  Rx=2*Tx; Swap Ports; SDR; LVDS; Half Duplex; Single Port; Full Port; Swap Bits
 SPIWrite	006,0F	// PPORT Rx Delay (adjusts Tco Dataclk->Data)
@@ -1614,12 +1614,12 @@ SPIWrite	03E,00	// LVDS polarity invert
 //************************************************************
 // Setup AuxDAC
 //************************************************************
-SPIWrite	018,00	// AuxDAC1 Word[9:2]
+SPIWrite	018,FF	// AuxDAC1 Word[9:2]
 SPIWrite	019,00	// AuxDAC2 Word[9:2]
-SPIWrite	01A,00	// AuxDAC1 Config and Word[1:0]
+SPIWrite	01A,0B	// AuxDAC1 Config and Word[1:0]
 SPIWrite	01B,00	// AuxDAC2 Config and Word[1:0]
-SPIWrite	023,FF	// AuxDAC Manaul/Auto Control
-SPIWrite	026,00	// AuxDAC Manual Select Bit/GPO Manual Select
+SPIWrite	023,BF	// AuxDAC Manaul/Auto Control
+SPIWrite	026,80	// AuxDAC Manual Select Bit/GPO Manual Select
 SPIWrite	030,00	// AuxDAC1 Rx Delay
 SPIWrite	031,00	// AuxDAC1 Tx Delay
 SPIWrite	032,00	// AuxDAC2 Rx Delay

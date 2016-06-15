@@ -1,4 +1,5 @@
 `timescale 1 ps / 1 ps
+`include "config.v"
 
 module R7OCM_top
    (
@@ -163,7 +164,7 @@ module R7OCM_top
 
 // AXI HP wire
   wire FCLK_CLK1;
-  wire FCLK_RESET1_N;
+  wire axi_rst_n;
 
   wire AXI_clk;
   wire [31:0]AXI_HP0_araddr;
@@ -226,16 +227,18 @@ module R7OCM_top
 
   wire sys_Ien,sys_Oen;
   wire MOSI,MISO,SCK,SS;
-
+  wire sys_async;
   wire [31:0] AXI2S_REG_DOUT;
   wire [31:0] AD9361_REG_DOUT;
-  
+
+`ifdef DEBUG 
   wire test;
 
   wire [31:0]axiwresp;
   wire [31:0]axirresp;
   wire [31:0]axistatus;
   wire [31:0]testD;
+`endif
 
 armocm_wrapper core
   (
@@ -284,7 +287,7 @@ armocm_wrapper core
   .FIXED_IO_ps_srstb(FIXED_IO_ps_srstb),
 
   .FCLK_CLK1(FCLK_CLK1),
-  .FCLK_RESET1_N(FCLK_RESET1_N),
+  .FCLK_RESET1_N(axi_rst_n),
   
   .S_AXI_HP0_araddr(AXI_HP0_araddr),
   .S_AXI_HP0_arburst(AXI_HP0_arburst),
@@ -328,25 +331,13 @@ armocm_wrapper core
   .spi_1_io0_io(MOSI),
   .spi_1_io1_io(MISO),
   .spi_1_sck_io(SCK),
-  .spi_1_ss_io(SS),
+  .spi_1_ss_io(SS)//,
 
-  .test_led_tri_o(TEST_LED)
+  //.test_led_tri_o(TEST_LED)
   );
-AXIResp wresp
-  (
-  .clk(AXI_clk),
-  .valid(AXI_HP0_bvalid),
-  .resp(AXI_HP0_bresp),
-  .ready(AXI_HP0_bready),
-  .respOut(axiwresp)
-  );
-AXIResp rresp
-  (
-  .clk(AXI_clk),
-  .valid(AXI_HP0_rvalid&AXI_HP0_rready),
-  .resp(AXI_HP0_rresp),
-  .respOut(axirresp)
-  );
+
+
+
 GE_patch gep
    (
     .SYS_CLK(SYS_CLK),
@@ -387,6 +378,7 @@ AXI2S a2s
     .obcnt(AXI_OBCNT),
 
     .AXI_clk(AXI_clk),
+    .AXI_rst_n(axi_rst_n),
     .AXI_araddr(AXI_HP0_araddr),
     .AXI_arburst(AXI_HP0_arburst),
     .AXI_arcache(AXI_HP0_arcache),
@@ -438,30 +430,23 @@ AXI2SREG axi2s_reg_space
     .wen(BRAM_PORTA_we),
     .ien(sys_Ien),
     .oen(sys_Oen),
+    .async(sys_async),
     .test(test),
-    //.tddmode(sys_Mode),
     .ibase(AXI_IBASE),
     .isize(AXI_ISIZE),
     .obase(AXI_OBASE),
     .osize(AXI_OSIZE),
-    /*
-    frame_len,
-    frame_adj,
-    tstart,
-    tend,
-    rstart,
-    rend,
-    */
-    .iacnt(AXI_IACNT),
-    .ibcnt(AXI_IBCNT),
-    .oacnt(AXI_OACNT),
-    .obcnt(AXI_OBCNT),
+`ifdef DEBUG
     .axiwresp(axiwresp),
     .axirresp(axirresp),
     .axistatus(axistatus),
     .axiraddr(AXI_HP0_araddr),
-    .axiwaddr(AXI_HP0_awaddr)//,
-    //adj_pending
+    .axiwaddr(AXI_HP0_awaddr),
+`endif
+    .iacnt(AXI_IACNT),
+    .ibcnt(AXI_IBCNT),
+    .oacnt(AXI_OACNT),
+    .obcnt(AXI_OBCNT)
   );
 
 AD9361REG ad9361_reg_space
@@ -492,13 +477,7 @@ CBusReadMerge cbmerge
     .axi2s_dout(AXI2S_REG_DOUT),
     .ad9361_dout(AD9361_REG_DOUT)  
   );
-cntSrc testSrc
-  (
-    .clk(Sclk),
-    .en(Ien&sys_Ien),
-    .rst(1'b0),
-    .Cout(testD)
-  );
+
 ad9361_1t1r ad_if
 (
     .AD9361_RX_Frame_P(AD9361_RX_Frame_P),      
@@ -524,17 +503,46 @@ ad9361_1t1r ad_if
     .rx_ce(ad9361_Ien),
     .tx_ce(Oen)       
   );
-assign Sin = (test==1'b1)? testD : {Rx_Q[11],Rx_Q[11],Rx_Q[11],Rx_Q[11],Rx_Q[11:0],Rx_I[11],Rx_I[11],Rx_I[11],Rx_I[11],Rx_I[11:0]};
-assign Ien = (test==1'b1)? 1'b1  : ad9361_Ien;
+
+edgesync #(.e("neg")) axi_sync
+(   .clk(Sclk)
+  , .async(sys_async)
+  , .sync(sync)
+);
+
 assign     rst = 1'b0;
-assign    sync = 1'b0;
 assign AXI_clk = FCLK_CLK1;
 
 assign AD9361_SPI_CLK = SCK;
 assign AD9361_SPI_DI  = MOSI;
 assign AD9361_SPI_DO  = MISO;
 assign AD9361_SPI_ENB = SS;
+assign TEST_LED = 4'h0;
 
+
+`ifdef DEBUG
+AXIResp wresp
+  (
+  .clk(AXI_clk),
+  .valid(AXI_HP0_bvalid),
+  .resp(AXI_HP0_bresp),
+  .ready(AXI_HP0_bready),
+  .respOut(axiwresp)
+  );
+AXIResp rresp
+  (
+  .clk(AXI_clk),
+  .valid(AXI_HP0_rvalid&AXI_HP0_rready),
+  .resp(AXI_HP0_rresp),
+  .respOut(axirresp)
+  );
+cntSrc testSrc
+  (
+    .clk(Sclk),
+    .en(Ien&sys_Ien),
+    .rst(1'b0),
+    .Cout(testD)
+  );
 assign axistatus = { 24'h0
                   , AXI_HP0_arvalid
                   , AXI_HP0_arready
@@ -545,5 +553,12 @@ assign axistatus = { 24'h0
                   , AXI_HP0_wready
                   , AXI_HP0_wvalid
 };
+assign Sin = (test==1'b1)? testD : {Rx_Q[11],Rx_Q[11],Rx_Q[11],Rx_Q[11],Rx_Q[11:0],Rx_I[11],Rx_I[11],Rx_I[11],Rx_I[11],Rx_I[11:0]};
+assign Ien = (test==1'b1)? 1'b1  : ad9361_Ien;
+`else 
+assign Sin = {Rx_Q[11],Rx_Q[11],Rx_Q[11],Rx_Q[11],Rx_Q[11:0],Rx_I[11],Rx_I[11],Rx_I[11],Rx_I[11],Rx_I[11:0]};
+assign Ien = ad9361_Ien;
+assign AXI_HP0_bready = 1'b1;
+`endif
 
 endmodule

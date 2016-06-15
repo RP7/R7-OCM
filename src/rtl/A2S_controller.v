@@ -1,3 +1,5 @@
+`include "config.v"
+
 module A2S_controller(
 	// system reset
   rst,
@@ -17,6 +19,7 @@ module A2S_controller(
 
   // AXI Bus Signal
   AXI_clk,
+  AXI_rst_n,
   AXI_araddr,
   AXI_arvalid,
   AXI_arready,
@@ -25,9 +28,7 @@ module A2S_controller(
   AXI_rlast,
 	// Buffer write  
   a2s_addr,
-  a2s_en,
-  // output counter
-  a2s_err
+  a2s_en
 );
 
   parameter s0 = 3'd0;
@@ -39,10 +40,10 @@ module A2S_controller(
   output[4:0] Oaddr;
 
   input AXI_clk;
+  input AXI_rst_n;
   output reg[31:0] AXI_araddr;
   input AXI_arready,AXI_rvalid;
   output reg AXI_rready,AXI_arvalid;
-  output reg a2s_err;
 
   input AXI_rlast;
 
@@ -52,8 +53,8 @@ module A2S_controller(
   reg[21:0] cnt;
   reg[31:0] bcnt;
 
-  reg start,start_d0,start_d1;
-  reg axi_start;
+  reg start;
+  wire axi_start;
   reg [2:0]state;
   reg [31:0]AXI_araddr_reg;
 
@@ -68,6 +69,12 @@ assign Oaddr = cnt[4:0];
 assign oacnt[23:6] = cnt[21:4];
 assign obcnt = bcnt;
 
+edgesync #(.e("pos")) start_sync
+(   .clk(AXI_clk)
+  , .async(start)
+  , .sync(axi_start)
+);
+
 always @(posedge Sclk or posedge rst)
 begin
   if( rst==1'b1 ) begin
@@ -75,7 +82,7 @@ begin
     cnt <= 22'h0;
     bcnt <= 32'h0;
   end
-  else if(Sclk) begin
+  else begin
   	if ( sync==1'b1 ) begin
       start <= 1'b0;
       cnt <= 22'h0;
@@ -101,24 +108,16 @@ end
 
 assign a2s_en = AXI_rvalid & AXI_rready;
 
-always @(posedge AXI_clk or posedge rst)
+always @(posedge AXI_clk)
 begin
-  if( rst==1'b1 ) begin
-    start_d0      <= 1'b0;
-    start_d1      <= 1'b0;
-    axi_start     <= 1'b0;
-
+  if( !AXI_rst_n ) begin
     a2s_addr      <= 5'b00000;
-
     AXI_arvalid   <= 1'b0;
     AXI_rready    <= 1'b0;
-    
+    AXI_araddr    <= obase;
     state         <= s0;
   end
-  else if(AXI_clk) begin
-  	start_d0 <= start;
-  	start_d1 <= start_d0;
-  	axi_start <= (~start_d1) & start_d0;
+  else begin
   	if( axi_start==1'b1 ) begin
   		state <= s1;
       AXI_araddr <= AXI_araddr_reg;
@@ -144,8 +143,6 @@ begin
     				if( AXI_rlast==1'b1 ) begin
     					state <= s0;
     					AXI_rready <= 1'b0;
-              if( a2s_addr[3:0]==4'hf ) a2s_err <= 1'b0;
-              else a2s_err <= 1'b1;
   				  end
   				end
   			end

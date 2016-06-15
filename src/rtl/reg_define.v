@@ -1,3 +1,5 @@
+`include "config.v"
+
 `define AXI2SREG_BASE   18'h00000
 `define AD9361REG_BASE  18'h00100
 
@@ -20,11 +22,15 @@
 `define AXI2S_IBCNT     18'h00014
 `define AXI2S_OACNT     18'h00018
 `define AXI2S_OBCNT     18'h0001c
+
+`ifdef DEBUG
 `define AXI_RRESP       18'h00020
 `define AXI_WRESP       18'h00024
 `define AXI_STATUS      18'h00028
 `define AXI_RADDR       18'h00030
 `define AXI_WADDR       18'h00034
+`endif
+
 `define VER_MAJOR       18'h00040
 `define VER_MINOR0      18'h00050
 `define VER_MINOR1      18'h00054

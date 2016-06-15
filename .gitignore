@@ -53,3 +53,9 @@ lib/*
 gitversion.v
 
 webtalk*
+.DS_Store
+*.stackdump
+
+src/host/cpp/USRT/work/*
+work/*
+

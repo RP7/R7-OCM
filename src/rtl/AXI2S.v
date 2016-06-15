@@ -1,3 +1,5 @@
+`include "config.v"
+
 module AXI2S
    (
    	rst,
@@ -22,6 +24,7 @@ module AXI2S
     obcnt,
 
     AXI_clk,
+    AXI_rst_n,
     AXI_araddr,
     AXI_arburst,
     AXI_arcache,
@@ -71,6 +74,7 @@ module AXI2S
   input sync;
 
   input AXI_clk;
+  input AXI_rst_n;
   output [31:0]AXI_araddr;
   output [1:0]AXI_arburst;
   output [3:0]AXI_arcache;
@@ -124,7 +128,6 @@ module AXI2S
   wire [4:0] Iaddr,Oaddr,s2a_addr,a2s_addr;
   wire s2a_en,s2a_wea,a2s_en,a2s_wea;
   wire [31:0] s2a_cnt,a2s_cnt;
-  wire a2s_err;
 
 assign s2a_wea = Ien;
 assign a2s_wea = a2s_en;
@@ -163,6 +166,7 @@ assign AXI_arprot    = 3'b000;   //"000";
 assign AXI_arqos     = 4'h0;     //x"0";
 
 assign AXI_awid      = 6'b111111; 
+assign AXI_wid      = 6'b111111; 
 assign AXI_awlen     = 4'hf;     //x"F"; burst length: 16
 assign AXI_awsize    = 3'b010;   //size: 4byte     
 assign AXI_awburst   = 2'b01;    //"01"; --incr            
@@ -186,6 +190,7 @@ S2A_controller cs2a(
   .ibcnt(ibcnt),
 
   .AXI_clk(AXI_clk),
+  .AXI_rst_n(AXI_rst_n),
   .AXI_awaddr(AXI_awaddr),
   .AXI_awvalid(AXI_awvalid),
   .AXI_awready(AXI_awready),
@@ -210,6 +215,7 @@ A2S_controller ca2s(
   .obcnt(obcnt),
 
   .AXI_clk(AXI_clk),
+  .AXI_rst_n(AXI_rst_n),
   .AXI_araddr(AXI_araddr),
   .AXI_arvalid(AXI_arvalid),
   .AXI_arready(AXI_arready),
@@ -217,8 +223,7 @@ A2S_controller ca2s(
   .AXI_rvalid(AXI_rvalid),
   .AXI_rlast(AXI_rlast),
   .a2s_addr(a2s_addr),
-  .a2s_en(a2s_en),
-  .a2s_err(a2s_err)
+  .a2s_en(a2s_en)
   );
 
 endmodule
