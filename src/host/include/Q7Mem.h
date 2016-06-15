@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <CPBuffer.h>
 #include <udp_header.h>
+#include <sysClock.h>
 
 class Q7Mem : public CPBuffer {
   public:
@@ -15,10 +16,13 @@ class Q7Mem : public CPBuffer {
       uint32_t maxSend;
       uint32_t overSend;
       uint64_t safe;
+      uint64_t cpu;
+      sysClock_t clk;
       udp_package_t packet;    
     };
   public:
     struct structQ7MemHead *head;
+    sysClock sClk;
   public:
     
     Q7Mem();

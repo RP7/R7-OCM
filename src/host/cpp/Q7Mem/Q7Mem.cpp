@@ -25,6 +25,7 @@ void Q7Mem::attach( const char *n )
 {
   newCPBuffer( n );
   head = (struct structQ7MemHead*)CPBuffer::attach();
+  sClk.attach(&(head->clk));
 }
 
 void Q7Mem::newQ7Mem( const char *n, long long dataL, long long cpL, long long resL )

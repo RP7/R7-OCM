@@ -40,13 +40,13 @@ HOSTINC = -Isrc/host/include \
 HOSTFLAG=-fPIC -fpermissive -Lwork -g
 HOSTLDFLAG=-ldl -lpthread
 
-work/libQ7.so: hostlib src/host/cpp/Q7Mem/Q7Mem.cpp src/host/cpp/Q7Mem/Q7MemAPI.cpp
-	g++ ${HOSTINC} ${HOSTFLAG} -shared -o work/libQ7.so src/host/cpp/Q7Mem/Q7Mem.cpp src/host/cpp/Q7Mem/Q7MemAPI.cpp work/libUSRT.so work/libmd5api.so $(LDFLAG)
+work/libQ7.so: hostlib src/host/cpp/Q7Mem/Q7Mem.cpp src/host/cpp/Q7Mem/Q7MemAPI.cpp src/host/cpp/sysClock/sysClock.cpp
+	g++ ${HOSTINC} ${HOSTFLAG} -shared -o work/libQ7.so src/host/cpp/Q7Mem/Q7Mem.cpp src/host/cpp/Q7Mem/Q7MemAPI.cpp src/host/cpp/sysClock/sysClock.cpp work/libUSRT.so work/libmd5api.so $(LDFLAG)
 
 hostlib:
 	mkdir -p work
 	mkdir -p src/host/cpp/USRT/work
-	cd src/host/cpp/USRT/work;make libUSRT.so
+	cd src/host/cpp/USRT;make work/libUSRT.so
 	cp src/host/cpp/USRT/work/*.so work
 
 work/initQ7Mem : src/host/cpp/Q7Mem/initMem.cpp work/libQ7.so work/libmd5api.so work/libUSRT.so
