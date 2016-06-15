@@ -21,7 +21,7 @@ void getCurrent( Q7Mem *rx_mem )
 	current &= 0xf;
 }
 
-void leastSquare( double *pa, int64_t * pto )
+void leastSquare( double *pa, int64_t * pto, int64_t *pco )
 {
 	int64_t sumc = 0;
 	int64_t sumt = 0;
@@ -46,8 +46,8 @@ void leastSquare( double *pa, int64_t * pto )
 	if( cc!=0. )
 	{
 		*pa = ct/cc;
-		double to = (double)sumt-(*pa)*(double)sumc;
-		*pto = (int64_t)(to+.5);
+		*pto = sumt;
+		*pco = sumc;
 	}
 }
 
@@ -70,7 +70,7 @@ int main(int argc, char*argv[] )
 
   int i;
   double a;
-  int64_t to;
+  int64_t to,co;
 
   for( i=0;i<16;i++ )
   	getCurrent( rx_mem );
@@ -80,10 +80,11 @@ int main(int argc, char*argv[] )
   {
   	sleep(rx_mem->head->clk.rate+1);
   	getCurrent( rx_mem );
-  	leastSquare( &a, &to );
+  	leastSquare( &a, &to, &co );
   	rx_mem->head->clk.rate = clklevel(a,rx_mem->head->clk.a);
   	rx_mem->head->clk.a = a;
   	rx_mem->head->clk.to = to;
+  	rx_mem->head->clk.co = co;
   	rx_mem->dumpHead();
   }  
 }

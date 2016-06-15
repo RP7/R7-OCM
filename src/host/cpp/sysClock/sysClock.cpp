@@ -17,5 +17,5 @@ int sysClock::update( int64_t t, int64_t c )
 void sysClock::dump()
 {
 	printf("cpu now :%lx ",getCpu());
-	printf("rate:%d,a=%20.18lf,to=%lx\n",clk->rate,clk->a,clk->to);
+	printf("rate:%d,a=%20.18lf,to=%lx,co=%lx\n",clk->rate,clk->a,clk->to,clk->co);
 }
