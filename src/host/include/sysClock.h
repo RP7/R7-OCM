@@ -1,3 +1,6 @@
+#ifndef __SYSCLOCK_H
+#define __SYSCLOCK_H
+
 #include <inttypes.h> //uint32_t,uint64_t
 typedef struct sysClock_s {
 	double a;
@@ -20,4 +23,6 @@ public:
 	int64_t chip( int64_t c) { return (int64_t)((double)c*clk->a+0.5)+clk->to; };
 	int64_t now() { return chip(getCpu()); };
 	int update( int64_t t, int64_t c );
+	void dump();
 };
+#endif //__SYSCLOCK_H

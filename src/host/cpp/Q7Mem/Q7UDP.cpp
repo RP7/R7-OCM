@@ -36,6 +36,7 @@ int main(int argc, char*argv[] )
   {
     uint64_t from = rx_mem->head->packet.header.offset;
     uint64_t offset = rx_mem->getOff();
+    rx_mem->head->cpu = rx_mem->sClk.getCpu();
     if( from != offset )
     {
       printf("recv discontinued _off:%lx, off:%lx\n",offset,from);

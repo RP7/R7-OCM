@@ -10,15 +10,17 @@ void Q7Mem::dumpHead()
 {
   printf("mem file name: %s\n",getName());
   printf("mem off: %ld\n",head->_off);
-  printf("offset->%lx, now->%lx\n"
+  printf("offset->%lx, now->%lx, cpu->%lx\n"
     , head->packet.header.offset
     , head->packet.header.time
+    , head->cpu
     );
   printf("safe:%lx,maxSend:%d,overSend:%d\n"
     , head->safe
     , head->maxSend
     , head->overSend      
     );
+  sClk.dump();
 }
 
 void Q7Mem::attach( const char *n )

@@ -55,12 +55,16 @@ work/initQ7Mem : src/host/cpp/Q7Mem/initMem.cpp work/libQ7.so work/libmd5api.so 
 work/dumpQ7Mem : src/host/cpp/Q7Mem/dumpMem.cpp work/libQ7.so work/libmd5api.so work/libUSRT.so
 	g++ ${HOSTINC} ${HOSTFLAG} -o work/dumpQ7Mem src/host/cpp/Q7Mem/dumpMem.cpp work/libQ7.so work/libmd5api.so work/libUSRT.so $(HOSTLDFLAG)
 
+work/rxclock : src/host/cpp/sysClock/rxclock.cpp work/libQ7.so work/libmd5api.so work/libUSRT.so
+	g++ ${HOSTINC} ${HOSTFLAG} -o work/rxclock src/host/cpp/sysClock/rxclock.cpp work/libQ7.so work/libmd5api.so work/libUSRT.so $(HOSTLDFLAG)
+
 work/Q7UDP :  src/host/cpp/Q7Mem/Q7UDP.cpp work/libQ7.so work/libmd5api.so work/libUSRT.so
 	g++ ${HOSTINC} ${HOSTFLAG} -o work/Q7UDP src/host/cpp/Q7Mem/Q7UDP.cpp work/libQ7.so work/libmd5api.so work/libUSRT.so $(HOSTLDFLAG)
 
 hostutils:work/initQ7Mem \
 	work/dumpQ7Mem \
-	work/Q7UDP
+	work/Q7UDP \
+	work/rxclock
 
 host:hostutils
 
