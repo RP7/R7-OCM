@@ -5,8 +5,9 @@ import GSM
 class GSMChan:
 	fftsize = 240000
 
-	def __init__(self,frame):
-		self.data = np.frombuffer(frame,np.int16,self.nframes*2,0)
+	def __init__(self,data):
+		self.data  = data
+		self.nframes = len(data)/2
 		self.frame = [complex(self.data[2*i],self.data[2*i+1]) for i in range(self.nframes)]
 
 	def channelPower(self):
@@ -64,16 +65,36 @@ class GSMChan:
 			self.chs[f]=(self.channel(f*200e3,b,GSMChan.fftsize*5))
 			self.fbs[f],o = aFB._maxf(self.chs[f])
 		return self.chs,self.fbs
+	def modu(self,p):
+		h = 51*16
+		return (p+h)%h
+	def findM(self,fp,p):
+		poss = [0,160,320,480,640]
+		maxa = fp[p]
+		#print "maxa",maxa
+		hit = [0]*5
+		for i in range(5):
+			for dp in poss:
+				ppp = self.modu(p+dp-i*160)
+				#print i,dp,ppp,fp[ppp]
+				if fp[ppp]>maxa/2:
+					hit[i]+=1
+		#print hit
+		for i in range(5):
+			if hit[i]==5:
+				return self.modu(p-i*160)
 
 	def fbsearch(self):
 		aFB = FB()
 		fMap = aFB.freqmap(self.frame,self.framerate)
-		poss = [0,160,320,480,640]
+		"""
 		self.fbMap = np.zeros(fMap.shape)
 		for i in range(16*51):
 			for p in poss:
 				self.fbMap[i,:]+=fMap[(i+p)%(16*51),:]
-		band = GSM.channelspace/FB.rs
+		"""
+		self.fbMap = fMap
+		band = int(GSM.channelspace/FB.rs)
 		n = int(self.framerate/GSM.channelspace)
 		self.fbpos=[]
 		for i in range(n):
@@ -82,12 +103,15 @@ class GSMChan:
 			p = int(pos/band)
 			f = pos%band
 			a = np.log(fslice[p,f])
+			p = self.findM(fslice[:,f],p)
+			if p==None:
+				continue
 			f += i*band
 			f *= FB.rs
 			if f>self.framerate/2:
 				f-=self.framerate
 			self.fbpos.append((p,f,a))
-			print 'p=%4d,f=%9d,a=%f'%(p,int(f),a)
+			#print 'p=%4d,f=%9d,a=%f'%(p,int(f),a)
 		return self.fbMap,self.fbpos,fMap
 
 

@@ -45,18 +45,19 @@ class FB(Burst):
 		return inx+pos-fftsize
 
 	def freqmap(self,frame,samplerate):
-		fftpoint = samplerate/FB.rs
+		fftpoint = int(samplerate/FB.rs)
 		slots = int(GSM.ts*GSM.samplepreslot*samplerate)
 		step = GSM.ts*GSM.samplepreslot*samplerate/2.
 		fMap = np.zeros((16*51,fftpoint))
 		k = 0
-		while k*step+fftpoint<len(frame):
+		while k*step+slots<len(frame):
 			pos = int(k*step)
 			d = np.zeros(fftpoint,dtype=complex)
 			d[:slots]=frame[pos:pos+slots]
 			fd = np.fft.fft(d)
 			fMap[k%(16*51),:]+=np.abs(fd)
 			k+=1
+		#print "process",k,step,len(frame)
 		return fMap
 
 		

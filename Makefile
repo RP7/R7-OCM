@@ -38,34 +38,42 @@ HOSTINC = -Isrc/host/include \
 		  -Isrc/include
 
 HOSTFLAG=-fPIC -fpermissive -Lwork -g
-HOSTLDFLAG=-ldl -lpthread
+LIBS = /tmp/libUSRT.so /tmp/libmd5api.so /tmp/libQ7.so
 
-work/libQ7.so: hostlib src/host/cpp/Q7Mem/Q7Mem.cpp src/host/cpp/Q7Mem/Q7MemAPI.cpp src/host/cpp/sysClock/sysClock.cpp
-	g++ ${HOSTINC} ${HOSTFLAG} -shared -o work/libQ7.so src/host/cpp/Q7Mem/Q7Mem.cpp src/host/cpp/Q7Mem/Q7MemAPI.cpp src/host/cpp/sysClock/sysClock.cpp work/libUSRT.so work/libmd5api.so $(LDFLAG)
+HOSTLDFLAG=-ldl -lpthread $(LIBS)
 
-hostlib:
+/tmp/libQ7.so: src/host/cpp/Q7Mem/Q7Mem.cpp src/host/cpp/Q7Mem/Q7MemAPI.cpp src/host/cpp/sysClock/sysClock.cpp
+	g++ ${HOSTINC} ${HOSTFLAG} -shared -o /tmp/libQ7.so src/host/cpp/Q7Mem/Q7Mem.cpp src/host/cpp/Q7Mem/Q7MemAPI.cpp src/host/cpp/sysClock/sysClock.cpp /tmp/libUSRT.so /tmp/libmd5api.so $(LDFLAG)
+
+hostlib:/tmp/libQ7.so
+
+usrtlib:
 	mkdir -p work
 	mkdir -p src/host/cpp/USRT/work
+	cd src/host/cpp/USRT;make work/libmd5api.so
+	cp src/host/cpp/USRT/work/libmd5api.so /tmp
 	cd src/host/cpp/USRT;make work/libUSRT.so
-	cp src/host/cpp/USRT/work/*.so work
+	cp src/host/cpp/USRT/work/libUSRT.so /tmp
+	sudo ldconfig
 
-work/initQ7Mem : src/host/cpp/Q7Mem/initMem.cpp work/libQ7.so work/libmd5api.so work/libUSRT.so
-	g++ ${HOSTINC} ${HOSTFLAG} -o work/initQ7Mem src/host/cpp/Q7Mem/initMem.cpp work/libQ7.so work/libmd5api.so work/libUSRT.so $(HOSTLDFLAG)
 
-work/dumpQ7Mem : src/host/cpp/Q7Mem/dumpMem.cpp work/libQ7.so work/libmd5api.so work/libUSRT.so
-	g++ ${HOSTINC} ${HOSTFLAG} -o work/dumpQ7Mem src/host/cpp/Q7Mem/dumpMem.cpp work/libQ7.so work/libmd5api.so work/libUSRT.so $(HOSTLDFLAG)
+work/initQ7Mem : src/host/cpp/Q7Mem/initMem.cpp 
+	g++ ${HOSTINC} ${HOSTFLAG} -o work/initQ7Mem src/host/cpp/Q7Mem/initMem.cpp $(HOSTLDFLAG)
 
-work/rxclock : src/host/cpp/sysClock/rxclock.cpp work/libQ7.so work/libmd5api.so work/libUSRT.so
-	g++ ${HOSTINC} ${HOSTFLAG} -o work/rxclock src/host/cpp/sysClock/rxclock.cpp work/libQ7.so work/libmd5api.so work/libUSRT.so $(HOSTLDFLAG)
+work/dumpQ7Mem : src/host/cpp/Q7Mem/dumpMem.cpp 
+	g++ ${HOSTINC} ${HOSTFLAG} -o work/dumpQ7Mem src/host/cpp/Q7Mem/dumpMem.cpp $(HOSTLDFLAG)
 
-work/Q7UDP :  src/host/cpp/Q7Mem/Q7UDP.cpp work/libQ7.so work/libmd5api.so work/libUSRT.so
-	g++ ${HOSTINC} ${HOSTFLAG} -o work/Q7UDP src/host/cpp/Q7Mem/Q7UDP.cpp work/libQ7.so work/libmd5api.so work/libUSRT.so $(HOSTLDFLAG)
+work/rxclock : src/host/cpp/sysClock/rxclock.cpp 
+	g++ ${HOSTINC} ${HOSTFLAG} -o work/rxclock src/host/cpp/sysClock/rxclock.cpp $(HOSTLDFLAG)
 
-hostutils:work/initQ7Mem \
+work/Q7UDP :  src/host/cpp/Q7Mem/Q7UDP.cpp 
+	g++ ${HOSTINC} ${HOSTFLAG} -o work/Q7UDP src/host/cpp/Q7Mem/Q7UDP.cpp $(HOSTLDFLAG)
+
+hostutils = work/initQ7Mem \
 	work/dumpQ7Mem \
 	work/Q7UDP \
-	work/rxclock
+	work/rxclock 
 
-host:hostutils
+host:${hostutils} hostlib
 
 	

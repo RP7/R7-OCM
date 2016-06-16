@@ -9,6 +9,10 @@ class curlwrapper:
 		r = urlopen(self.url+'rx?freq='+str(f)).read()
 		return json.loads(r)
 
+	def get_rx_freq(self):
+		r = urlopen(self.url+'rx?freq').read()
+		return json.loads(r)
+
 	def set_afc(self,d):
 		r = urlopen(self.url+'misc?fun=awreg&reg=18&value='+hex(d)).read()
 		return json.loads(r)

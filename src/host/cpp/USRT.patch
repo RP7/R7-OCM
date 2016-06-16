@@ -1,0 +1,15 @@
+diff --git a/Makefile b/Makefile
+index 3128ccf..cc5d234 100755
+--- a/Makefile
++++ b/Makefile
+@@ -41,8 +41,8 @@ USRTSRC = 	usrt/mem/MapMem.cpp \
+ 						usrt/container/globe.c
+ 
+ 
+-work/libUSRT.so: ${USRTSRC} work/libmd5api.so
+-	g++ -I${INC} ${FLAG} -shared -o work/libUSRT.so ${USRTSRC} work/libmd5api.so $(LDFLAG)
++work/libUSRT.so: ${USRTSRC}
++	g++ -I${INC} ${FLAG} -shared -o work/libUSRT.so ${USRTSRC} -lmd5api $(LDFLAG)
+ 
+ 								
+ work/libcontainer.so: ${CONTAINERSRC} work/libmd5api.so

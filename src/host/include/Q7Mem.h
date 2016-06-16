@@ -18,7 +18,8 @@ class Q7Mem : public CPBuffer {
       uint64_t safe;
       uint64_t cpu;
       sysClock_t clk;
-      udp_package_t packet;    
+      udp_package_t packet;
+      char appdata[1024];    
     };
   public:
     struct structQ7MemHead *head;
@@ -37,6 +38,7 @@ class Q7Mem : public CPBuffer {
     uint64_t getOff(){  return head->_off; };
     void setOff( uint64_t off ) { head->_off = off; };
     void *_getBuf(uint64_t from, int len){ head->_off = from+(uint64_t)len; return CPBuffer::getBuf((long long)from,len);};
+    void *_appData() { return (void *)&head->appdata;};
 
 };
 #endif // __Q7_Mem_H

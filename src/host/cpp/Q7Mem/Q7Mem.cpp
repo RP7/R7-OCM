@@ -6,6 +6,7 @@
 Q7Mem::Q7Mem():CPBuffer()
 {
 }
+
 void Q7Mem::dumpHead()
 {
   printf("mem file name: %s\n",getName());
@@ -40,6 +41,7 @@ void Q7Mem::newQ7Mem( const char *n, long long dataL, long long cpL, long long r
     );
   head = (struct structQ7MemHead*)CPBuffer::attach();
 }
+
 void Q7Mem::init()
 {
   memset( ((unsigned char*)head)+sizeof(struct structCPBMeta)

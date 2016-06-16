@@ -19,6 +19,7 @@ public:
 	sysClock( sysClock_t *pc ) { clk = pc; pc->a = 1.; pc->to = 0; pc->co=0; pc->refa = 1.; pc->rate = 0; };
 	void setRef( double r) { clk->refa = r; };
 	void reset() { clk->rate = 0; };
+	int rate() { return clk->rate; };
 	int64_t getCpu();
 	int64_t cpu( int64_t t)  { return (int64_t)(((double)t-(double)clk->to)/clk->a+0.5)+clk->co; };
 	int64_t chip( int64_t c) { return (int64_t)((double)(c-clk->co)*clk->a+0.5)+clk->to; };

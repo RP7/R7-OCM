@@ -12,6 +12,12 @@ int check(Q7Mem *tx,uint64_t rxtime)
     printf("send data is out of date\n");
     tx->head->packet.header.offset = (rxtime+1024L)&(-1024L);
   }
+  if( tx->head->packet.header.offset>rxtime+tx->getSize() )
+  {
+    printf("send data is out of buffer\n");
+    tx->head->packet.header.offset = (rxtime+1024L)&(-1024L);
+  }
+  
   tx->head->safe = rxtime+tx->head->overSend;
   tx->head->packet.header.time = rxtime;
   return 0;

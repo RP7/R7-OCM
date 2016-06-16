@@ -58,6 +58,7 @@ int clklevel(double newa,double olda)
 	double d = (newa-olda)/olda;
 	printf("diff: %le\n",d);
 	double dr = -log10(fabs(d))/0.3;
+	dr = pow(1.1,dr);
 	if( dr>30. )
 		dr = 30.;
 	return (int)dr;

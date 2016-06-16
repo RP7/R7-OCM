@@ -7,7 +7,7 @@
 int main( int argc, char *argv[] )
 {
   int blk = 3750;
-  int cp = 1;
+  int cp = 3750;
   if( argc== 3 )
   {
     int l,c;

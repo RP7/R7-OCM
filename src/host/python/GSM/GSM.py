@@ -1,6 +1,6 @@
 symbolrate = 1625e3/6.
 slotlen = 625./4
-oversamplerate = 4.
+oversamplerate = 1.92e6/symbolrate
 Beta = 0.3
 BType = ['FB','SB','NB']
 

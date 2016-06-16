@@ -60,6 +60,26 @@ extern "C" {
   {
     return (int)h->getSize();
   }
+  int64_t chipNow( Q7Mem *h )
+  {
+    return h->sClk.now();
+  }
+  int64_t cpuNow( Q7Mem *h )
+  {
+    return h->sClk.getCpu();
+  }
+  int64_t cpu2chip( Q7Mem *h, int64_t c )
+  {
+    return h->sClk.chip(c);
+  }
+  void *appData( Q7Mem *h )
+  {
+    return h->_appData();
+  }
+  int clkRate( Q7Mem *h )
+  {
+    return h->sClk.rate();
+  }
 };// extern "C"
 
 };//namespace std
