@@ -61,14 +61,14 @@ def main():
 	while abs(f1-f0)>1e3:
 		f1 = f0
 		f0 = rs.sync()
-		print "rough sync:"
+		print "rough sync:",f0
 
 	f = 1625e3/24
-	f = f0-f
+	f = f0+f
 
 	rxf = cnt.get_rx_freq()
 	print rxf['data']['freq'],f
-	cnt.set_rx_freq(rxf['data']['freq']+f)
+	cnt.set_rx_freq(rxf['data']['freq']+f/2.)
 
 if __name__ == '__main__':
 	main()
