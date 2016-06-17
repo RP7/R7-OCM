@@ -265,18 +265,20 @@ class ad9361PLL:
 		lines = s.splitlines()
 		ret = []
 		for l in lines:
+			if len(l)==0:
+				continue
 			ret.append(self.str2rlist(l))
 		return ret
 
 	def tab2vcof(self,s):
 		lines = s.splitlines()
 		ret = []
-		print lines
+		#print lines
 		for l in lines:
 			if len(l)==0:
 				continue
 			d0 = l.split()
-			print d0
+			#print d0
 			ret.append(float(d0[4]))
 		return ret
 
@@ -288,7 +290,6 @@ class ad9361PLL:
 			self.table = self.tab2list(ad9361PLL._tab_60M)
 		else:
 			self.table = self.tab2list(ad9361PLL._tab_80M)
-		self.table = self.tab2list(ad9361PLL._tab_60M)
 		self.regs = [ self.str2Reg(s) for s in ad9361PLL._tab_rx_reg[6:]]
 		self.vcofs = self.tab2vcof(ad9361PLL._tab_40M)
 		
@@ -304,16 +305,30 @@ class ad9361PLL:
 			ret[r["addr"]]=0
 		return ret
 
-	def setReg(self,r,d,rs):
+	def setReg(self,r,d,rs,rBase):
 		for i in range(len(d)):
-			r[rs[i].addr]|=d[i]<<rs[i].start
+			v = d[i]<<rs[i]["start"]
+			m = (1<<rs[i]["length"])-1
+			m <<= rs[i]["start"]
+			flag = 0
+			for (rr,rv) in r:
+				if rr==rs[i]["addr"]:
+					rv &=(~m)
+					rv |= v
+					r.append((rr,rv))
+					flag = 1
+					break
+			if flag==0:
+				r.append((rs[i]["addr"],v))
 
-	def Reg(self,vcof):
+			print hex(rs[i]["addr"])+"[%d:%d]"%(rs[i]["start"]+rs[i]["length"]-1,rs[i]["start"]),ad9361PLL._tab_head[i+6],hex(d[i])
+			#print r[-1]
+
+	def Reg(self,reg,rBase,vcof):
 		inx = self.f2inx(vcof)
-		ret = self.initReg(self.regs)
 		print "inx",inx
-		self.setReg(ret,self.table[inx],self.regs)
-		return ret
+		self.setReg(reg,self.table[inx],self.regs,rBase)
+		
 
 	def RFFreqCalc(self,f):
 		VCO_Divider = math.floor(math.log(12e9/f)/math.log(2.))
@@ -331,10 +346,9 @@ class ad9361PLL:
 		Base=0x231
 		
 		(D,I,F,V)=self.RFFreqCalc(f)
-		r_rx = self.Reg(V)
 		ret = []
-		for r in r_rx:
-			ret.append((r+rBase,r_rx[r])) 
+		ret[:] = self.Fixed[:]
+		self.Reg(ret,rBase,V)
 		W = []
 		W.append(I&0xff)
 		W.append((I>>8)&0x3)
@@ -357,8 +371,9 @@ class ad9361PLL:
 						, (0x245,0x00)
 						, (0x250,0x70)
 						, (0x239,0xC1)
-						, (0x23B,0x28)
+						, (0x23B,0x80)
 						, (0x23D,0x00)
+						, (0x249,0x8E) # for FDD
 						]
 
 		if self.ref<40e6:
@@ -370,8 +385,12 @@ class ad9361PLL:
 
 def main():
 	uut = ad9361PLL(25e6)
-	D,ret = uut.Set_freq(940e6,"rx")
-	print D,ret
+	Dr,retr = uut.Set_freq(940e6,"rx")
+	Dt,rett = uut.Set_freq(900e6,"tx")
+	ret = retr+rett
+	print "0x5",hex((Dt<<4)|Dr)
+	for (r,d) in ret:
+		print hex(r),hex(d)
 
 if __name__ == '__main__':
 	main()
