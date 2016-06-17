@@ -5,27 +5,14 @@ import GSM
 import time
 from host.curlwrapper import curlwrapper
 
-class GSMRoughSync:
-	def __init__(self):
-		self.rx = Q7Mem.rx()
-		self.data = self.rx.appData(GSM.GSMAppData)
-		self.chipRate = 1.92e6
-		self.frame = 0.12/26.
-		self.multiframe = 0.12/26.*51.
-		self.fl = int(self.chipRate*self.frame)
-		self.mfl = int(self.chipRate*self.multiframe)
-		self.fp = long(0)
-		#print "mfl",self.mfl
-
-
-	def waitClockStable( self ):
-		while self.rx.clkRate()<5:
-			print "clock not stable",self.rx.clkRate()
-			time.sleep(5)
+from GSMSync import GSMSync
+class GSMRoughSync(GSMSync):
+	def __init__(self,f,url='http://192.168.1.110:8080/'):
+		GSMSync.__init__(self,f,url)
 
 	def once( self ):
 		now = self.rx.now()
-		last = long(self.data.frame_start_point)
+		last = self.getFrameStart()
 		if last>now:
 			last = now
 			print "resync:"
@@ -48,30 +35,22 @@ class GSMRoughSync:
 	def sync(self):
 		self.waitClockStable()
 		fp,new_frame,ff,fa = self.once()
-		#print fp,ff,fa
-		self.data.frame_start_point = long(new_frame)
-		#self.fp = long(new_frame)
+		self.setFrameStart(new_frame)
+		ppm = self.calcPPM(ff)
+		self.AFC(ppm)
+		print "freq error",ppm,"ppm"
 		return ff
 
 def main():
-	rs = GSMRoughSync()
-	cnt = curlwrapper('http://192.168.1.110:8080/')
-	cnt.set_afc(0x1f)
+	rs = GSMRoughSync(939.8e6)
+	
 	f0 = rs.sync()
 	f1 = 0.
 	while abs(f1-f0)>1e3:
 		f1 = f0
 		f0 = rs.sync()
 		print "rough sync:",f0
-
-	f = 1625e3/24
-	f = f0-f
-
-	rxf = cnt.get_rx_freq()
-	print rxf['data']['freq'],f
-	cnt.set_rx_freq(rxf['data']['freq']+f)
-	sp = rs.data.frame_start_point
-	print sp%rs.mfl
+		time.sleep(1)
 
 if __name__ == '__main__':
 	main()
