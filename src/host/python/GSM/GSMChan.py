@@ -102,7 +102,7 @@ class GSMChan:
 			pos = fslice.argmax()
 			p = int(pos/band)
 			f = pos%band
-			print "p,f",p,f
+			#print "p,f",p,f
 			a = np.log(fslice[p,f])
 			p = self.findM(fslice[:,f],p)
 			if p==None:
@@ -112,7 +112,7 @@ class GSMChan:
 			if f>self.framerate/2:
 				f-=self.framerate
 			self.fbpos.append((p,f,a))
-			print i,'p=%4d,f=%9d,a=%f'%(p,int(f),a)
+			#print i,'p=%4d,f=%9d,a=%f'%(p,int(f),a)
 		return self.fbMap,self.fbpos,fMap
 
 

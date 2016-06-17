@@ -3,9 +3,11 @@ from ctypes import *
 import GSMChan
 import GSM
 import time
+from sptools import findFreq
 from host.curlwrapper import curlwrapper
+import matplotlib.pyplot as plt
 
-class GSMRoughSync:
+class GSMFineSync:
 	def __init__(self):
 		self.rx = Q7Mem.rx()
 		self.data = self.rx.appData(GSM.GSMAppData)
@@ -15,7 +17,6 @@ class GSMRoughSync:
 		self.fl = int(self.chipRate*self.frame)
 		self.mfl = int(self.chipRate*self.multiframe)
 		self.fp = long(0)
-		#print "mfl",self.mfl
 
 
 	def waitClockStable( self ):
@@ -27,42 +28,39 @@ class GSMRoughSync:
 		now = self.rx.now()
 		last = long(self.data.frame_start_point)
 		if last>now:
-			last = now
 			print "resync:"
+			return None
 		mfs = (now-last)/self.mfl
-		newStart = mfs*self.mfl+last
-		#print "newStart",newStart
+		blk = self.fl/16
+		newStart = mfs*self.mfl+last-blk
+		myLen = blk*3/2
 		while self.rx.now()<newStart+self.mfl:
-			time.sleep(self.multiframe)
-		rfd = self.rx.mmap(self.mfl*4,newStart*4)
-		gsm = GSMChan.GSMChan(rfd)
-		fMap,fpos,fm = gsm.fbsearch()
-		maxa = 0
-		for (p,f,a) in fpos:
-			if a>maxa:
-				fp,ff,fa = p,f,a
-				maxa=a
-		pp = fp*self.fl/16
-		return pp,newStart+pp,ff,fa
+			time.sleep(self.frame)
+		rfd = self.rx.mmap(myLen*4,newStart*4)
+
+		f = findFreq.findFreq(rfd,6500e3/96,1000,1.92e6)
+		for i in range(4):
+			newStart += self.fl*10
+			rfd = self.rx.mmap(myLen*4,newStart*4)
+			f += findFreq.findFreq(rfd,6500e3/96,1000,1.92e6)
+		plt.plot(f)
+		inx = f.argmax()
+		return inx+int(6500e3/96-1000),f
 
 	def sync(self):
 		self.waitClockStable()
-		fp,new_frame,ff,fa = self.once()
-		#print fp,ff,fa
-		self.data.frame_start_point = long(new_frame)
-		#self.fp = long(new_frame)
+		ff = self.once()
 		return ff
 
-def main():
-	rs = GSMRoughSync()
+if __name__ == '__main__':
+	fs = GSMFineSync()
 	cnt = curlwrapper('http://192.168.1.110:8080/')
-	cnt.set_afc(0x1f)
-	f0 = rs.sync()
+	f0,t = fs.sync()
 	f1 = 0.
-	while abs(f1-f0)>1e3:
+	while abs(f1-f0)>5:
 		f1 = f0
-		f0 = rs.sync()
-		print "rough sync:",f0
+		f0,t = fs.sync()
+		print "fine sync:",f0
 
 	f = 1625e3/24
 	f = f0-f
@@ -70,10 +68,6 @@ def main():
 	rxf = cnt.get_rx_freq()
 	print rxf['data']['freq'],f
 	cnt.set_rx_freq(rxf['data']['freq']+f)
-	sp = rs.data.frame_start_point
-	print sp%rs.mfl
-
-if __name__ == '__main__':
-	main()
+	
 
 
