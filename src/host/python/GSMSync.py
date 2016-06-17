@@ -15,7 +15,7 @@ class GSMSync:
 		self.mfl = int(self.chipRate*self.multiframe)
 		self.fc = f
 		self.cnt = curlwrapper(url)
-		self.scale = 20.
+		self.scale = 10.
 
 	def waitClockStable( self ):
 		while self.rx.clkRate()<5:
