@@ -41,6 +41,7 @@ class GSMRoughSync:
 		for (p,f,a) in fpos:
 			if a>maxa:
 				fp,ff,fa = p,f,a
+				maxa=a
 		pp = fp*self.fl/16
 		return pp,newStart+pp,ff,fa
 
@@ -64,11 +65,11 @@ def main():
 		print "rough sync:",f0
 
 	f = 1625e3/24
-	f = f0+f
+	f = f0-f
 
 	rxf = cnt.get_rx_freq()
 	print rxf['data']['freq'],f
-	cnt.set_rx_freq(rxf['data']['freq']+f/2.)
+	#cnt.set_rx_freq(rxf['data']['freq']+f/2.)
 
 if __name__ == '__main__':
 	main()

@@ -111,7 +111,7 @@ class GSMChan:
 			if f>self.framerate/2:
 				f-=self.framerate
 			self.fbpos.append((p,f,a))
-			#print 'p=%4d,f=%9d,a=%f'%(p,int(f),a)
+			print 'p=%4d,f=%9d,a=%f'%(p,int(f),a)
 		return self.fbMap,self.fbpos,fMap
 
 
