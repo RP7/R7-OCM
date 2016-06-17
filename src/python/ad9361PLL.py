@@ -305,29 +305,40 @@ class ad9361PLL:
 			ret[r["addr"]]=0
 		return ret
 
-	def setReg(self,r,d,rs,rBase):
+	def setReg(self,d):
+		rs = self.regs
+		r_dict = {}
 		for i in range(len(d)):
 			v = d[i]<<rs[i]["start"]
 			m = (1<<rs[i]["length"])-1
 			m <<= rs[i]["start"]
 			flag = 0
-			for (rr,rv) in r:
+			for (rr,rv) in self.Fixed:
 				if rr==rs[i]["addr"]:
 					rv &=(~m)
 					rv |= v
-					r.append((rr,rv))
+					r_dict[rr]=rv
 					flag = 1
 					break
 			if flag==0:
-				r.append((rs[i]["addr"],v))
+				rr = rs[i]["addr"]
+				if rr in r_dict:
+					r_dict[rr] |= v
+				else:
+					r_dict[rr] = v
+		ret = []
+		for rr in r_dict:
+			ret.append((rr,r_dict[rr]))
+		return ret
 
-			print hex(rs[i]["addr"])+"[%d:%d]"%(rs[i]["start"]+rs[i]["length"]-1,rs[i]["start"]),ad9361PLL._tab_head[i+6],hex(d[i])
+
+			#print hex(rs[i]["addr"])+"[%d:%d]"%(rs[i]["start"]+rs[i]["length"]-1,rs[i]["start"]),ad9361PLL._tab_head[i+6],hex(d[i])
 			#print r[-1]
 
-	def Reg(self,reg,rBase,vcof):
+	def Reg(self,vcof):
 		inx = self.f2inx(vcof)
 		print "inx",inx
-		self.setReg(reg,self.table[inx],self.regs,rBase)
+		return self.setReg(self.table[inx])
 		
 
 	def RFFreqCalc(self,f):
@@ -338,17 +349,10 @@ class ad9361PLL:
 		N_fractional = int(round(8388593.*(n-N_integer)))
 		return (int(VCO_Divider)-1,N_integer,N_fractional,F_RFPLL)
 
-	def Set_freq(self,f,txrx):
-		if txrx=="tx":
-			rBase = 0x40
-		else:
-			rBase = 0
+	def Set_freq(self,f):
 		Base=0x231
-		
 		(D,I,F,V)=self.RFFreqCalc(f)
-		ret = []
-		ret[:] = self.Fixed[:]
-		self.Reg(ret,rBase,V)
+		ret = self.Reg(V)
 		W = []
 		W.append(I&0xff)
 		W.append((I>>8)&0x3)
@@ -357,9 +361,9 @@ class ad9361PLL:
 		W.append(F&0xff)
 		F >>= 8
 		W.append(F&0x7f)
-		for i in range(5):
-			ret.append((Base+rBase,W[i]))
-			Base += 1
+		for i in range(1,5):
+			ret.append((Base+i,W[i]))
+		ret.append((Base,W[0]))
 		return D,ret
 
 	def __init__(self,ref):
@@ -373,6 +377,7 @@ class ad9361PLL:
 						, (0x239,0xC1)
 						, (0x23B,0x80)
 						, (0x23D,0x00)
+						, (0x23A,0x40)
 						, (0x249,0x8E) # for FDD
 						]
 
@@ -383,12 +388,24 @@ class ad9361PLL:
 
 		self.buildTab()
 
+	def rx2tx(self,rx):
+		ret = []
+		for (r,v) in rx:
+			ret.append((r+0x40,v))
+		return ret
+
+	def setRxTx(self,rx_f,tx_f):
+		Dr,retr = self.Set_freq(rx_f)
+		Dt,rett = self.Set_freq(tx_f)
+		rett = self.rx2tx(rett)
+		ret = retr+rett
+		ret.append((5,(Dt<<4)|Dr))
+		return ret
+
 def main():
 	uut = ad9361PLL(25e6)
-	Dr,retr = uut.Set_freq(940e6,"rx")
-	Dt,rett = uut.Set_freq(900e6,"tx")
-	ret = retr+rett
-	print "0x5",hex((Dt<<4)|Dr)
+	
+	ret = uut.setRxTx(940e6,900e6)
 	for (r,d) in ret:
 		print hex(r),hex(d)
 

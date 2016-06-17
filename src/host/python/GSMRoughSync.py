@@ -69,7 +69,7 @@ def main():
 
 	rxf = cnt.get_rx_freq()
 	print rxf['data']['freq'],f
-	#cnt.set_rx_freq(rxf['data']['freq']+f/2.)
+	cnt.set_rx_freq(rxf['data']['freq']+f)
 
 if __name__ == '__main__':
 	main()

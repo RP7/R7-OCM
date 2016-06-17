@@ -6,7 +6,7 @@ if c_system=='Linux':
 	import dev_mem
 import math
 import axi2s_c
-
+import ad9361PLL
 
 class AD9361_c:
 	def __init__(self):
@@ -65,7 +65,8 @@ class AD9361_c:
 		}
 		self.ensm_db = ['SLEEP/WAIT','CALIBRATION','CALIBRATION', 'CALIBRATION', 'WAIT to ALERT delay', 'ALERT', 'TX', 'TX FLUSH', 'RX', 'RX FLUSH', 'FDD', 'FDD FLUSH']
 		self.cntr = axi2s_c.axi2s_c()
-	
+		self.pll = ad9361PLL.ad9361PLL(25e6)
+
 	def apiread(self,argv):
 		if 'reg' in argv:
 			return {'ret':'ok','data':hex(self.readByte(int(argv.reg,16)))}
@@ -201,7 +202,10 @@ class AD9361_c:
 
 	def Get_freq(self,Base=0x271):
 		div = self.readByte(0x5)
-		div = (div>>4)&0xf
+		if Base==0x271:
+			div = (div>>4)&0xf
+		else:
+			div = div&0xf
 		F = []
 		for i in range(5):
 			F.append(self.readByte(Base))
@@ -226,30 +230,61 @@ class AD9361_c:
 			self.writeByte(Base,W[i])
 			Base += 1
 		self.writeByte(5,div)
+	def disable_FDD(self):
+		r = self.ENSM(1)
+		timeout = 10
+		while r!=0x5:
+			self.cntrWrite('AD9361_EN',1)
+			time.sleep(0.001)
+			self.cntrWrite('AD9361_EN',0)
+			time.sleep(0.001)
+			r = self.ENSM(1)
+			timeout -= 1
+			if timeout<0:
+				break
 
 	def Check_FDD(self):
 		r = self.ENSM(1)
 		timeout = 10
 		while r!=0xa:
 			self.cntrWrite('AD9361_EN',0)
-			time.sleep(1)
+			time.sleep(0.001)
 			self.cntrWrite('AD9361_EN',1)
-			time.sleep(1)
+			time.sleep(0.001)
 			r = self.ENSM(1)
 			timeout -= 1
 			if timeout<0:
 				break
 
 	def Set_Tx_freq(self,f):
-		self.Set_freq(f,0x271)
-		self.API_WAIT_CALDONE(["TXCP","100"])
-		self.Check_FDD()
+		
+		#self.disable_FDD()
+		D,reg = self.pll.Set_freq(f)
+		reg = self.pll.rx2tx(reg)
+		oldD = self.readByte(5)
+		oldD &= 0xf
+		oldD |= D<<4
+		self.writeByte(0x27d,0)
+		for (r,v) in reg:
+			self.writeByte(r,v)
+		self.writeByte(5,oldD)
+		#self.API_WAIT_CALDONE(["TXCP","100"])
+		#self.Check_FDD()
 
 	
 	def Set_Rx_freq(self,f):
-		self.Set_freq(f,0x231)
-		self.API_WAIT_CALDONE(["RXCP","100"])
-		self.Check_FDD()
+		#self.disable_FDD()
+		
+		self.writeByte(0x23d,0)
+		D,reg = self.pll.Set_freq(f)
+		oldD = self.readByte(5)
+		oldD &= 0xf0
+		oldD |= D&0xf
+		for (r,v) in reg:
+			self.writeByte(r,v)
+		self.writeByte(5,oldD)
+		#self.API_WAIT_CALDONE(["RXCP","100"])
+		#self.Check_FDD()
 		
 	def Get_Tx_freq(self):
 		return self.Get_freq(0x271)
