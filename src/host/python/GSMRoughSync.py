@@ -11,17 +11,7 @@ class GSMRoughSync(GSMSync):
 		GSMSync.__init__(self,f,url)
 
 	def once( self ):
-		now = self.rx.now()
-		last = self.getFrameStart()
-		if last>now:
-			last = now
-			print "resync:"
-		mfs = (now-last)/self.mfl
-		newStart = mfs*self.mfl+last
-		#print "newStart",newStart
-		while self.rx.now()<newStart+self.mfl:
-			time.sleep(self.multiframe)
-		rfd = self.rx.mmap(self.mfl*4,newStart*4)
+		rfd,start = self.getRfData(0,self.mfl)
 		gsm = GSMChan.GSMChan(rfd)
 		fMap,fpos,fm = gsm.fbsearch()
 		maxa = 0
@@ -30,7 +20,7 @@ class GSMRoughSync(GSMSync):
 				fp,ff,fa = p,f,a
 				maxa=a
 		pp = fp*self.fl/16
-		return pp,newStart+pp,ff,fa
+		return pp,start+pp,ff,fa
 
 	def sync(self):
 		self.waitClockStable()

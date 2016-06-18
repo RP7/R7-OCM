@@ -1,7 +1,9 @@
-import Q7Mem
+import numpy as np
 from ctypes import *
-import GSM
 import time
+
+import Q7Mem
+import GSM
 from host.curlwrapper import curlwrapper
 
 class GSMSync:
@@ -52,6 +54,26 @@ class GSMSync:
 		a &= 1023
 		print "AFC",a
 		self.setAFC(a)
+
+	def getRfData(self,offset,length):
+		now = self.rx.now()
+		last = self.getFrameStart()
+		if last>now:
+			last = now
+			print "resync:"
+			return None
+		mfs = (now-last)/self.mfl
+		newStart = mfs*self.mfl+last
+		while self.rx.now()<newStart+offset+length:
+			time.sleep(self.frame)
+		start = newStart + offset
+		rfd = self.rx.mmap(length*4,start*4)
+		return rfd,start
+
+	def short2Complex(self,data):
+		nframes = len(data)/2
+		frame = np.array([complex(data[2*i],data[2*i+1]) for i in range(nframes)])
+		return frame
 
 
 		

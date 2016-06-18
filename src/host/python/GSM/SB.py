@@ -26,6 +26,7 @@ class SB(Burst):
 		for x in s:
 			self.sync += [x,x,x,x] 
 
+		self.training_seq = self.gmsk_mapper(self.syncbits,complex(0.,-1.))
 	
 	def demodu(self,s):
 		self.dem = self.diff(s)
@@ -35,6 +36,21 @@ class SB(Burst):
 		fd = np.fft.fft(self.dem)
 		tr = np.abs(np.fft.ifft(fd*np.conj(fs)))
 		return tr
+
+	def channelEst( self, frame, osr ):
+		inx = np.floor(np.arange(len(self.training_seq))*osr)
+		last = int(inx[-1]+1)
+		print len(frame)-last
+		out = np.zeros(len(frame)-last,dtype=complex)
+		for k in range(len(out)):
+			slc = frame[k:]
+			s = slc[inx.astype(int)]
+			r = np.dot(s,self.training_seq)
+			print r
+		return out
+
+		
+
 
 
 
