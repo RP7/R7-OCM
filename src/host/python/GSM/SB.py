@@ -26,7 +26,7 @@ class SB(Burst):
 		for x in s:
 			self.sync += [x,x,x,x] 
 
-		self.training_seq = self.gmsk_mapper(self.syncbits,complex(0.,-1.))
+		self.training_seq = self.gmsk_mapper(s,complex(0.,-1.))
 	
 	def demodu(self,s):
 		self.dem = self.diff(s)
@@ -46,7 +46,7 @@ class SB(Burst):
 			slc = frame[k:]
 			s = slc[inx.astype(int)]
 			r = np.dot(s,self.training_seq)
-			print r
+			out[k] = r
 		return out
 
 		

@@ -34,11 +34,15 @@ void gsm_receiver_cf::gmsk_mapper(const unsigned char * input, int nitems, gr_co
   }
 }
 		"""
-		out = [start_point]
-		previous_symbol = inp[0]*2 - 1
+		o = start_point
+		out = []
+		previous_symbol = inp[0]
 		for current_symbol in inp[1:]:
 			encoded_symbol = current_symbol * previous_symbol
-			o = complex(0,1)*encoded_symbol*out[-1]
+			o = complex(0,1)*encoded_symbol*o
+			#print "o",o
 			out.append(o)
-		return out
+			previous_symbol = current_symbol
+			
+		return np.array(out)
 

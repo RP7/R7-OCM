@@ -45,7 +45,8 @@ def main():
 		f0 = fs.sync()
 		print "Timing sync:",f0
 		time.sleep(1)
+	return fs
 
 if __name__ == '__main__':
-	main()
+	fs = main()
 

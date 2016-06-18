@@ -20,9 +20,9 @@ class GSMSync:
 		self.scale = 10.
 
 	def waitClockStable( self ):
-		while self.rx.clkRate()<5:
+		while self.rx.clkRate()<4:
 			print "clock not stable",self.rx.clkRate()
-			time.sleep(5)
+			time.sleep(2)
 
 	def getFrameStart( self ):
 		return long(self.data.frame_start_point)
