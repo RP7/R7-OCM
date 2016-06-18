@@ -20,20 +20,22 @@ class GSMTimingSync(GSMSync):
 
 		rfd,start = self.getRfData(self.fl-blk,blk*3)
 		nprfd = self.short2Complex(rfd)
-		f = self.sb.channelEst(nprfd,self.osr)
-		# for i in range(4):
-		# 	start += self.fl*10
-		# 	rfd,start = self.getRfData(start,blk*3)
-		# 	nprfd = self.short2Complex(rfd)
-		# 	f += np.abs(self.sb.channelEst(nprfd,self.osr))
-		inx = np.abs(f).argmax()-blk
-		plt.plot(f.real)
-		plt.plot(f.imag)
+		f = np.abs(self.sb.channelEst(nprfd,self.osr))
+		for i in range(4):
+		 	start = self.fl*10*i
+		 	rfd,start = self.getRfData(start+self.fl-blk,blk*3)
+		 	nprfd = self.short2Complex(rfd)
+		 	f += np.abs(self.sb.channelEst(nprfd,self.osr))
+		inx = int(f.argmax()-blk-42*self.osr)
 		return inx
 
 	def sync(self):
 		self.waitClockStable()
+		
 		ff = self.once()
+		fs = self.getFrameStart()
+		self.setFrameStart(fs+ff/2)
+
 		return ff
 
 def main():

@@ -1,5 +1,6 @@
 import GSMRoughSync
 import GSMFineSync
+import GSMTimingSync
 import time
 
 while 1:
@@ -8,3 +9,6 @@ while 1:
 	for i in range(10):
 		GSMFineSync.main()
 		time.sleep(10)
+		GSMTimingSync.main()
+		time.sleep(10)
+		
