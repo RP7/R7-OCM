@@ -12,12 +12,15 @@ class GSMSync:
 		self.data = self.rx.appData(GSM.GSMAppData)
 		self.chipRate = 1.92e6
 		self.frame = 0.12/26.
-		self.multiframe = 0.12/26.*51.
-		self.fl = int(self.chipRate*self.frame)
-		self.mfl = int(self.chipRate*self.multiframe)
+		self.multiframe = self.frame*51.
+		self.supperframe = self.multiframe*26
+		self.fl = int(round(self.chipRate*self.frame))
+		self.mfl = int(round(self.chipRate*self.multiframe))
+		self.sfl = int(round(self.chipRate*self.supperframe))
 		self.fc = f
 		self.cnt = curlwrapper(url)
 		self.scale = 10.
+		#print self.sfl
 
 	def waitClockStable( self ):
 		while self.rx.clkRate()<4:
@@ -62,10 +65,12 @@ class GSMSync:
 			last = now
 			print "resync:"
 			return None
-		mfs = (now-last)/self.mfl
-		newStart = mfs*self.mfl+last
+		mfs = (now-last)/self.sfl
+		newStart = (mfs+1)*self.sfl+last
 		while self.rx.now()<newStart+offset+length:
-			time.sleep(self.frame)
+			print "*",
+			time.sleep(self.multiframe)
+		print ""
 		start = newStart + offset
 		rfd = self.rx.mmap(length*4,start*4)
 		return rfd,start

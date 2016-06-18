@@ -14,10 +14,10 @@ class GSMFineSync(GSMSync):
 		blk = self.fl/16
 		rfd,start = self.getRfData(-blk,blk*3)
 		f = findFreq.findFreq(rfd,6500e3/96,1000,1.92e6)
-		for i in range(4):
-			newStart = self.fl*10*i
-			rfd,start = self.getRfData(newStart-blk,blk*3)
-			f += findFreq.findFreq(rfd,6500e3/96,1000,1.92e6)
+		# for i in range(4):
+		# 	newStart = self.fl*10*i
+		# 	rfd,start = self.getRfData(newStart-blk,blk*3)
+		# 	f += findFreq.findFreq(rfd,6500e3/96,1000,1.92e6)
 		inx = f.argmax()
 		return inx+int(6500e3/96-1000)
 
@@ -26,18 +26,17 @@ class GSMFineSync(GSMSync):
 		ff = self.once()
 		ppm = self.calcPPM(ff)
 		self.AFC(ppm)
-		print "freq error",ppm,"ppm"
-		return ff
+		#print "freq error",ppm,"ppm"
+		return ppm
 
 def main():
 	fs = GSMFineSync(939.6e6)
 	f0 = fs.sync()
-	f1 = 0.
-	while abs(f1-f0)>5:
-		f1 = f0
-		f0 = fs.sync()
-		print "fine sync:",f0
+	print "fine sync ppm:",f0
+	while abs(f0)>0.5:
 		time.sleep(1)
+		f0 = fs.sync()
+		print "fine sync ppm:",f0
 
 if __name__ == '__main__':
 	main()

@@ -21,11 +21,11 @@ class GSMTimingSync(GSMSync):
 		rfd,start = self.getRfData(self.fl-blk,blk*3)
 		nprfd = self.short2Complex(rfd)
 		f = np.abs(self.sb.channelEst(nprfd,self.osr))
-		for i in range(4):
-		 	start = self.fl*10*i
-		 	rfd,start = self.getRfData(start+self.fl-blk,blk*3)
-		 	nprfd = self.short2Complex(rfd)
-		 	f += np.abs(self.sb.channelEst(nprfd,self.osr))
+		# for i in range(4):
+		#  	start = self.fl*10*i
+		#  	rfd,start = self.getRfData(start+self.fl-blk,blk*3)
+		#  	nprfd = self.short2Complex(rfd)
+		#  	f += np.abs(self.sb.channelEst(nprfd,self.osr))
 		inx = int(f.argmax()-blk-42*self.osr)
 		return inx
 
@@ -34,7 +34,7 @@ class GSMTimingSync(GSMSync):
 		
 		ff = self.once()
 		fs = self.getFrameStart()
-		self.setFrameStart(fs+ff/2)
+		#self.setFrameStart(fs+ff/2)
 
 		return ff
 
@@ -42,12 +42,15 @@ def main():
 	fs = GSMTimingSync(1.92e6)
 	f0 = fs.sync()
 	f1 = 0.
-	while abs(f1-f0)>5:
-		f1 = f0
-		f0 = fs.sync()
+	while abs(f0)>30:
+		if abs(f0)>fs.fl/16:
+			print f0,fs.fl/16
+			return -1
 		print "Timing sync:",f0
 		time.sleep(1)
-	return fs
+		f0 = fs.sync()
+	print "Timing sync:",f0
+	return abs(f0)
 
 if __name__ == '__main__':
 	fs = main()

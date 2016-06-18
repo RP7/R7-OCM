@@ -38,17 +38,8 @@ class SB(Burst):
 		return tr
 
 	def channelEst( self, frame, osr ):
-		inx = np.floor(np.arange(len(self.training_seq))*osr)
-		last = int(inx[-1]+1)
-		#print len(frame)-last
-		out = np.zeros(len(frame)-last,dtype=complex)
-		for k in range(len(out)):
-			slc = frame[k:]
-			s = slc[inx.astype(int)]
-			r = np.dot(s,self.training_seq)
-			out[k] = r
-		return out
-
+		return Burst.channelEst( self, frame, self.training_seq, osr )
+		
 		
 
 

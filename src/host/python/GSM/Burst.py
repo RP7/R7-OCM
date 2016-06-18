@@ -46,3 +46,14 @@ void gsm_receiver_cf::gmsk_mapper(const unsigned char * input, int nitems, gr_co
 			
 		return np.array(out)
 
+	def channelEst( self, frame, training, osr ):
+		inx = np.floor(np.arange(len(training))*osr)
+		last = int(inx[-1]+1)
+		#print len(frame)-last
+		out = np.zeros(len(frame)-last,dtype=complex)
+		for k in range(len(out)):
+			slc = frame[k:]
+			s = slc[inx.astype(int)]
+			r = np.dot(s,training)
+			out[k] = r
+		return out

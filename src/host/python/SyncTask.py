@@ -8,7 +8,10 @@ while 1:
 	time.sleep(1)
 	for i in range(10):
 		GSMFineSync.main()
-		time.sleep(10)
-		GSMTimingSync.main()
-		time.sleep(10)
+		time.sleep(7)
+		r = GSMTimingSync.main()
+		if r<0:
+			print "reset",r
+			GSMRoughSync.main()
+		time.sleep(7)
 		
