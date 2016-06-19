@@ -1,17 +1,40 @@
 import GSMRoughSync
-import GSMFineSync
-import GSMTimingSync
 import time
+import Q7Mem
+import gsmlib.config as config
+import gsmlib.GSM as gsm
 
-while 1:
-	GSMRoughSync.main()
+sync = GSMRoughSync.GSMRoughSync(939.8e6,'http://192.168.1.110:8080/')
+fcch = gsmlib.FCCH.FCCH()
+sch = gsmlib.SCH.SCH()
+C0 = gsmlib.TS.CFrame()
+
+gsmlib.Burst.mmap = mmap
+
+C0.build()
+sch.attach(C0)
+fcch.attach(C0)
+
+def mmap(s,l):
+	fs = sync.getFrameStart()+s*config.SampleRate/gsm.SymbolRate
+	ls = l*config.SampleRate/gsm.SymbolRate
+	return sync.rx.mmap(ls*4,fs*4)
+
+f0 = sync.sync()
+f1 = 0.
+while abs(f1-f0)>1e3:
+	f1 = f0
+	f0 = sync.sync()
+	print "rough sync:",f0
 	time.sleep(1)
-	for i in range(10):
-		GSMFineSync.main()
-		time.sleep(7)
-		r = GSMTimingSync.main()
-		if r<0:
-			print "reset",r
-			GSMRoughSync.main()
-		time.sleep(7)
+
+now = sync.rx.now()
+for i in range(len(C0.frame)):
+	f = C0.frame[i]
+	for b in f:
+		if b.ch!=None:
+			b.mapRfData()
+			b.ch.callback(b,i)
+	while(sync.rx.now()<now+i*sync.self.fl):
+		time.slee(0.01)
 		

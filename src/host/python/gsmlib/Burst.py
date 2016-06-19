@@ -23,6 +23,12 @@ class item:
 			out.append(o)
 			previous_symbol = current_symbol
 		return np.array(out)
+	@staticmethod
+	def c2bits(cbits):
+		r = []
+		for x in cbits:
+			r.append(int(x))
+		return r
 
 class TB(item):
 	length = 3
@@ -40,11 +46,22 @@ class AGP(item):
 
 class Burst:
 	length = Fraction(625,4)
+	small_overlap = 5
+	large_overlap = length/2
+	mmap = None
+
 	def __init__(self):
 		if hasattr(self.__class__,"__field__"):
 			self.field = [ x() for x in self.__class__.__field__]
 		else:
 			self.field = []
+		self.fn = sf
+		self.ch = None
+	
+	def set(self,fn,sn):
+		self.fn = fn
+		self.sn = sn
+		self.pos = length*(fn*8+sn)
 
 	def getLen(self):
 		if hasattr(self,"field"):
@@ -59,6 +76,42 @@ class Burst:
 		name = [n.__name__ for n in self.__class__.__field__]
 		print name
 
+	def attach(self,CH):
+		self.ch = CH
 
-		
+	def deattach(self):
+		self.ch = None
+
+	def channelEst( self, frame, training, osr ):
+		inx = np.floor(np.arange(len(training))*osr)
+		last = int(inx[-1]+1)
+		out = np.zeros(len(frame)-last,dtype=complex)
+		for k in range(len(out)):
+			slc = frame[k:]
+			s = slc[inx.astype(int)]
+			r = np.dot(s,training)
+			out[k] = r
+		return out
+	
+	@staticmethod
+	def short2Complex(data):
+		nframes = len(data)/2
+		frame = np.array([complex(data[2*i],data[2*i+1]) for i in range(nframes)])
+		return frame
+	
+	def mapRfData(self):
+		if mmap==None:
+			raise NoInstall
+			return
+		s = int(self.pos-small_overlap)
+		l = int(length+small_overlap)
+		self.recv = short2Complex(mmap(s,l))
+
+	def mapLData(self):
+		if mmap==None:
+			raise NoInstall
+			return
+		s = int(self.pos-large_overlap)
+		l = int(length+large_overlap)
+		return short2Complex(mmap(s,l))
 		

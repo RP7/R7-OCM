@@ -31,6 +31,10 @@ class SB(Burst):
 	def __init__(self):
 		Burst.__init__(self)
 
+	def peek(self,ovs):
+		f = self.mapLData()
+		return np.abs(self.channelEst(f,modulated,ovs))
+
 def main():
 	a = SB()
 	a.dump()

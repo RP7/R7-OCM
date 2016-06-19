@@ -23,16 +23,25 @@ class Frame:
 		ts1 = (self.ts1_off+fnum)%len(TS1.__field__)
 		tst = (self.tst_off+fnum)%len(TST.__field__)
 		ret = []
-		for x in self.__class__.__TS__:
+		for i in len(self.__class__.__TS__):
+			x = self.__class__.__TS__[i]
 			if x==TS0:
-				ret.append(TS0.__field__[ts0]())
+				b = TS0.__field__[ts0]
 			elif x==TS1:
-				ret.append(TS1.__field__[ts1]())
+				b = TS0.__field__[ts1]
 			elif x==TST:
-				ret.append(TS1.__field__[tst]())
+				b = TS0.__field__[tst]
 			else:
 				raise TSError
+			b.set(fnum,i)
+			ret.appen(b)
+
 		return ret
+
+	def build(self,frames):
+		self.frame = []
+		for i in range(frames):
+			self.frame.append(self.config(i))
 
 	def name(self,field):
 		ret = [x.__name__ for x in field]
@@ -46,9 +55,13 @@ class Frame:
 
 class CFrame(Frame):
 	__TS__ = [ TS0, TS1 ] + [TST]*6
+	def __init__(self):
+		Frame.__init__(self)
 
 class TFrame(Frame):
 	__TS__ = [TST]*8
+	def __init__(self):
+		Frame.__init__(self)
 
 def main():
 	C0 = CFrame()
