@@ -6,6 +6,7 @@ import gsmlib.GSM as gsm
 import gsmlib.FCCH
 import gsmlib.SCH
 import gsmlib.TS
+import matplotlib.pyplot as plt
 
 sync = GSMRoughSync.GSMRoughSync(939.8e6,'http://192.168.1.110:8080/')
 fcch = gsmlib.FCCH.FCCH()
@@ -38,7 +39,10 @@ for i in range(len(C0.frame)):
 	for b in f:
 		if b.ch!=None:
 			b.mapRfData()
-			b.ch.callback(b,i)
+			ok,data = b.ch.callback(b,i)
+			if ok:
+				if data!=None:
+					plt.plot(data)
 	while(sync.rx.now()<now+i*sync.fl):
 		time.sleep(0.01)
 		

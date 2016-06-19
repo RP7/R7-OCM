@@ -16,7 +16,7 @@ class FB(Burst):
 
 	def freqEst(self):
 		r0 = splibs.autocorrelation(self.recv,1)
-		omg = np.angle(r0)/2.*np.pi
+		omg = np.angle(r0)/(2.*np.pi)
 		return omg
 
 def main():

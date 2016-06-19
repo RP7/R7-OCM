@@ -13,6 +13,8 @@ class SCH(CH):
 		p = b.peek(float(SampleRate/SymbolRate))
 		pos = p.argmax()
 		print "find at",pos
+		return 1,p
+
 
 	
 		
