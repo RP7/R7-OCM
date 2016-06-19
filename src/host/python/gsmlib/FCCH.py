@@ -6,8 +6,8 @@ from config import *
 class FCCH(CH):
 	__burst__ = FB
 	__freq__ = Fraction(6500000,24)
-	def __init__(slef):
-		CH.__init__(self):
+	def __init__(self):
+		CH.__init__(self)
 
 	def callback(self,b,fn):
 		if b.__class__!=__burst__:

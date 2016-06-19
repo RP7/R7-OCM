@@ -10,8 +10,8 @@ class FB(Burst):
 	__field__ = [TB,FBFix,TB,NGP]
 	__name__ = "FB"
 
-	def __init__(self,sf=0):
-		Burst.__init__(self,sf)
+	def __init__(self):
+		Burst.__init__(self)
 
 	def freqEst(self):
 		r0 = splibs.autocorrelation(self.recv,1)

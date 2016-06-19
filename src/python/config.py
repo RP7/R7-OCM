@@ -32,4 +32,5 @@ class config:
 		ad.webapi['rx']['set']['gain'](self.rx['gain'][0],0)
 		ad.webapi['rx']['set']['gain'](self.rx['gain'][0],1)
 		self.aximem.init(c)
+		ad.Check_FDD()
 		return c

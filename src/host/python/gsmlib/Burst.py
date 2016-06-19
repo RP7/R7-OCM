@@ -55,13 +55,14 @@ class Burst:
 			self.field = [ x() for x in self.__class__.__field__]
 		else:
 			self.field = []
-		self.fn = sf
+		self.fn = 0
+		self.sn = 0
 		self.ch = None
 	
 	def set(self,fn,sn):
 		self.fn = fn
 		self.sn = sn
-		self.pos = length*(fn*8+sn)
+		self.pos = Burst.length*(fn*8+sn)
 
 	def getLen(self):
 		if hasattr(self,"field"):
@@ -103,15 +104,15 @@ class Burst:
 		if mmap==None:
 			raise NoInstall
 			return
-		s = int(self.pos-small_overlap)
-		l = int(length+small_overlap)
-		self.recv = short2Complex(mmap(s,l))
+		s = int(self.pos-Burst.small_overlap)
+		l = int(Burst.length+Burst.small_overlap)
+		self.recv = Burst.short2Complex(mmap(s,l))
 
 	def mapLData(self):
 		if mmap==None:
 			raise NoInstall
 			return
-		s = int(self.pos-large_overlap)
-		l = int(length+large_overlap)
-		return short2Complex(mmap(s,l))
+		s = int(self.pos-Burst.large_overlap)
+		l = int(Burst.length+Burst.large_overlap)
+		return Burst.short2Complex(mmap(s,l))
 		

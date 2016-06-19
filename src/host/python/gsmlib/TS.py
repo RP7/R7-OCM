@@ -23,18 +23,18 @@ class Frame:
 		ts1 = (self.ts1_off+fnum)%len(TS1.__field__)
 		tst = (self.tst_off+fnum)%len(TST.__field__)
 		ret = []
-		for i in len(self.__class__.__TS__):
+		for i in range(len(self.__class__.__TS__)):
 			x = self.__class__.__TS__[i]
 			if x==TS0:
-				b = TS0.__field__[ts0]
+				b = TS0.__field__[ts0]()
 			elif x==TS1:
-				b = TS0.__field__[ts1]
+				b = TS1.__field__[ts1]()
 			elif x==TST:
-				b = TS0.__field__[tst]
+				b = TST.__field__[tst]()
 			else:
 				raise TSError
 			b.set(fnum,i)
-			ret.appen(b)
+			ret.append(b)
 
 		return ret
 
