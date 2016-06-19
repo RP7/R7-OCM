@@ -10,9 +10,9 @@ class SCH(CH):
 		CH.__init__(self)
 
 	def callback(self,b,fn):
-		p = b.peek(SampleRate/SymbolRate)
+		p = b.peek(float(SampleRate/SymbolRate))
 		pos = p.argmax()
-		print pos
+		print "find at",pos
 
 	
 		

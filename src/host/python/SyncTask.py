@@ -18,8 +18,8 @@ sch.attach(C0)
 fcch.attach(C0)
 
 def mmap(s,l):
-	fs = sync.getFrameStart()+s*config.SampleRate/gsm.SymbolRate
-	ls = l*config.SampleRate/gsm.SymbolRate
+	fs = long(sync.getFrameStart()+s*config.SampleRate/gsm.SymbolRate)
+	ls = long(l*config.SampleRate/gsm.SymbolRate)
 	return sync.rx.mmap(ls*4,fs*4)
 
 gsmlib.Burst.mmap = mmap
@@ -39,6 +39,6 @@ for i in range(len(C0.frame)):
 		if b.ch!=None:
 			b.mapRfData()
 			b.ch.callback(b,i)
-	while(sync.rx.now()<now+i*sync.self.fl):
-		time.slee(0.01)
+	while(sync.rx.now()<now+i*sync.fl):
+		time.sleep(0.01)
 		

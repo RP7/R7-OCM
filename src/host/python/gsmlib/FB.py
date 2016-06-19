@@ -1,4 +1,5 @@
 import splibs
+import numpy as np
 from Burst import *
 
 class FBFix(item):
@@ -15,7 +16,7 @@ class FB(Burst):
 
 	def freqEst(self):
 		r0 = splibs.autocorrelation(self.recv,1)
-		omg = r0.angle()/2.*np.pi
+		omg = np.angle(r0)/2.*np.pi
 		return omg
 
 def main():

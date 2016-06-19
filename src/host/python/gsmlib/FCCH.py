@@ -10,10 +10,10 @@ class FCCH(CH):
 		CH.__init__(self)
 
 	def callback(self,b,fn):
-		if b.__class__!=__burst__:
+		if b.__class__!=FCCH.__burst__:
 			raise BurstError
 			return
 		omg = b.freqEst()
 		freq = omg * SampleRate
-		print freq
+		print "FCCH freq = ",freq
 
