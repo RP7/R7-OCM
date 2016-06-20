@@ -18,9 +18,10 @@ class SBTraining(item):
 		0,0,0,0,0,1,0,0,
 		0,0,0,0,1,1,1,1,
 		0,0,1,0,1,1,0,1,
-		1,0,1,0,0,1,0,1,
+		0,1,0,0,0,1,0,1,
 		0,1,1,1,0,1,1,0,
 		0,0,0,1,1,0,1,1]
+	unmodulated = np.array(bits)*2 - 1
 	modulated = item.gmsk_mapper(bits,complex(0.,-1.))
 		
 class SB(Burst):
@@ -34,6 +35,10 @@ class SB(Burst):
 	def peek(self,ovs):
 		f = self.mapLData()
 		return np.abs(self.channelEst(f,SBTraining.modulated,ovs))
+
+	@staticmethod
+	def overhead():
+		return TB.length+SBM0.length+Burst.large_overlap
 
 def main():
 	a = SB()

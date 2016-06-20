@@ -103,6 +103,10 @@ class tx(Q7Mem):
 def main():
 	rxmem = rx()
 	s = rxmem.now()
+	f = open("../../../temp/rd.dat","wb")
+	a = rxmem.mmap(1024*1024*2,s*4-1024*1024*2)
+	f.write(string_at(addressof(a),1024*1024*2))
+	f.close()
 	for i in range(10):
 		e = rxmem.now()
 		print e-s,":"

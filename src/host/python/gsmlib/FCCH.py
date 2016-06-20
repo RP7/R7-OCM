@@ -16,4 +16,4 @@ class FCCH(CH):
 		omg = b.freqEst()
 		freq = omg * SampleRate
 		print "FCCH freq = ",freq
-		return 1,None
+		return 1,b.recv

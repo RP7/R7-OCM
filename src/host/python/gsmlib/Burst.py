@@ -11,6 +11,7 @@ class item:
 		else:
 			return self.__class__.length
 
+
 	@staticmethod
 	def gmsk_mapper( inp, start_point ):
 		inpb = np.array(inp)*2 - 1
@@ -46,8 +47,8 @@ class AGP(item):
 
 class Burst:
 	length = Fraction(625,4)
-	small_overlap = 5
-	large_overlap = length/2
+	small_overlap = 25
+	large_overlap = length
 	mmap = None
 
 	def __init__(self):
@@ -97,7 +98,7 @@ class Burst:
 	@staticmethod
 	def short2Complex(data):
 		nframes = len(data)/2
-		frame = np.array([complex(data[2*i],data[2*i+1]) for i in range(nframes)])
+		frame = np.array([complex(data[2*i],-data[2*i+1]) for i in range(nframes)])
 		return frame
 	
 	def mapRfData(self):
@@ -105,7 +106,7 @@ class Burst:
 			raise NoInstall
 			return
 		s = int(self.pos-Burst.small_overlap)
-		l = int(Burst.length+Burst.small_overlap)
+		l = int(Burst.length+2*Burst.small_overlap)
 		self.recv = Burst.short2Complex(mmap(s,l))
 
 	def mapLData(self):
@@ -113,6 +114,6 @@ class Burst:
 			raise NoInstall
 			return
 		s = int(self.pos-Burst.large_overlap)
-		l = int(Burst.length+Burst.large_overlap)
+		l = int(Burst.length+2*Burst.large_overlap)
 		return Burst.short2Complex(mmap(s,l))
 		

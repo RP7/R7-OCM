@@ -15,6 +15,7 @@ class GSMRoughSync(GSMSync):
 		gsm = GSMChan.GSMChan(rfd)
 		fMap,fpos,fm = gsm.fbsearch()
 		maxa = 0
+		fp,ff,fa = 0,0,0
 		for (p,f,a) in fpos:
 			if a>maxa:
 				fp,ff,fa = p,f,a
@@ -28,7 +29,7 @@ class GSMRoughSync(GSMSync):
 		self.setFrameStart(new_frame)
 		ppm = self.calcPPM(ff)
 		self.AFC(ppm)
-		print "freq error",ppm,"ppm"
+		print "freq error",ppm,"ppm",new_frame
 		return ff
 
 def main():

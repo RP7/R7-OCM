@@ -66,7 +66,7 @@ class GSMSync:
 			print "resync:"
 			return None
 		mfs = (now-last)/self.sfl
-		newStart = (mfs+1)*self.sfl+last
+		newStart = (mfs)*self.sfl+last
 		while self.rx.now()<newStart+offset+length:
 			print "*",
 			time.sleep(self.multiframe)
