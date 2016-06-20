@@ -37,12 +37,14 @@ now = sync.rx.now()
 for i in range(len(C0.frame)):
 	f = C0.frame[i]
 	for b in f:
+		print b.pos,b.fn,b.sn
 		if b.ch!=None:
 			b.mapRfData()
 			ok,data = b.ch.callback(b,i)
 			if ok:
 				if data!=None:
 					plt.plot(data)
+
 	while(sync.rx.now()<now+i*sync.fl):
 		time.sleep(0.01)
 		
