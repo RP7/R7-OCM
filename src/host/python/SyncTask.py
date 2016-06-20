@@ -25,7 +25,7 @@ fcch.attach(C0)
 def mmap(s,l):
 	fs = long(sync.getFrameStart()+s*config.SampleRate/gsm.SymbolRate)
 	ls = long(l*config.SampleRate/gsm.SymbolRate)
-	#print ls,l
+	#print "fs,ls,s,l",fs,ls,s,l
 	return sync.rx.mmap(ls*4,fs*4)
 
 def flash():
@@ -39,15 +39,16 @@ def flash():
 	newStart = (mfs+1)*sync.sfl+last
 	sync.setFrameStart(newStart)
 
-def mflash(fl=sync.mfl):
+def mflash():
 	now = sync.rx.now()
 	last = sync.getFrameStart()
 	if last>now:
 		last = now
 		print "resync:"
 		return None
-	mfs = (now-last)/fl
-	newStart = mfs*fl+last
+	fl = 1920*120*51/26.
+	mfs = long((now-last)/fl)
+	newStart = long(mfs*fl+last)
 	sync.setFrameStart(newStart)
 	while(sync.rx.now()<newStart+fl):
 		time.sleep(0.01)
@@ -62,8 +63,8 @@ gsmlib.Burst.mmap = mmap
 # 	print "rough sync:",f0
 # 	time.sleep(1)
 
+mflash()
 now = sync.rx.now()
-time.sleep(0.01)
 for i in range(51*26):
 	f = C0.frame[i]
 	for b in f:
@@ -71,15 +72,16 @@ for i in range(51*26):
 			b.mapRfData()
 			ok,data = b.ch.callback(b,i)
 			if ok:
-				if b.__class__.__name__=="SB":
+				if b.__class__.__name__=="FB":
 					plt.plot(data)
 
 	while(sync.rx.now()<now+i*sync.fl):
-		time.sleep(0.01)
+	 	time.sleep(0.01)
+	 	print "x",
 last = sync.getFrameStart()
 print sch.hit
 fsnew = sch.frameStart()
-#sync.setFrameStart(last+fsnew)
+sync.setFrameStart(last+fsnew)
 
 print "new fs",fsnew
 
@@ -179,3 +181,8 @@ def dec(a):
 		else:
 			r += "0"
 	print r[:62],r[62:62+26],r[62+26:62*2+26],r[62*2+26:],len(r)
+
+def adjust(n):
+	last = sync.getFrameStart()
+	sync.setFrameStart(last+n)
+

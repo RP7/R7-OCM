@@ -12,5 +12,5 @@ def findFreq(s,fc,df,fs):
 def autocorrelation(s,k):
 	s0 = s[:-k]
 	s1 = s[k:]
-	return np.dot(s0,s1)
+	return sum(s1*np.conj(s0))
 	
