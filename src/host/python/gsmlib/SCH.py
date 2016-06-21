@@ -10,11 +10,16 @@ class SCH(CH):
 		CH.__init__(self)
 		self.hit = {}
 		self.osr = float(SampleRate/SymbolRate)
-
-	def callback(self,b,fn):
-		p = b.peek(self.osr)
-		pos = p.argmax()
-		print "find at",pos
+		self.ovL = int(SB.overheadL()*self.osr)
+		self.ovS = int(SB.overheadS()*self.osr)
+	def callback(self,b,fn,state):
+		if state.timingSyncState.state==1:
+			p = b.peekL(self.osr)
+			pos = p.argmax()-self.ovL
+		elif state.timingSyncState.state==2:
+			p = b.peekS(self.osr)
+			pos = p.argmax()-self.ovS
+			
 		if pos in self.hit:
 			self.hit[pos] += 1
 		else:
@@ -22,18 +27,20 @@ class SCH(CH):
 		return 1,p
 
 	def frameStart(self):
-		ov = SB.overhead()
-		print "ov",ov
 		p = 0
 		h = 0
 		for pos in self.hit:
 			if self.hit[pos]>h:
 				h=self.hit[pos]
 				p = pos
-		print "final find at",p
-		p -= int(ov*self.osr)
+		r = 0
+
+		for x in [p-1,p,p+1]:
+			if x in self.hit:
+				r += self.hit[x]
+
 		self.hit = {}
-		return p
+		return p,r
 
 
 

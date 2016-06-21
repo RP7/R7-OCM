@@ -32,13 +32,18 @@ class SB(Burst):
 	def __init__(self):
 		Burst.__init__(self)
 
-	def peek(self,ovs):
+	def peekL(self,ovs):
 		f = self.mapLData()
 		return np.abs(self.channelEst(f,SBTraining.modulated,ovs))
+	def peekS(self,ovs):
+		return np.abs(self.channelEst(self.recv,SBTraining.modulated,ovs))
 
 	@staticmethod
-	def overhead():
+	def overheadL():
 		return TB.length+SBM0.length+Burst.large_overlap
+	@staticmethod
+	def overheadS():
+		return TB.length+SBM0.length+Burst.small_overlap
 
 def main():
 	a = SB()
