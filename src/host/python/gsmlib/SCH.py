@@ -18,7 +18,12 @@ class SCH(CH):
 			pos = p.argmax()-self.ovL
 		elif state.timingSyncState.state==2:
 			p = b.peekS(self.osr)
-			pos = p.argmax()-self.ovS
+			pos = p.argmax()
+
+			b.setChEst(pos)
+
+			pos -= self.ovS
+
 			
 		if pos in self.hit:
 			self.hit[pos] += 1

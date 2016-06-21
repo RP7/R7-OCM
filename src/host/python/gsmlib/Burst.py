@@ -50,6 +50,7 @@ class Burst:
 	small_overlap = 25
 	large_overlap = length
 	mmap = None
+	CHAN_IMP_RESP_LENGTH = 5
 
 	def __init__(self):
 		if hasattr(self.__class__,"__field__"):

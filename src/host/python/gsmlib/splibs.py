@@ -13,4 +13,29 @@ def autocorrelation(s,k):
 	s0 = s[:-k]
 	s1 = s[k:]
 	return sum(s1*np.conj(s0))
-	
+
+def matchFilter(d,h,osr,timing):
+	rh = np.conj(h)
+	s = 0.
+	l = int((len(d)-len(h)-1)/osr)
+	ret = np.zeros(l,dtype=complex)
+	for k in range(l):
+		s = k*osr+timing
+		p = int(s)
+		f = s-p
+		a = np.dot(d[p:p+len(rh)],rh)
+		b = np.dot(d[p+1:p+1+len(rh)],rh)
+		ret[k]=a*(1-f)+b*f
+	return ret
+
+def maxwin(d,l):
+	pd = d*np.conj(d)
+	sump = np.zeros(len(pd))
+	s = 0.
+	for k in range(len(sump)):
+		s += pd[k].real
+		sump[k]=s
+	dsump = sump[l:]-sump[:-l]
+	p = dsump.argmax()
+	return d[p:p+l],p
+

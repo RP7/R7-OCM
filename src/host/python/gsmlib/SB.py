@@ -1,5 +1,6 @@
 import numpy as np
 from Burst import *
+import splibs
 
 class SBMessage(item):
 	length = 39
@@ -35,9 +36,24 @@ class SB(Burst):
 	def peekL(self,ovs):
 		f = self.mapLData()
 		return np.abs(self.channelEst(f,SBTraining.modulated,ovs))
+	
 	def peekS(self,ovs):
-		return np.abs(self.channelEst(self.recv,SBTraining.modulated,ovs))
-
+		self.ovs = ovs
+		self.chn = self.channelEst(self.recv,SBTraining.modulated,ovs)
+		return np.abs(self.chn)
+	
+	def setChEst(self,pos):
+		self.trainingPos = pos
+		self.chn_len = int(Burst.CHAN_IMP_RESP_LENGTH*self.ovs)
+		self.cut_chn,self.cut_pos = splibs.maxwin(self.chn[pos-32:pos+32],self.chn_len)
+		self.cut_pos += pos-32
+		self.bs = self.cut_pos-int(TB.length+SBM0.length)*self.ovs
+		self.ibs = int(self.bs)
+		self.timing = self.bs-self.ibs
+		self.be = self.ibs+int(Burst.length*self.ovs+self.chn_len+1)
+		self.rhh = splibs.matchFilter(self.chn[self.cut_pos:self.cut_pos+self.chn_len*2],self.cut_chn,self.ovs,0.)
+		self.mafi = splibs.matchFilter(self.recv[self.ibs:self.be],self.cut_chn,self.ovs,self.timing)
+		
 	@staticmethod
 	def overheadL():
 		return TB.length+SBM0.length+Burst.large_overlap
