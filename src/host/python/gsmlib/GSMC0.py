@@ -151,13 +151,16 @@ class GSMC0:
 			del self.multiFrameCallBacks[f]
 
 	def frameTrack(self,s,N,a):
+		if self.state.timingSyncState.name()!="fine":
+			print "hit:",self.sch.hit
 		fsnew,r = self.sch.frameStart()
 
 		print "Sleep",self.sleepTime,"fs new",fsnew,"r",r,
+		
 		if r<130*0.7:
 			if self.state.timingSyncState.name()=="fine":
 				self.state.timingSyncState.to("rough")
-			if self.state.timingSyncState.count("rough")>4:
+			if self.state.timingSyncState.count("rough")>3:
 				self.state.timingSyncState.to("init")
 				self.state.freqSyncState.to("init")
 		else:
@@ -171,7 +174,7 @@ class GSMC0:
 	def run(self):
 		self.reset()
 		cnt = 0
-		while cnt<3*51*26:
+		while cnt<7*51*26:
 			if self.state.freqSyncState.name()=="init":
 				ok,data = self.findFCCH()
 				if ok==1:

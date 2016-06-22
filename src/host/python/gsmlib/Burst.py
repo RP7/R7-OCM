@@ -86,20 +86,21 @@ class Burst:
 		self.ch = None
 
 	def channelEst( self, frame, training, osr ):
+		t = np.conj(training)
 		inx = np.floor(np.arange(len(training))*osr)
 		last = int(inx[-1]+1)
 		out = np.zeros(len(frame)-last,dtype=complex)
 		for k in range(len(out)):
 			slc = frame[k:]
 			s = slc[inx.astype(int)]
-			r = np.dot(s,training)
+			r = np.dot(s,t)
 			out[k] = r
 		return out
 	
 	@staticmethod
 	def short2Complex(data):
 		nframes = len(data)/2
-		frame = np.array([complex(data[2*i],-data[2*i+1]) for i in range(nframes)])
+		frame = np.array([complex(data[2*i],data[2*i+1]) for i in range(nframes)])
 		return frame
 	
 	def mapRfData(self):

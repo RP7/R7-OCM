@@ -32,7 +32,7 @@ class SB(Burst):
 
 	def __init__(self):
 		Burst.__init__(self)
-
+		
 	def peekL(self,ovs):
 		f = self.mapLData()
 		return np.abs(self.channelEst(f,SBTraining.modulated,ovs))
@@ -51,9 +51,31 @@ class SB(Burst):
 		self.ibs = int(self.bs)
 		self.timing = self.bs-self.ibs
 		self.be = self.ibs+int(Burst.length*self.ovs+self.chn_len+1)
-		self.rhh = splibs.matchFilter(self.chn[self.cut_pos:self.cut_pos+self.chn_len*2],self.cut_chn,self.ovs,0.)
+		rhh = splibs.matchFilter( 
+			  self.chn[self.cut_pos:int(self.cut_pos+self.chn_len+(Burst.CHAN_IMP_RESP_LENGTH+2)/2.*self.ovs)]
+			, self.cut_chn
+			, self.ovs
+			, 0. )/64.
+
+		self.rhh = np.zeros(len(rhh)*2-1,dtype=complex)
+		self.rhh[:len(rhh)]=np.conj(rhh[::-1])
+		self.rhh[len(rhh):]=rhh[1:]
+
 		self.mafi = splibs.matchFilter(self.recv[self.ibs:self.be],self.cut_chn,self.ovs,self.timing)
-		
+	
+	def tofile(self,p):
+		self.save = { 'rhh':self.rhh
+					, 'mafi':self.mafi
+					, 'training':SBTraining.modulated
+				}
+		for f in self.save:
+			np.savetxt(p+f,self.save[f])
+	
+	def fromfile(self,p):
+		for f in self.save:
+			self.save[f]=np.savetxt(p+f)
+	
+
 	@staticmethod
 	def overheadL():
 		return TB.length+SBM0.length+Burst.large_overlap

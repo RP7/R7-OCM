@@ -26,6 +26,7 @@ class FCCH(CH):
 		c = []
 		buf = np.frombuffer(rawmf,dtype=np.int16)
 		c = np.zeros((len(buf)/2-1),dtype=int)
+
 		for i in range(len(buf)/2-1):
 			r = int(buf[i*2+2])*int(buf[i*2+1])-int(buf[i*2])*int(buf[i*2+3])
 			if r>0:

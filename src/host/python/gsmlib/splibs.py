@@ -10,9 +10,7 @@ def findFreq(s,fc,df,fs):
 	return slif
 
 def autocorrelation(s,k):
-	s0 = s[:-k]
-	s1 = s[k:]
-	return sum(s1*np.conj(s0))
+	return np.dot(s[k:],np.conj(s[:-k]))
 
 def matchFilter(d,h,osr,timing):
 	rh = np.conj(h)
@@ -38,4 +36,16 @@ def maxwin(d,l):
 	dsump = sump[l:]-sump[:-l]
 	p = dsump.argmax()
 	return d[p:p+l],p
+
+def filter(a,b):
+	rb = b[::-1]
+	c = np.zeros((len(a)+len(b)-1),dtype=complex)
+	ae = np.zeros((len(a)+2*len(b)-1),dtype=complex)
+	ae[len(b)-1:len(a)+len(b)-1]=a
+	for i in range(len(c)):
+		c[i]=np.dot(rb,ae[i:i+len(b)])
+	return c
+
+def viterbi():
+	pass
 

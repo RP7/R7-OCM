@@ -17,3 +17,5 @@ plt.plot(r)
 plt.show()
 
 sb = c0.C0.frame[1][0]
+ret = sp.filter(sb.__class__.__field__[2].modulated,sb.rhh)
+sb.tofile("../../../data/")
