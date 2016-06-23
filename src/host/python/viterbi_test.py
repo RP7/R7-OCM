@@ -15,6 +15,9 @@ mafi = readfile("../../../data/mafi")
 training = readfile("../../../data/training")
 rhh = readfile("../../../data/rhh")
 
+mafi = mafi/rhh[2]
+rhh = rhh/rhh[2]
+
 def toState(t,r_i):
 	"""
 	1  -> 1
@@ -51,7 +54,6 @@ def s2s(s,r_i):
 		s >>=1
 		if (i+inc)%2 == 0:
 			ret[i] *= 1.j
-	print r_i,s,ret
 	return ret
 
 
@@ -61,7 +63,26 @@ def table(r):
 		for s in range(32):
 			t[r_i][s]=np.dot(s2s(s,r_i),r)
 	return t
-
+def mindiff(x,h):
+    y = h-x
+    yy = y*np.conj(y)
+    return bin(yy.argmin())
+def t2b(t,r_i):
+    l = []
+    for x in t:
+        if r_i==0:
+            v = x.imag
+        else:
+            v = x.real
+        if v>0:
+            l.append(1)
+        else:
+            l.append(0)
+        r_i = 1 - r_i
+    return l 
+            
+def maxState(h):
+    return h.argmax()    
 def forward(t,m,start,r_i,l):
 	(i,sn) = t.shape
 	sn /= 2
@@ -73,6 +94,7 @@ def forward(t,m,start,r_i,l):
 	for i in range(l):
 		for s in range(sn/2):
 			# shift in 0
+			#print s,metrics[s,i],metrics[s+sn/2,i],m[i],t[r_i,s*2],t[r_i,s*2+sn],t[r_i,s*2+1],t[r_i,s*2+sn+1]
 			m00 = metrics[s,i]+(m[i]*t[r_i,s*2]).real
 			m08 = metrics[s+sn/2,i]+(m[i]*t[r_i,s*2+sn]).real
 			if m00>m08:
@@ -81,7 +103,8 @@ def forward(t,m,start,r_i,l):
 			else:
 				metrics[s*2,i+1]=m08
 				tracback[s*2,i]=1
-			# shift in 0
+			print m00,m08,
+			# shift in 1
 			m10 = metrics[s,i]+(m[i]*t[r_i,s*2+1]).real
 			m18 = metrics[s+sn/2,i]+(m[i]*t[r_i,s*2+sn+1]).real
 			if m10>m18:
@@ -90,7 +113,9 @@ def forward(t,m,start,r_i,l):
 			else:
 				metrics[s*2+1,i+1]=m18
 				tracback[s*2+1,i]=1
-
+			print m10,m18
+                print r_i,m[i],mindiff(m[i],t[r_i,:])
+                print maxState(metrics[:,i+1]),tracback[:,i]
 		r_i = 1 - r_i
 	end = metrics[:,l]
 	ends = end.argmax()
@@ -112,10 +137,11 @@ def forward(t,m,start,r_i,l):
 t = table(rhh)
 fout = np.zeros(64,dtype=complex)
 for i in range(64-5):
+    
 	ss = toState(training[i:i+5],i%2)
 	r_i = i%2
-	print "%4d"%ss,t[r_i][ss],mafi[42+2+i]
+	#print training[i],"%4d"%(ss),t[r_i][ss],mafi[42+2+i]
 	fout[i]=t[r_i][ss]
 
-x = forward(t,mafi[42+64-2:],2,1,len(mafi[42+64-2:]))
-
+x = forward(np.conj(t),mafi[42:],0,0,len(mafi[42:]))
+y = t2b(training,0)
