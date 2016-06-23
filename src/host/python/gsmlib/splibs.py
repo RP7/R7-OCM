@@ -33,6 +33,7 @@ def maxwin(d,l):
 	for k in range(len(sump)):
 		s += pd[k].real
 		sump[k]=s
+	#print "len",len(d),l
 	dsump = sump[l:]-sump[:-l]
 	p = dsump.argmax()
 	return d[p:p+l],p

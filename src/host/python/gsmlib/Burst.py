@@ -1,5 +1,7 @@
 from fractions import Fraction
 import numpy as np
+import config
+import GSM as gsm
 
 class item:
 	def getLen(self):
@@ -51,6 +53,11 @@ class Burst:
 	large_overlap = length
 	mmap = None
 	CHAN_IMP_RESP_LENGTH = 5
+	osr = config.SampleRate/gsm.SymbolRate
+	fosr = float(osr)
+	chn_len = int(CHAN_IMP_RESP_LENGTH*fosr)
+	trainingPos = int(length*osr/2+small_overlap)	
+	chnMatchLength = int(chn_len+(CHAN_IMP_RESP_LENGTH+2)/2.*fosr)
 
 	def __init__(self):
 		if hasattr(self.__class__,"__field__"):
@@ -85,9 +92,9 @@ class Burst:
 	def deattach(self):
 		self.ch = None
 
-	def channelEst( self, frame, training, osr ):
+	def channelEst( self, frame, training):
 		t = np.conj(training)
-		inx = np.floor(np.arange(len(training))*osr)
+		inx = np.floor(np.arange(len(training))*Burst.fosr)
 		last = int(inx[-1]+1)
 		out = np.zeros(len(frame)-last,dtype=complex)
 		for k in range(len(out)):

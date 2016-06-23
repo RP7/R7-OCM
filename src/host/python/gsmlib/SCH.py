@@ -14,13 +14,13 @@ class SCH(CH):
 		self.ovS = int(SB.overheadS()*self.osr)
 	def callback(self,b,fn,state):
 		if state.timingSyncState.state==1:
-			p = b.peekL(self.osr)
+			p = b.peekL()
 			pos = p.argmax()-self.ovL
 		elif state.timingSyncState.state==2:
-			p = b.peekS(self.osr)
+			p = b.peekS()
 			pos = p.argmax()
 
-			b.setChEst(pos)
+			b.setChEst()
 
 			pos -= self.ovS
 
