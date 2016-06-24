@@ -9,9 +9,9 @@ class viterbi_detector:
 		self.Bmetrics  = np.zeros((self.SN,L+1))
 		self.tracback = np.zeros((self.SN,L),dtype=int)
 		self.f_r_i = (len(training)-self.K+1)%2
-		self.b_r_i = 0
+		self.b_r_i = 1
 		self.startFS = self.toState(training[-(self.K-1):],self.f_r_i)
-		self.startBS = self.toState(training[(self.K-1)::-1],0) 
+		self.startBS = self.toState(training[:(self.K-1)],0) 
 
 		
 	def toState(self,t,r_i):
@@ -58,12 +58,15 @@ class viterbi_detector:
 		for r_i in range(2):
 			for s in range(self.SN*2):
 				self.t[r_i][s]=np.dot(self.s2s(s,r_i),r)
-		self.t = np.conj(self.t)
+		
 
 	def mindiff(self,x,h):
 		y = h-x
 		yy = y*np.conj(y)
 		return bin(yy.argmin())
+	
+	def metric(self,x,y):
+		return -((x-y)*np.conj(x-y)).real
 
 	def t2b(self,t,r_i):
 		l = []
@@ -89,16 +92,16 @@ class viterbi_detector:
 			self.Fmetrics[self.startFS,0]=0
 		for i in range(self.L):
 			for s in range(self.SN/2):
-				m00 = self.Fmetrics[s,i]+(m[i]*self.t[r_i,s*2]).real
-				m08 = self.Fmetrics[s+self.SN/2,i]+(m[i]*self.t[r_i,s*2+self.SN]).real
+				m00 = self.Fmetrics[s,i]+self.metric(m[i],self.t[r_i,s*2])
+				m08 = self.Fmetrics[s+self.SN/2,i]+self.metric(m[i],self.t[r_i,s*2+self.SN])
 				if m00>m08:
 					self.Fmetrics[s*2,i+1]=m00
 					self.tracback[s*2,i]=0
 				else:
 					self.Fmetrics[s*2,i+1]=m08
 					self.tracback[s*2,i]=1
-				m10 = self.Fmetrics[s,i]+(m[i]*self.t[r_i,s*2+1]).real
-				m18 = self.Fmetrics[s+self.SN/2,i]+(m[i]*self.t[r_i,s*2+self.SN+1]).real
+				m10 = self.Fmetrics[s,i]+self.metric(m[i],self.t[r_i,s*2+1])
+				m18 = self.Fmetrics[s+self.SN/2,i]+self.metric(m[i],self.t[r_i,s*2+self.SN+1])
 				if m10>m18:
 					self.Fmetrics[s*2+1,i+1]=m10
 					self.tracback[s*2+1,i]=0
@@ -121,12 +124,6 @@ class viterbi_detector:
 			ends += b*self.SN/2
 
 		return ret[::-1]
-	def __backward(self,m):
-		#self.t = np.conj(self.t)
-		m = m[::-1]
-		self.startFS = self.startBS
-		r = self.forward(m)
-		return r[::-1]
 
 	def backward(self,m):
 		r_i = self.b_r_i
@@ -136,8 +133,8 @@ class viterbi_detector:
 		for i in range(self.L-1,-1,-1):
 			mm = m[i]
 			for s in range(self.SN/2):
-				m00 = self.Bmetrics[2*s,i+1]+(mm*self.t[r_i,2*s]).real
-				m08 = self.Bmetrics[2*s+1,i+1]+(mm*self.t[r_i,s*2+1]).real
+				m00 = self.Bmetrics[2*s,i+1]+self.metric(mm,self.t[r_i,2*s])
+				m08 = self.Bmetrics[2*s+1,i+1]+self.metric(mm,self.t[r_i,s*2+1])
 				if m00>m08:
 					self.Bmetrics[s,i]=m00
 					self.tracback[s,i]=0
@@ -146,8 +143,8 @@ class viterbi_detector:
 					self.Bmetrics[s,i]=m08
 					self.tracback[s,i]=1
 					s0 = 2*s+1
-				m10 = self.Bmetrics[2*s,i+1]+(mm*self.t[r_i,s*2+self.SN]).real
-				m18 = self.Bmetrics[2*s+1,i+1]+(mm*self.t[r_i,s*2+self.SN+1]).real
+				m10 = self.Bmetrics[2*s,i+1]+self.metric(mm,self.t[r_i,s*2+self.SN])
+				m18 = self.Bmetrics[2*s+1,i+1]+self.metric(mm,self.t[r_i,s*2+self.SN+1])
 				if m10>m18:
 					self.Bmetrics[s+self.SN/2,i]=m10
 					self.tracback[s+self.SN/2,i]=0
@@ -156,7 +153,7 @@ class viterbi_detector:
 					self.Bmetrics[s+self.SN/2,i]=m18
 					self.tracback[s+self.SN/2,i]=1
 					s1 = 2*s+self.SN+1
-				print (s>>1)&1,mm,s0,s1
+				#print (s>>1)&1,mm,s0,s1
 				
 			#print self.Bmetrics[:,i]
 			r_i = 1 - r_i
@@ -165,8 +162,8 @@ class viterbi_detector:
 		ret = []
 		es = ends
 		for i in range(self.K-1):
-			ret.append(es&1)
-			es >>= 1
+			ret.append((es>>(self.K-1-1))&1)
+			es <<= 1
 
 		for i in range(self.L):
 			b = self.tracback[ends,i]
@@ -176,15 +173,56 @@ class viterbi_detector:
 			ends &= (self.SN-1)
 
 		return ret
-	def dediff(self,msg):
-		r_i = 1
+	def dediff_forward(self,msg,r_i,s):
 		r = []
+		r_i = 1-r_i
 		for i in range(len(msg)-1):
 			r.append(msg[i]^msg[i+1]^r_i)
 			r_i = 1-r_i
-		return r
+		d = s
+		dr = [d]
+		for x in r:
+			d = d^x
+			dr.append(d)
+		return dr
+
+	def dediff_backward(self,msg,r_i,e):
+		r = []
+		r_i = 1-r_i
+		for i in range(len(msg)-1):
+			r.append(msg[i]^msg[i+1]^r_i)
+			r_i = 1-r_i
+		d = e
+		dr = [0]*len(msg)
+		dr[-1]=e
+		for k in range(len(r)-1,-1,-1):
+			d = d^r[k]
+			dr[k] = d
+		return dr
 
 	def outMsg(self,a):
 		for x in a:
 			print x,
 		print ""
+
+	def restore_forward(self,msg,starts,r_i):
+		ret = np.zeros(len(msg),dtype=complex)
+		i = 0
+		for x in msg:
+			starts *= 2
+			starts += x
+			ret[i]=self.t[r_i,starts]
+			r_i = 1-r_i
+			starts &= self.SN-1
+			i+=1
+		return ret
+	def restore_backward(self,msg,starts,r_i):
+		ret = np.zeros(len(msg),dtype=complex)
+		i = len(msg)-1
+		for x in msg[::-1]:
+			starts /= 2
+			starts += x*self.SN
+			ret[i]=self.t[r_i,starts]
+			r_i = 1-r_i
+			i-=1
+		return ret

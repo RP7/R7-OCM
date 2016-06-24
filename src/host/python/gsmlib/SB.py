@@ -45,13 +45,14 @@ class SB(Burst):
 		return np.abs(self.chn)
 	
 	def setChEst(self):
-		#print len(self.chn),len(self.chn[Burst.trainingPos-32:Burst.trainingPos+32]),Burst.trainingPos
 		self.cut_chn,self.cut_pos = splibs.maxwin(self.chn[Burst.trainingPos-32:Burst.trainingPos+32],Burst.chn_len)
 		self.cut_pos += Burst.trainingPos-32
 		self.bs = self.cut_pos-int(TB.length+SBM0.length)*Burst.fosr #maybe wrony
 		self.ibs = int(self.bs)
 		self.timing = self.bs-self.ibs
 		self.be = self.ibs+int(Burst.length*Burst.fosr+Burst.chn_len+1)
+	
+	def viterbi(self):
 		rhh = splibs.matchFilter( 
 			  self.chn[self.cut_pos:self.cut_pos+Burst.chnMatchLength]
 			, self.cut_chn
@@ -64,11 +65,12 @@ class SB(Burst):
 
 		self.mafi = splibs.matchFilter(self.recv[self.ibs:self.be],self.cut_chn,Burst.fosr,self.timing)
 		self.viterbi.table(self.rhh)
-		msg = self.viterbi.forward(self.mafi)
-		msg = self.viterbi.dediff(msg)
-		self.sbm0 = msg[4:43]
-		self.sbm1 = msg[43+64:43+64+39]
-		
+		a = self.viterbi.forward(self.mafi[42+62:])
+		b = self.viterbi.backward(self.mafi[:44])
+		self.sbm0 = self.dediff_backward(b,0,SBTraining.bits[3])[2:-4]
+		self.sbm1 = self.dediff_forward(a,0,SBTraining.bits[-4])[4:-2]
+
+
 	def tofile(self,p):
 		self.save = { 'rhh':self.rhh
 					, 'mafi':self.mafi

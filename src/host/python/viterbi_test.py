@@ -2,7 +2,7 @@ import numpy as np
 
 import gsmlib.splibs as sp
 import matplotlib.pyplot as plt
-
+from gsmlib.SB import SB,SBTraining
 def readfile(fn):
 	f = open(fn)
 	l = []
@@ -147,18 +147,38 @@ y = t2b(training,0)
 
 from gsmlib.viterbi_detector import viterbi_detector
 
-v = viterbi_detector(5,len(mafi),training)
+v = viterbi_detector(5,44,training)
 v.table(rhh)
 #z = v.forward(mafi[42+62:])
-a = v.forward(mafi)
-v.table(np.conj(rhh))
-b = v.backward(mafi[::-1])
-b = b[::-1]
+#v.startFS = 0
+#v.startBS = 0
+a = v.forward(mafi[42+62:])
+# v.table(np.conj(rhh))
+# b = v.backward(mafi[::-1])
+# b = b[::-1]
+
+b = v.backward(mafi[:44])
+
 x = forward(np.conj(t),mafi,0,0,len(mafi))
 
-# c = v.forward(mafi[::-1])
-# c = c[::-1]
-# d = v.backward(mafi[::-1])
-# d = d[::-1]
+v.table(rhh)
+ra = v.restore_forward(a,0,0)
+rb = v.restore_backward(a,0,1)
+
+# plt.figure(0)
+# plt.plot(rb.real,'r')
+# plt.plot(mafi.real,'b')
+# plt.figure(1)
+# plt.plot(rb.imag,'r')
+# plt.plot(mafi.imag,'b')
+# plt.show()
 
 
+print "b:",
+v.outMsg(v.dediff_backward(b,0,SBTraining.bits[3]))
+
+print "a:",
+v.outMsg(v.dediff_forward(a,0,SBTraining.bits[-4]))
+
+print "x:",
+v.outMsg(v.dediff_backward(x,1,0))
