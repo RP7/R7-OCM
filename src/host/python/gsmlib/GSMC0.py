@@ -122,6 +122,7 @@ class GSMC0:
 			if b.ch!=None:
 				b.mapRfData()
 				ok,data = b.ch.callback(b,_F,self.state)
+			b.default_callback(_F,self.state)
 	
 	def wait(self):
 		w = self.getFrameStart()+long(self._fn*self.fl)

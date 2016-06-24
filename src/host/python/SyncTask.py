@@ -5,13 +5,14 @@ import Q7Mem
 
 import numpy as np
 import gsmlib.splibs as sp
-
+import gsmlib.Burst as Burst
 rx = Q7Mem.rx()
 c0 = C0.GSMC0()
 c0.setRx(rx)
 c0.initSCH()
+Burst.Burst.log = open("../../../temp/log","wt")
 r = c0.run()
-
+Burst.Burst.log.close()
 plt.plot(r)
 
 plt.show()
