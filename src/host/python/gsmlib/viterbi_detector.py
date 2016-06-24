@@ -111,6 +111,7 @@ class viterbi_detector:
 			r_i = 1 - r_i
 		end = self.Fmetrics[:,self.L]
 		ends = end.argmax()
+		#ends = 0
 		ret = []
 		es = ends
 		for i in range(self.K-1):
@@ -159,6 +160,7 @@ class viterbi_detector:
 			r_i = 1 - r_i
 		end = self.Bmetrics[:,0]
 		ends = end.argmax()
+		#ends = 0
 		ret = []
 		es = ends
 		for i in range(self.K-1):
