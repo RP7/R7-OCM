@@ -240,7 +240,10 @@ class GSMC0:
 		self.state.timingSyncState.to("init")
 		self.state.freqSyncState.to("init")
 		self.waitClockStable()
-		self.setFrameStart(long(0))
+		if self.rx.now()>self.mfl:
+			self.setFrameStart(long(self.mfl))
+		else:
+			self.setFrameStart(long(0))
 		self.flash()
 	
 	def waitClockStable( self ):

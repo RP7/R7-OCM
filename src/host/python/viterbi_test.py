@@ -103,7 +103,7 @@ def forward(t,m,start,r_i,l):
 			else:
 				metrics[s*2,i+1]=m08
 				tracback[s*2,i]=1
-			print m00,m08,
+			#print m00,m08,
 			# shift in 1
 			m10 = metrics[s,i]+(m[i]*t[r_i,s*2+1]).real
 			m18 = metrics[s+sn/2,i]+(m[i]*t[r_i,s*2+sn+1]).real
@@ -113,16 +113,16 @@ def forward(t,m,start,r_i,l):
 			else:
 				metrics[s*2+1,i+1]=m18
 				tracback[s*2+1,i]=1
-			print m10,m18
-                print r_i,m[i],mindiff(m[i],t[r_i,:])
-                print maxState(metrics[:,i+1]),tracback[:,i]
+			#print m10,m18
+        #print r_i,m[i],mindiff(m[i],t[r_i,:])
+		print "%3d %3d"%(i,maxState(metrics[:,i+1])),tracback[:,i],m[i]
 		r_i = 1 - r_i
 	end = metrics[:,l]
 	ends = end.argmax()
 	print "end state",ends
 	ret = []
 	es = ends
-	for i in range(5):
+	for i in range(4):
 		ret.append(es&1)
 		es >>= 1
 
@@ -143,5 +143,22 @@ for i in range(64-5):
 	#print training[i],"%4d"%(ss),t[r_i][ss],mafi[42+2+i]
 	fout[i]=t[r_i][ss]
 
-x = forward(np.conj(t),mafi[42:],0,0,len(mafi[42:]))
 y = t2b(training,0)
+
+from gsmlib.viterbi_detector import viterbi_detector
+
+v = viterbi_detector(5,len(mafi),training)
+v.table(rhh)
+#z = v.forward(mafi[42+62:])
+a = v.forward(mafi)
+v.table(np.conj(rhh))
+b = v.backward(mafi[::-1])
+b = b[::-1]
+x = forward(np.conj(t),mafi,0,0,len(mafi))
+
+# c = v.forward(mafi[::-1])
+# c = c[::-1]
+# d = v.backward(mafi[::-1])
+# d = d[::-1]
+
+

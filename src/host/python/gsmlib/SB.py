@@ -1,6 +1,7 @@
 import numpy as np
 from Burst import *
 import splibs
+import viterbi_detector
 
 class SBMessage(item):
 	length = 39
@@ -29,9 +30,11 @@ class SB(Burst):
 
 	__field__ = [TB,SBM0,SBTraining,SBM1,TB,NGP]
 	__name__ = "SB"
-		
+	__viterbi_cut = 2	
+	__viterbi_f = TB.length+SBM0.length+SBTraining.length - __viterbi_cut
 	def __init__(self):
 		Burst.__init__(self)
+		self.viterbi = viterbi_detector.viterbi_detector(5,156,SBTraining.modulated)
 		
 	def peekL(self):
 		f = self.mapLData()
@@ -60,7 +63,12 @@ class SB(Burst):
 		self.rhh[len(rhh):]=rhh[1:]
 
 		self.mafi = splibs.matchFilter(self.recv[self.ibs:self.be],self.cut_chn,Burst.fosr,self.timing)
-	
+		self.viterbi.table(self.rhh)
+		msg = self.viterbi.forward(self.mafi)
+		msg = self.viterbi.dediff(msg)
+		self.sbm0 = msg[4:43]
+		self.sbm1 = msg[43+64:43+64+39]
+		
 	def tofile(self,p):
 		self.save = { 'rhh':self.rhh
 					, 'mafi':self.mafi
