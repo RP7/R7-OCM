@@ -21,6 +21,7 @@ class SCH(CH):
 			pos = p.argmax()
 
 			b.setChEst()
+			b.viterbi_detector()
 
 			pos -= self.ovS
 

@@ -34,7 +34,7 @@ class SB(Burst):
 	__viterbi_f = TB.length+SBM0.length+SBTraining.length - __viterbi_cut
 	def __init__(self):
 		Burst.__init__(self)
-		self.viterbi = viterbi_detector.viterbi_detector(5,156,SBTraining.modulated)
+		self.viterbi = viterbi_detector.viterbi_detector(5,44,SBTraining.modulated)
 		
 	def peekL(self):
 		f = self.mapLData()
@@ -52,7 +52,7 @@ class SB(Burst):
 		self.timing = self.bs-self.ibs
 		self.be = self.ibs+int(Burst.length*Burst.fosr+Burst.chn_len+1)
 	
-	def viterbi(self):
+	def viterbi_detector(self):
 		rhh = splibs.matchFilter( 
 			  self.chn[self.cut_pos:self.cut_pos+Burst.chnMatchLength]
 			, self.cut_chn
@@ -67,8 +67,8 @@ class SB(Burst):
 		self.viterbi.table(self.rhh)
 		a = self.viterbi.forward(self.mafi[42+62:])
 		b = self.viterbi.backward(self.mafi[:44])
-		self.sbm0 = self.dediff_backward(b,0,SBTraining.bits[3])[2:-4]
-		self.sbm1 = self.dediff_forward(a,0,SBTraining.bits[-4])[4:-2]
+		self.sbm0 = self.viterbi.dediff_backward(b,0,SBTraining.bits[3])[2:-4]
+		self.sbm1 = self.viterbi.dediff_forward(a,0,SBTraining.bits[-4])[4:-2]
 
 
 	def tofile(self,p):
