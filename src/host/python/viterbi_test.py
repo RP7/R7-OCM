@@ -3,6 +3,7 @@ import numpy as np
 import gsmlib.splibs as sp
 import matplotlib.pyplot as plt
 from gsmlib.SB import SB,SBTraining
+from gsmlib.NB import NB,NBTraining
 def readfile(fn):
 	f = open(fn)
 	l = []
@@ -115,7 +116,7 @@ def forward(t,m,start,r_i,l):
 				tracback[s*2+1,i]=1
 			#print m10,m18
         #print r_i,m[i],mindiff(m[i],t[r_i,:])
-		print "%3d %3d"%(i,maxState(metrics[:,i+1])),tracback[:,i],m[i]
+		#print "%3d %3d"%(i,maxState(metrics[:,i+1])),tracback[:,i],m[i]
 		r_i = 1 - r_i
 	end = metrics[:,l]
 	ends = end.argmax()
@@ -148,6 +149,7 @@ y = t2b(training,0)
 from gsmlib.viterbi_detector import viterbi_detector
 
 v = viterbi_detector(5,44,training)
+v.setTraining(training)
 v.table(rhh)
 #z = v.forward(mafi[42+62:])
 #v.startFS = 0
@@ -179,6 +181,51 @@ v.outMsg(v.dediff_backward(b,0,SBTraining.bits[3]))
 
 print "a:",
 v.outMsg(v.dediff_forward(a,0,SBTraining.bits[-4]))
+
+print "x:",
+v.outMsg(v.dediff_backward(x,1,0))
+
+mafi = readfile("../../../data/nbmafi")
+training = readfile("../../../data/nbtraining")
+rhh = readfile("../../../data/nbrhh")
+
+mafi = mafi/rhh[2]
+rhh = rhh/rhh[2]
+
+y = t2b(training,0)
+
+print "y",
+v.outMsg(y)
+print training
+
+v = viterbi_detector(5,61,training)
+v.setTraining(training)
+v.table(rhh)
+#z = v.forward(mafi[42+62:])
+#v.startFS = 0
+#v.startBS = 0
+a = v.forward(mafi[61+24:])
+# v.table(np.conj(rhh))
+# b = v.backward(mafi[::-1])
+# b = b[::-1]
+
+b = v.backward(mafi[:63])
+
+x = forward(np.conj(t),mafi,0,0,len(mafi))
+print "ox",
+v.outMsg(x)
+yy = v.t2b(mafi,0)
+print "hd"
+v.outMsg(yy)
+
+v.table(rhh)
+ra = v.restore_forward(a,0,0)
+rb = v.restore_backward(a,0,1)
+print "b:",
+v.outMsg(v.dediff_backward(b,0,NBTraining.bits[5][3]))
+
+print "a:",
+v.outMsg(v.dediff_forward(a,0,NBTraining.bits[5][-4]))
 
 print "x:",
 v.outMsg(v.dediff_backward(x,1,0))

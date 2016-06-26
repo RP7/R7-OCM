@@ -10,6 +10,8 @@ class viterbi_detector:
 		self.tracback = np.zeros((self.SN,L),dtype=int)
 		self.f_r_i = (len(training)-self.K+1)%2
 		self.b_r_i = 1
+	
+	def setTraining(self,training):
 		self.startFS = self.toState(training[-(self.K-1):],self.f_r_i)
 		self.startBS = self.toState(training[:(self.K-1)],0) 
 

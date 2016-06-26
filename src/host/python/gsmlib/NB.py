@@ -1,4 +1,6 @@
 from Burst import *
+import splibs
+import viterbi_detector
 
 class NBMessage(item):
 	length = 57
@@ -52,9 +54,42 @@ class NB(Burst):
 
 	__field__ = [TB,NBM0,LF0,NBTraining,LF1,NBM1,TB,NGP]
 	__name__ = "NB"
+	_chn_s = int((TB.length+NBM0.length)*Burst.osr)
+	_chn_e = int((TB.length+NBM0.length+LF0.length+NBTraining.length+Burst.CHAN_IMP_RESP_LENGTH)*Burst.osr)+2*Burst.small_overlap
 
 	def __init__(self):
 		Burst.__init__(self)
+		self.viterbi = viterbi_detector.viterbi_detector(5,2+TB.length+NBM0.length+LF0.length,NBTraining.modulated[0,:])
+
+	def chnEst(self):
+		self.chn = self.channelEst(self.recv[NB._chn_s:NB._chn_e],NBTraining.modulated[self.training,:])
+		self.cut_chn,self.cut_pos = splibs.maxwin(self.chn,Burst.chn_len)
+		print "cut pos",self.cut_pos,len(self.cut_chn),Burst.chnMatchLength,len(self.chn)
+		pos = self.cut_pos+NB._chn_s
+		self.bs = pos-float(TB.length+NBM0.length+LF0.length)*Burst.fosr #maybe wrony
+		self.ibs = int(self.bs)
+		self.timing = self.bs-self.ibs
+		self.be = self.ibs+int(Burst.length*Burst.fosr+Burst.chn_len+1)
+
+	def viterbi_detector(self):
+		self.viterbi.f_r_i = 1
+		self.viterbi.setTraining(NBTraining.modulated[self.training,:])
+		rhh = splibs.matchFilter( 
+			  self.chn[self.cut_pos:self.cut_pos+Burst.chnMatchLength]
+			, self.cut_chn
+			, Burst.fosr
+			, 0. )/float(NBTraining.length)
+
+		self.rhh = np.zeros(3*2-1,dtype=complex)
+		self.rhh[3-len(rhh):3]=np.conj(rhh[::-1])
+		self.rhh[3:3+len(rhh)-1]=rhh[1:]
+
+		self.mafi = splibs.matchFilter(self.recv[self.ibs:self.be],self.cut_chn,Burst.fosr,self.timing)
+		self.viterbi.table(self.rhh)
+		a = self.viterbi.forward(self.mafi[61+26-2:])
+		b = self.viterbi.backward(self.mafi[:61+2])
+		self.nbm0 = self.viterbi.dediff_backward(b,0,NBTraining.bits[self.training][3])#[2:-1]
+		self.nbm1 = self.viterbi.dediff_forward(a,0,NBTraining.bits[self.training][-4])#[1:-2]
 
 def main():
 	a = NB()

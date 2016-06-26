@@ -13,7 +13,6 @@ class item:
 		else:
 			return self.__class__.length
 
-
 	@staticmethod
 	def gmsk_mapper( inp, start_point ):
 		inpb = np.array(inp)*2 - 1
@@ -26,6 +25,7 @@ class item:
 			out.append(o)
 			previous_symbol = current_symbol
 		return np.array(out)
+
 	@staticmethod
 	def c2bits(cbits):
 		r = []
