@@ -1,4 +1,5 @@
 import numpy as np
+import numpy as np
 
 import gsmlib.splibs as sp
 import matplotlib.pyplot as plt
