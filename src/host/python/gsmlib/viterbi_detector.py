@@ -11,9 +11,9 @@ class viterbi_detector:
 		self.f_r_i = (len(training)-self.K+1)%2
 		self.b_r_i = 1
 	
-	def setTraining(self,training):
-		self.startFS = self.toState(training[-(self.K-1):],self.f_r_i)
-		self.startBS = self.toState(training[:(self.K-1)],0) 
+	def setTraining(self,training,f_r_i,b_r_i):
+		self.startFS = self.toState(training[-(self.K-1):],f_r_i)
+		self.startBS = self.toState(training[:(self.K-1)],b_r_i) 
 
 		
 	def toState(self,t,r_i):
@@ -230,3 +230,54 @@ class viterbi_detector:
 			r_i = 1-r_i
 			i-=1
 		return ret
+
+	def _forward(self,t,m,start,r_i,l):
+		(i,sn) = t.shape
+		sn /= 2
+		metrics = np.zeros((sn,l+1))
+		tracback = np.zeros((sn,l),dtype=int)
+		for i in range(sn):
+			metrics[i,0]=-1e100
+		metrics[start,0]=0
+		for i in range(l):
+			for s in range(sn/2):
+				# shift in 0
+				#print s,metrics[s,i],metrics[s+sn/2,i],m[i],t[r_i,s*2],t[r_i,s*2+sn],t[r_i,s*2+1],t[r_i,s*2+sn+1]
+				m00 = metrics[s,i]+(m[i]*t[r_i,s*2]).real
+				m08 = metrics[s+sn/2,i]+(m[i]*t[r_i,s*2+sn]).real
+				if m00>m08:
+					metrics[s*2,i+1]=m00
+					tracback[s*2,i]=0
+				else:
+					metrics[s*2,i+1]=m08
+					tracback[s*2,i]=1
+				#print m00,m08,
+				# shift in 1
+				m10 = metrics[s,i]+(m[i]*t[r_i,s*2+1]).real
+				m18 = metrics[s+sn/2,i]+(m[i]*t[r_i,s*2+sn+1]).real
+				if m10>m18:
+					metrics[s*2+1,i+1]=m10
+					tracback[s*2+1,i]=0
+				else:
+					metrics[s*2+1,i+1]=m18
+					tracback[s*2+1,i]=1
+				#print m10,m18
+	        #print r_i,m[i],mindiff(m[i],t[r_i,:])
+			#print "%3d %3d"%(i,maxState(metrics[:,i+1])),tracback[:,i],m[i]
+			r_i = 1 - r_i
+		end = metrics[:,l]
+		ends = end.argmax()
+		print "end state",ends
+		ret = []
+		es = ends
+		for i in range(4):
+			ret.append(es&1)
+			es >>= 1
+
+		for i in range(l-1,0,-1):
+			b = tracback[ends,i]
+			ret.append(b)
+			ends /=2
+			ends += b*sn/2
+
+		return ret[::-1]

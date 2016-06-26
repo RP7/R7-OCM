@@ -1,4 +1,4 @@
-fid = fopen('../../temp/rd.dat');
+fid = fopen('../../../temp/rd.dat');
 gd = fread(fid,192000*20,'int16');
 fclose(fid);
 giq = raw2iq(gd);

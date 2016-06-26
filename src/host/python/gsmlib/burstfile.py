@@ -1,6 +1,6 @@
 from FB import FB
 from SB import SB
-from NB import NB
+from NB import NB,NBTraining
 from DB import DB
 from Burst import Burst
 import numpy as np
@@ -71,28 +71,44 @@ def main():
 
 	fn = "../../../../temp/log"
 	f = burstfile(fn)
-	f.skip(8*51*26*2+8*1)
-	co = ['r','b','y','g','r.','b.','y.','g.']
-	for i in range(160):
+	f.skip(8*51*26*2)
+	tlist = [0,0,0,0,0,0,0,0]
+	#co = ['r','b','y','g','r.','b.','y.','g.']
+	
+				
+	for i in range(6):
 		b = f.readBurst()
 		if b == None:
 			continue
-		if b.__class__.__name__=='':
-			for k in range(8):#if tlist[i%8]!=10:
-				b.training = k #tlist[i%8]
+		if b.__class__.__name__=='FB':
+			print "skip FB"
+		if b.__class__.__name__=='NB':
+			if tlist[i%8]==0: #bcc = 0 ncc = 5
+				b.training = tlist[i%8]
 				b.chnEst()
-				#b.viterbi_detector()
+				p = np.abs(b.chn)
+				plt.plot(p)
+				pos = p.argmax()
+				print "p",i,NB._chn_s+pos,p[pos]
+				b.viterbi_detector()
+				b.viterbi.table(b.rhh)
+				x = b.viterbi._forward(np.conj(b.viterbi.t),b.mafi,0,0,len(b.mafi))
+				print "tr",
+				y = b.viterbi.t2b(NBTraining.modulated[0,:],1)
+				b.viterbi.outMsg(y)
+				print "dx",
+				b.viterbi.outMsg(x)
+				yy = b.viterbi.t2b(b.mafi,0)
+				print "hd",
+				b.viterbi.outMsg(yy)
+
+				
 				# np.savetxt("../../../../data/nbmafi",b.mafi)
 				# np.savetxt("../../../../data/nbrhh",b.rhh)
 				# np.savetxt("../../../../data/nbtraining",NBTraining.modulated[5,:])
 				# break
-				#print "0",b.nbm0
-				#print "1",b.nbm1
-				plt.subplot(8,1,k+1)
-				p = np.abs(b.chn)
-				plt.plot(p,co[i])
-				pos = p.argmax()
-				print "p",i,k,NB._chn_s+pos,p[pos]
+				print "0",b.nbm0
+				print "1",b.nbm1
 		if b.__class__.__name__=='SB':
 			p = b.peekS()
 			b.setChEst()
@@ -110,6 +126,7 @@ def main():
 			plt.plot(p)
 			pos = p.argmax()
 			print "p",i,pos,p[pos],b.cut_pos
+		f.skip(7)
 	#print tlist
 	plt.show()
 	f.close()

@@ -38,7 +38,7 @@ class SB(Burst):
 	def __init__(self):
 		Burst.__init__(self)
 		self.viterbi = viterbi_detector.viterbi_detector(5,44,SBTraining.modulated)
-		self.viterbi.setTraining(SBTraining.modulated)
+		self.viterbi.setTraining(SBTraining.modulated,0,0)
 	
 		
 	def peekL(self):
