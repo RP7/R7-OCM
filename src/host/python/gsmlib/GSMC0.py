@@ -122,7 +122,8 @@ class GSMC0:
 			if b.ch!=None:
 				b.mapRfData()
 				ok,data = b.ch.callback(b,_F,self.state)
-			b.default_callback(_F,self.state)
+			if self.state.timingSyncState.name()=="fine" and self.state.timingSyncState.count("fine")>3:
+				b.default_callback(_F,self.state)
 	
 	def wait(self):
 		w = self.getFrameStart()+long(self._fn*self.fl)
@@ -161,7 +162,7 @@ class GSMC0:
 		if r<130*0.7:
 			if self.state.timingSyncState.name()=="fine":
 				self.state.timingSyncState.to("rough")
-			if self.state.timingSyncState.count("rough")>3:
+			if self.state.timingSyncState.count("rough")>2:
 				self.state.timingSyncState.to("init")
 				self.state.freqSyncState.to("init")
 		else:
@@ -175,7 +176,7 @@ class GSMC0:
 	def run(self):
 		self.reset()
 		cnt = 0
-		while cnt<7*51*26:
+		while cnt<10*51*26:
 			if self.state.freqSyncState.name()=="init":
 				ok,data = self.findFCCH()
 				if ok==1:

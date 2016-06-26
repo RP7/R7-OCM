@@ -193,7 +193,7 @@ rhh = readfile("../../../data/nbrhh")
 mafi = mafi/rhh[2]
 rhh = rhh/rhh[2]
 
-y = t2b(training,0)
+y = t2b(training,1)
 
 print "y",
 v.outMsg(y)
@@ -213,9 +213,9 @@ a = v.forward(mafi[61+24:])
 b = v.backward(mafi[:63])
 
 x = forward(np.conj(t),mafi,0,0,len(mafi))
-print "ox",
+print "ox"
 v.outMsg(x)
-yy = v.t2b(mafi,0)
+yy = v.t2b(mafi,1)
 print "hd"
 v.outMsg(yy)
 

@@ -2,6 +2,8 @@ from fractions import Fraction
 import numpy as np
 import config
 import GSM as gsm
+import struct
+from ctypes import *
 
 class item:
 	def getLen(self):
@@ -56,7 +58,7 @@ class Burst:
 	osr = config.SampleRate/gsm.SymbolRate
 	fosr = float(osr)
 	chn_len = int(CHAN_IMP_RESP_LENGTH*fosr)
-	trainingPos = int(length*osr/2+small_overlap)	
+	#trainingPos = int(length*osr/2+small_overlap)	
 	chnMatchLength = int(chn_len+(CHAN_IMP_RESP_LENGTH+2)/2.*fosr)
 	log = None
 
@@ -129,12 +131,14 @@ class Burst:
 
 	def default_callback(self,fn,state):
 		if Burst.log != None:
-			print >>Burst.log,fn,self.__class__.__name__
-			if mmap==None:
-				raise NoInstall
-				return
-			s = int(self.pos-Burst.large_overlap)
-			l = int(Burst.length+2*Burst.large_overlap)
-			r = mmap(s,l)
-			print >>Burst.log,r[:]
-		
+			self.toFile(Burst.log,fn)
+	def toFile(self,f,fn):
+		f.write(self.__class__.__name__)
+		if mmap==None:
+			raise NoInstall
+			return
+		s = int(self.pos-Burst.small_overlap)
+		l = int(Burst.length+2*Burst.small_overlap)
+		r = mmap(s,l)
+		f.write(struct.pack('<iq',len(r)/2,fn))
+		f.write(string_at(addressof(r),len(r)*2))

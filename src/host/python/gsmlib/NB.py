@@ -47,7 +47,7 @@ class NBTraining(item):
 	]
 	modulated = np.zeros((len(bits),length),dtype=complex)
 	for i in range(len(bits)):
-		modulated[i,:] = item.gmsk_mapper(bits[i],complex(0,-1)) 
+		modulated[i,:] = item.gmsk_mapper(bits[i],complex(1,0)) 
 
 
 class NB(Burst):
@@ -64,15 +64,16 @@ class NB(Burst):
 	def chnEst(self):
 		self.chn = self.channelEst(self.recv[NB._chn_s:NB._chn_e],NBTraining.modulated[self.training,:])
 		self.cut_chn,self.cut_pos = splibs.maxwin(self.chn,Burst.chn_len)
-		print "cut pos",self.cut_pos,len(self.cut_chn),Burst.chnMatchLength,len(self.chn)
 		pos = self.cut_pos+NB._chn_s
+		print "cut pos",self.cut_pos,"pos",pos,len(self.cut_chn),Burst.chnMatchLength,len(self.chn)
 		self.bs = pos-float(TB.length+NBM0.length+LF0.length)*Burst.fosr #maybe wrony
 		self.ibs = int(self.bs)
 		self.timing = self.bs-self.ibs
 		self.be = self.ibs+int(Burst.length*Burst.fosr+Burst.chn_len+1)
 
 	def viterbi_detector(self):
-		self.viterbi.f_r_i = 1
+		self.viterbi.f_r_i = 0
+		self.viterbi.b_r_i = 1
 		self.viterbi.setTraining(NBTraining.modulated[self.training,:])
 		rhh = splibs.matchFilter( 
 			  self.chn[self.cut_pos:self.cut_pos+Burst.chnMatchLength]
@@ -88,8 +89,8 @@ class NB(Burst):
 		self.viterbi.table(self.rhh)
 		a = self.viterbi.forward(self.mafi[61+26-2:])
 		b = self.viterbi.backward(self.mafi[:61+2])
-		self.nbm0 = self.viterbi.dediff_backward(b,0,NBTraining.bits[self.training][3])#[2:-1]
-		self.nbm1 = self.viterbi.dediff_forward(a,0,NBTraining.bits[self.training][-4])#[1:-2]
+		self.nbm0 = self.viterbi.dediff_backward(b,1,NBTraining.bits[self.training][3])#[2:-1]
+		self.nbm1 = self.viterbi.dediff_forward(a,1,NBTraining.bits[self.training][-4])#[1:-2]
 
 def main():
 	a = NB()

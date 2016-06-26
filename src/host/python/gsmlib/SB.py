@@ -32,9 +32,14 @@ class SB(Burst):
 	__name__ = "SB"
 	__viterbi_cut = 2	
 	__viterbi_f = TB.length+SBM0.length+SBTraining.length - __viterbi_cut
+	_chn_s = int((TB.length+SBM0.length)*Burst.osr)
+	_chn_e = int((TB.length+SBM0.length+SBTraining.length+Burst.CHAN_IMP_RESP_LENGTH)*Burst.osr)+2*Burst.small_overlap
+
 	def __init__(self):
 		Burst.__init__(self)
 		self.viterbi = viterbi_detector.viterbi_detector(5,44,SBTraining.modulated)
+		self.viterbi.setTraining(SBTraining.modulated)
+	
 		
 	def peekL(self):
 		f = self.mapLData()
@@ -45,8 +50,8 @@ class SB(Burst):
 		return np.abs(self.chn)
 	
 	def setChEst(self):
-		self.cut_chn,self.cut_pos = splibs.maxwin(self.chn[Burst.trainingPos-32:Burst.trainingPos+32],Burst.chn_len)
-		self.cut_pos += Burst.trainingPos-32
+		self.cut_chn,self.cut_pos = splibs.maxwin(self.chn[SB._chn_s:SB._chn_e],Burst.chn_len)
+		self.cut_pos += SB._chn_s
 		self.bs = self.cut_pos-int(TB.length+SBM0.length)*Burst.fosr #maybe wrony
 		self.ibs = int(self.bs)
 		self.timing = self.bs-self.ibs

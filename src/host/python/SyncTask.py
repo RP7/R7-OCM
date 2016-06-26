@@ -10,9 +10,10 @@ rx = Q7Mem.rx()
 c0 = C0.GSMC0()
 c0.setRx(rx)
 c0.initSCH()
-Burst.Burst.log = open("../../../temp/log","wt")
+Burst.Burst.log = open("../../../temp/log","wb")
 r = c0.run()
-Burst.Burst.log.close()
+if Burst.Burst.log!= None:
+	Burst.Burst.log.close()
 plt.plot(r)
 
 plt.show()
