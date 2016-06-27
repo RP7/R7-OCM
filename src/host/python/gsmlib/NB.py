@@ -72,8 +72,8 @@ class NB(Burst):
 		self.be = self.ibs+int(Burst.length*Burst.fosr+Burst.chn_len+1)
 
 	def viterbi_detector(self):
-		self.viterbi.f_r_i = 0
-		self.viterbi.b_r_i = 1
+		self.viterbi.f_r_i = 1
+		self.viterbi.b_r_i = 0
 		self.viterbi.setTraining(NBTraining.modulated[self.training,:],1,1)
 		rhh = splibs.matchFilter( 
 			  self.chn[self.cut_pos:self.cut_pos+Burst.chnMatchLength]
@@ -89,8 +89,8 @@ class NB(Burst):
 		self.viterbi.table(self.rhh)
 		self.a = self.viterbi.forward(self.mafi[61+26-2:])
 		self.b = self.viterbi.backward(self.mafi[:61+2])
-		self.nbm0 = self.viterbi.dediff_backward(self.b,1,NBTraining.bits[self.training][3])#[2:-1]
-		self.nbm1 = self.viterbi.dediff_forward(self.a,1,NBTraining.bits[self.training][-4])#[1:-2]
+		self.nbm0 = self.viterbi.dediff_backward(self.b,0,NBTraining.bits[self.training][3])[2:-4]
+		self.nbm1 = self.viterbi.dediff_forward(self.a,1,NBTraining.bits[self.training][-4])[4:-2]
 
 def main():
 	a = NB()
