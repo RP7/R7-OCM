@@ -58,10 +58,13 @@ class Burst:
 	osr = config.SampleRate/gsm.SymbolRate
 	fosr = float(osr)
 	chn_len = int(CHAN_IMP_RESP_LENGTH*fosr)
-	#trainingPos = int(length*osr/2+small_overlap)	
 	chnMatchLength = int(chn_len+(CHAN_IMP_RESP_LENGTH+2)/2.*fosr)
+	
+	small_overlap_sample = int(small_overlap*osr)
+	large_overlap_sample = int(large_overlap*osr)
+	
 	log = None
-
+	
 	def __init__(self):
 		if hasattr(self.__class__,"__field__"):
 			self.field = [ x() for x in self.__class__.__field__]

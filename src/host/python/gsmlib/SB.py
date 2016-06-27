@@ -33,7 +33,7 @@ class SB(Burst):
 	__viterbi_cut = 2	
 	__viterbi_f = TB.length+SBM0.length+SBTraining.length - __viterbi_cut
 	_chn_s = int((TB.length+SBM0.length)*Burst.osr)
-	_chn_e = int((TB.length+SBM0.length+SBTraining.length+Burst.CHAN_IMP_RESP_LENGTH)*Burst.osr)+2*Burst.small_overlap
+	_chn_e = int((TB.length+SBM0.length+SBTraining.length+Burst.CHAN_IMP_RESP_LENGTH+2*Burst.small_overlap)*Burst.osr)
 
 	def __init__(self):
 		Burst.__init__(self)
