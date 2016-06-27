@@ -141,9 +141,9 @@ class SCH(CH):
 			pos = p.argmax()
 
 			b.setChEst()
-			b.viterbi_detector()
-			self.msg = b.sbm0[3:]+b.sbm1[:-3]
-			self.decoded_data = self.conv_decode()
+			#b.viterbi_detector()
+			#self.msg = b.sbm0[3:]+b.sbm1[:-3]
+			#self.decoded_data = self.conv_decode()
 			pos -= self.ovS
 
 			

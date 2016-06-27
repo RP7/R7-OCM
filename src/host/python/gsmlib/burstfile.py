@@ -88,15 +88,15 @@ if 1:
 			if tlist[i%8]==0: #bcc = 0 ncc = 5
 				b.training = tlist[i%8]
 				b.chnEst()
-				p = np.abs(b.chn)
+				p = np.abs(b.cut_chn)
 				plt.plot(p)
 				pos = p.argmax()
-				print "p",i,NB._chn_s+pos,p[pos]
+				print "p",i,NB._chn_s+b.cut_pos+pos,p[pos]
 				b.viterbi_detector()
 				b.viterbi.table(b.rhh)
 				x = b.viterbi._forward(np.conj(b.viterbi.t),b.mafi,0,0,len(b.mafi))
 				print "tr",
-				y = b.viterbi.t2b(NBTraining.modulated[0,:],1)
+				y = b.viterbi.t2b(NBTraining.modulated[b.training,:],1)
 				b.viterbi.outMsg(y)
 				print "dx",
 				b.viterbi.outMsg(x)

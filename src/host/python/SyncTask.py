@@ -14,9 +14,9 @@ Burst.Burst.log = open("../../../temp/log","wb")
 r = c0.run()
 if Burst.Burst.log!= None:
 	Burst.Burst.log.close()
-plt.plot(r)
+#plt.plot(r)
 
-plt.show()
+#plt.show()
 
-sb = c0.C0.frame[1][0]
-ret = sp.filter(sb.__class__.__field__[2].modulated,sb.rhh)
+#sb = c0.C0.frame[1][0]
+#ret = sp.filter(sb.__class__.__field__[2].modulated,sb.rhh)

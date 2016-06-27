@@ -87,10 +87,10 @@ class NB(Burst):
 
 		self.mafi = splibs.matchFilter(self.recv[self.ibs:self.be],self.cut_chn,Burst.fosr,self.timing)
 		self.viterbi.table(self.rhh)
-		a = self.viterbi.forward(self.mafi[61+26-2:])
-		b = self.viterbi.backward(self.mafi[:61+2])
-		self.nbm0 = self.viterbi.dediff_backward(b,1,NBTraining.bits[self.training][3])#[2:-1]
-		self.nbm1 = self.viterbi.dediff_forward(a,1,NBTraining.bits[self.training][-4])#[1:-2]
+		self.a = self.viterbi.forward(self.mafi[61+26-2:])
+		self.b = self.viterbi.backward(self.mafi[:61+2])
+		self.nbm0 = self.viterbi.dediff_backward(self.b,1,NBTraining.bits[self.training][3])#[2:-1]
+		self.nbm1 = self.viterbi.dediff_forward(self.a,1,NBTraining.bits[self.training][-4])#[1:-2]
 
 def main():
 	a = NB()
