@@ -91,6 +91,7 @@ class SB(Burst):
 
 	@staticmethod
 	def overheadL():
+		# Bugs TB.length+SBM0.length Unit is Symbol, Burst.large_overlap Unit is Sample
 		return TB.length+SBM0.length+Burst.large_overlap
 	@staticmethod
 	def overheadS():

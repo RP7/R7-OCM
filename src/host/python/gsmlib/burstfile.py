@@ -63,7 +63,9 @@ def findT(b):
 		peek = np.abs(b.chn)
 		p[i]=peek[peek.argmax()]
 	return p.argmax()
-def main():
+
+#def main():
+if 1:
 	import matplotlib.pyplot as plt
 	from NB import NBTraining
 	from SCH import SCH
@@ -131,5 +133,5 @@ def main():
 	plt.show()
 	f.close()
 
-if __name__ == '__main__':
-	main()
+#if __name__ == '__main__':
+#	main()
