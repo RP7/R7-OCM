@@ -10,6 +10,7 @@ rx = Q7Mem.rx()
 c0 = C0.GSMC0()
 c0.setRx(rx)
 c0.initSCH()
+c0.initBCCH()
 Burst.Burst.log = open("../../../temp/log","wb")
 r = c0.run()
 if Burst.Burst.log!= None:

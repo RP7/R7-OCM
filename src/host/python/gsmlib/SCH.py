@@ -141,9 +141,14 @@ class SCH(CH):
 			pos = p.argmax()
 
 			b.setChEst()
-			#b.viterbi_detector()
-			#self.msg = b.sbm0[3:]+b.sbm1[:-3]
-			#self.decoded_data = self.conv_decode()
+			b.viterbi_detector()
+			self.msg = b.sbm0[3:]+b.sbm1[:-3]
+			self.decoded_data = self.conv_decode()
+			self.decode()
+			if self.parity_check()!=0:
+				print "fn",b.fn,"sn",b.sn,"error",self.last_error
+			else:
+				state.bcc = self.info['bcc']
 			pos -= self.ovS
 
 			
@@ -279,13 +284,14 @@ static int conv_decode(unsigned char *data, unsigned char *output)
 			if ae[i] < min_error:
 				min_state = i
 				min_error = ae[i]
-		print "erros",min_error
+		#print "erros",min_error
 		cur_state = min_state
 		output = np.zeros(SCH.CONV_INPUT_SIZE,dtype=int)
 		for t in range(SCH.CONV_INPUT_SIZE,0,-1):
 			min_state = cur_state
 			cur_state = state_history[cur_state,t]
 			output[t-1] = SCH.prev_next_state[cur_state][min_state]
+		self.last_error = min_error
 		return output
 
 	def hamming_distance2(self,d):
@@ -316,7 +322,7 @@ static int conv_decode(unsigned char *data, unsigned char *output)
 		for i in range(SCH.DATA_BLOCK_SIZE):
 			if buf[i]==1:
 				buf[i:i+SCH.PARITY_SIZE+1]^=SCH.parity_polynomial
-		print buf[:]
+		#print buf[:]
 		return np.sum(buf[SCH.DATA_BLOCK_SIZE:SCH.DATA_BLOCK_SIZE+SCH.PARITY_SIZE]^SCH.parity_remainder)
 
 	def decode(self):

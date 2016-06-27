@@ -143,5 +143,5 @@ class Burst:
 		s = int(self.pos-Burst.small_overlap)
 		l = int(Burst.length+2*Burst.small_overlap)
 		r = mmap(s,l)
-		f.write(struct.pack('<iq',len(r)/2,fn))
+		f.write(struct.pack('<hhhq',len(r)/2,self.sn,self.fn,fn))
 		f.write(string_at(addressof(r),len(r)*2))

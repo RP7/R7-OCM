@@ -4,6 +4,7 @@ import config
 import GSM as gsm
 import FCCH
 import SCH
+import BCCH
 import TS
 import Burst
 import SB
@@ -41,6 +42,7 @@ class GSMSystemState:
 	def __init__(self):
 		self.freqSyncState = SyncState()
 		self.timingSyncState = SyncState()
+		self.bcc = 0
 
 class GSMC0:
 
@@ -65,6 +67,10 @@ class GSMC0:
 		self.sch = SCH.SCH()
 		self.sch.attach(self.C0)
 		self.regMCB(self.frameTrack,None)
+	
+	def initBCCH(self):
+		self.bcch = BCCH.BCCH()
+		self.bcch.attach(self.C0)
 
 	def getFn(self):
 		_s = self._fn/gsm.SupperFrame
@@ -176,7 +182,7 @@ class GSMC0:
 	def run(self):
 		self.reset()
 		cnt = 0
-		while cnt<10*51*26:
+		while cnt<500*51*26:
 			if self.state.freqSyncState.name()=="init":
 				ok,data = self.findFCCH()
 				if ok==1:

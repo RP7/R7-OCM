@@ -6,12 +6,15 @@ from Burst import Burst
 import numpy as np
 import struct
 from ctypes import *
+from GSMC0 import GSMC0
 
 class burstFileHead(Structure):
 	_pack_ = 1
 	_fields_ =  [   ("name", c_char*2)
-								, ("length", c_int32)
-								, ("fn", c_int64)
+								, ("length", c_int16)
+								, ("sn", c_int16)
+								, ("sfn", c_int16)
+								, ("lfn", c_int64)
 						]
 	
 class burstfile:
@@ -20,6 +23,19 @@ class burstfile:
 		self.f = open(fn,'rb')
 	def skip(self,l):
 		self.f.seek(l*(sizeof(burstFileHead)+4*1460),1)
+	
+	def toC0(self,c0):
+		t = self.f.read(sizeof(burstFileHead))
+		raw = self.f.read(1460*4)
+		bdh = self.stream2struct(t,burstFileHead)
+		b = c0.C0.frame[bdh.sfn][bdh.sn]
+		if bdh.name != b.__class__.__name__:
+			print "wrony in file"
+		else:
+			recv_type = (c_short*(2*1460))
+			recv = recv_type.from_buffer(bytearray(raw))
+			b.recv = Burst.short2Complex(recv)
+		return b,bdh.lfn
 
 	def readBurst(self):
 		t = self.f.read(sizeof(burstFileHead))
@@ -28,7 +44,9 @@ class burstfile:
 		print bdh.name[:2],bdh.length,hex(bdh.fn)
 		if bdh.name in burstfile.burst:
 			b = burstfile.burst[bdh.name]()
-			b.fn = bdh.fn
+			b.lfn = bdh.lfn
+			b.sfn = bdh.sfn
+			b.sn  = bdh.sn
 			recv_type = (c_short*(2*1460))
 			recv = recv_type.from_buffer(bytearray(raw))
 			b.recv = Burst.short2Complex(recv)
@@ -64,8 +82,7 @@ def findT(b):
 		p[i]=peek[peek.argmax()]
 	return p.argmax()
 
-#def main():
-if 1:
+def main():
 	import matplotlib.pyplot as plt
 	from NB import NBTraining
 	from SCH import SCH
@@ -78,7 +95,7 @@ if 1:
 	#co = ['r','b','y','g','r.','b.','y.','g.']
 	
 				
-	for i in range(6):
+	for i in range(51):
 		b = f.readBurst()
 		if b == None:
 			continue
@@ -93,24 +110,25 @@ if 1:
 				pos = p.argmax()
 				print "p",i,NB._chn_s+b.cut_pos+pos,p[pos]
 				b.viterbi_detector()
-				b.viterbi.table(b.rhh)
-				x = b.viterbi._forward(np.conj(b.viterbi.t),b.mafi,0,0,len(b.mafi))
-				print "tr",
-				y = b.viterbi.t2b(NBTraining.modulated[b.training,:],1)
-				b.viterbi.outMsg(y)
-				print "dx",
-				b.viterbi.outMsg(x)
-				yy = b.viterbi.t2b(b.mafi,0)
-				print "hd",
-				b.viterbi.outMsg(yy)
+				#b.viterbi.table(b.rhh)
+				#x = b.viterbi._forward(np.conj(b.viterbi.t),b.mafi,0,0,len(b.mafi))
+				#print "tr",
+				#y = b.viterbi.t2b(NBTraining.modulated[b.training,:],1)
+				#b.viterbi.outMsg(y)
+				#print "dx",
+				#b.viterbi.outMsg(x)
+				#yy = b.viterbi.t2b(b.mafi,0)
+				#print "hd",
+				#b.viterbi.outMsg(yy)
 
 				
 				# np.savetxt("../../../../data/nbmafi",b.mafi)
 				# np.savetxt("../../../../data/nbrhh",b.rhh)
 				# np.savetxt("../../../../data/nbtraining",NBTraining.modulated[5,:])
 				# break
-				print "0",b.nbm0
-				print "1",b.nbm1
+				#print "0",b.nbm0
+				#print "1",b.nbm1
+				print "msg",b.msg,"stolen",b.stolen
 		if b.__class__.__name__=='SB':
 			p = b.peekS()
 			b.setChEst()
@@ -133,5 +151,5 @@ if 1:
 	plt.show()
 	f.close()
 
-#if __name__ == '__main__':
-#	main()
+if __name__ == '__main__':
+	main()
