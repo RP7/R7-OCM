@@ -16,7 +16,7 @@ def matchFilter(d,h,osr,timing):
 	rh = np.conj(h)
 	s = 0.
 	l = int((len(d)-len(h)-1)/osr)
-	#print len(d),len(h),l,osr
+	print len(d),len(h),l,osr
 	ret = np.zeros(l,dtype=complex)
 	for k in range(l):
 		s = k*osr+timing

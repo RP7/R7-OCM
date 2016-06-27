@@ -54,7 +54,7 @@ class NB(Burst):
 
 	__field__ = [TB,NBM0,LF0,NBTraining,LF1,NBM1,TB,NGP]
 	__name__ = "NB"
-	_chn_s = int((TB.length+NBM0.length)*Burst.osr)
+	_chn_s = int((TB.length+NBM0.length+2)*Burst.osr)
 	_chn_e = int((TB.length+NBM0.length+LF0.length+NBTraining.length+Burst.CHAN_IMP_RESP_LENGTH)*Burst.osr)+2*Burst.small_overlap
 
 	def __init__(self):
@@ -74,7 +74,7 @@ class NB(Burst):
 	def viterbi_detector(self):
 		self.viterbi.f_r_i = 0
 		self.viterbi.b_r_i = 1
-		self.viterbi.setTraining(NBTraining.modulated[self.training,:])
+		self.viterbi.setTraining(NBTraining.modulated[self.training,:],1,1)
 		rhh = splibs.matchFilter( 
 			  self.chn[self.cut_pos:self.cut_pos+Burst.chnMatchLength]
 			, self.cut_chn
