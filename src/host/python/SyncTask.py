@@ -12,7 +12,7 @@ c0.setRx(rx)
 c0.initSCH()
 c0.initBCCH()
 #Burst.Burst.log = open("../../../temp/log","wb")
-c0.state.bcch_log = open("../../../data/bcch","wt")
+#c0.state.bcch_log = open("../../../data/bcch","wt")
 r = c0.run()
 if Burst.Burst.log!= None:
 	Burst.Burst.log.close()
