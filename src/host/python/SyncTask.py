@@ -11,10 +11,13 @@ c0 = C0.GSMC0()
 c0.setRx(rx)
 c0.initSCH()
 c0.initBCCH()
-Burst.Burst.log = open("../../../temp/log","wb")
+#Burst.Burst.log = open("../../../temp/log","wb")
+c0.state.bcch_log = open("../../../data/bcch","wt")
 r = c0.run()
 if Burst.Burst.log!= None:
 	Burst.Burst.log.close()
+if c0.state.bcch_log!=None:
+	c0.state.bcch_log.close() 
 #plt.plot(r)
 
 #plt.show()

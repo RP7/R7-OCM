@@ -43,6 +43,12 @@ class GSMSystemState:
 		self.freqSyncState = SyncState()
 		self.timingSyncState = SyncState()
 		self.bcc = 0
+		self.bcch_log = None
+		self.bcc = 0
+		self.ncc = 0
+		self.t1  = 0
+		self.t2  = 0
+		self.t3  = 0
 
 class GSMC0:
 
@@ -182,7 +188,7 @@ class GSMC0:
 	def run(self):
 		self.reset()
 		cnt = 0
-		while cnt<500*51*26:
+		while cnt<20*51*26:
 			if self.state.freqSyncState.name()=="init":
 				ok,data = self.findFCCH()
 				if ok==1:
