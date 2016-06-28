@@ -2,6 +2,7 @@ from CCH import CCH
 from config import *
 from GSM import *
 import numpy as np
+from gsmtap import gsmtap
 
 class BCCH(CCH):
 	__name__="bcch"
@@ -10,6 +11,7 @@ class BCCH(CCH):
 
 	def __init__(self):
 		CCH.__init__(self)
+		self.tap = gsmtap()
 
 	def attach(self,C):
 		for i in range(2,6):
@@ -26,69 +28,17 @@ class BCCH(CCH):
 	def callback(self,b,fn,state):
 		ok,data = CCH.callback(self,b,fn,state)
 		if ok=='newdata':
-			self.l2_Bits(data[1:])
+			self.tap.send(data)
 		return 1,None
-
-	def BitRow(self,c,pos):
-		"""
-		static char *
-		BitRow(unsigned char c, int pos)
-		{
-			unsigned char bit = 0;
-			static char buf[9];
-
-			if ((c >> pos) & 1)
-				bit = 1;
-
-			if (pos == 0)
-				snprintf(buf, sizeof buf, "-------%d", bit);
-			else if (pos == 1)
-				snprintf(buf, sizeof buf, "------%d-", bit);
-			else if (pos == 2)
-				snprintf(buf, sizeof buf, "-----%d--", bit);
-			else if (pos == 3)
-				snprintf(buf, sizeof buf, "----%d---", bit);
-			else if (pos == 4)
-				snprintf(buf, sizeof buf, "---%d----", bit);
-			else if (pos == 5)
-				snprintf(buf, sizeof buf, "--%d-----", bit);
-			else if (pos == 6)
-				snprintf(buf, sizeof buf, "-%d------", bit);
-			else if (pos == 7)
-				snprintf(buf, sizeof buf, "%d-------", bit);
-
-			return buf;
-		}
-		"""
+	@staticmethod
+	def BitRow(c,pos):
 		r = ['-']*8
 		bit = ((c>>pos)&1)+0x31
 		r[7-pos]=bit
 		return ''.jion(r)
-	def BitRowFill(self,c,mask):
-		"""
-		static char *
-		BitRowFill(unsigned char c, unsigned char mask)
-		{
-			static char buf[9];
-			
-			memset(buf, '-', sizeof buf);
-			buf[sizeof buf - 1] = '\0';
-			int i = 0;
-			while (i < 8)
-			{
-				if ((mask >> i) & 1)
-				{
-					if ((c >> i) & 1)
-						buf[7 - i] = '1';
-					else
-						buf[7 - i] = '0';
-				}
-				i++;
-			}
 
-			return buf;
-		}
-		"""
+	@staticmethod
+	def BitRowFill(c,mask):
 		r = ['-']*8
 		for i in range(8):
 			if (mask>>i)&1:
@@ -97,99 +47,7 @@ class BCCH(CCH):
 		return ''.join(r)
 
 	def l2_Bits(self,data):
-		"""
-		static void
-		l2_Bbis()
-		{
-			if (data >= end)
-				RETTRUNK();
-
-			switch (data[0] >> 7)
-			{
-			case 1:
-				OUTF("1------- Direction: To originating site\n");
-				break;
-			default:
-				OUTF("0------- Direction: From originating site\n");
-			}
-
-			OUTF("%s %d TransactionID\n", BitRowFill(data[0], 0x70), (data[0] >> 4) & 7);
-
-			switch (data[0] & 0x0f)
-			{
-			case 0:
-				OUTF("----0000 Group Call Control [FIXME]\n");
-				break;
-			case 1:
-				OUTF("----0001 Broadcast call control [FIXME]\n");
-				data++;
-				l2_bcc();
-				/* TS GSM 04.69 */
-				break;
-			case 2:
-				OUTF("----0010 PDSS1 [FIXME]\n");
-				break;
-			case 3:
-				OUTF("----0011 Call control. call related SS messages\n");
-				data++;
-				l2_cc();
-				/* TS 24.008 */
-				break;
-			case 4:
-				OUTF("----01-- PDSS2 [FIXME]\n");
-				break;
-			case 5:
-				OUTF("----0101 Mobile Management Message (non GPRS)\n");
-				data++;
-				/* TS 24.008 */
-				l2_mmm();
-				break;
-			case 6:
-				OUTF("----0110 Radio Resouce Management\n");
-				data++;
-				l2_rrm();
-				break;
-			case 7:
-				OUTF("----0111 RFU [FIXME]\n");
-				break;
-			case 8:
-				OUTF("----1000 GPRS Mobile Management\n");
-				/* in GMMattachAccept */
-				/* in GMMidentityRequest */
-				OUTF("FIXME: possible IMEI in here\n");
-				break;
-			case 9:
-				OUTF("----1001 SMS messages\n");
-				data++;
-				l2_sms();
-				/* TS 04.11 */
-				break;
-			case 0x0a:
-				OUTF("----1011 GRPS session management messages [FIXME]\n");
-				break;
-			case 0x0b:
-				OUTF("----1011 Non-call related SS messages [FIXME]\n");
-				/* GSM 04.80 */
-				break;
-			case 0x0c:
-				OUTF("----1100 Location services [FIXME]\n");
-				break;
-			case 0x0d:
-				OUTF("----1101 RFU [FIXME]\n");
-				break;
-			case 0x0e:
-				OUTF("----1110 Extension of the PD to one octet length [FIXME]\n");
-				break;
-			case 0x0f:
-				OUTF("----1111 Tests procedures describe in TS GSM 11.10 [FIXME]\n");
-				break;
-			default:
-				OUTF("%s 0x%02x UNKNOWN\n", BitRowFill(data[0], 0x0f), data[0] & 0x0f);
-			}
-
-		}
-		"""
-		print self.BitRowFill(data[0], 0x70), (data[0] >> 4) & 7, 'TransactionID'
+		print BCCH.BitRowFill(data[0], 0x70), (data[0] >> 4) & 7, 'TransactionID'
 		(i,msg,f) = BCCH.msgType[data[0]&0xf]
 		f(data)
 		
@@ -214,8 +72,9 @@ class BCCH(CCH):
 	def l2_rrm(data):
 		(i,msg,f) = BCCH.msgType[data[0]&0xf]
 		print msg
-		(msg,f) = BCCH.rrmType[data[1]&0x3f]
-		f(data[1:])
+		if data[1]&0x3f in BCCH.rrmType:
+			(msg,f) = BCCH.rrmType[data[1]&0x3f]
+			f(data[1:])
 
 	@staticmethod
 	def l2_sms(data):
@@ -254,6 +113,9 @@ class BCCH(CCH):
 	def l2_RRsystemInfo4C(data):
 		msg,f=BCCH.rrmType[data[0]&0x3f]
 		print msg
+		data = BCCH.l2_MccMncLac(data[1:])
+		data = BCCH.CellSelectionParameters(data)
+		data = BCCH.l2_RachControlParameters(data)
 	@staticmethod
 	def l2_NeighbourCellDescription(data):
 		msg,f=BCCH.rrmType[data[0]&0x3f]
@@ -298,6 +160,38 @@ class BCCH(CCH):
 	def l2_RRimmediateAssignment(data):
 		msg,f=BCCH.rrmType[data[0]&0x3f]
 		print msg
+	@staticmethod
+	def no_rrm(data):
+		msg,f=BCCH.rrmType[data[0]&0x3f]
+		print msg
+
+	@staticmethod
+	def l2_MccMncLac(data):
+		ret = {}
+		ret['mcc'] = [data[0] & 0x0f, (data[0] >> 4) & 0x0f, data[1] & 0x0f]
+		ret['mnc'] = data[2] & 0x0f, (data[2] >> 4) & 0x0f, (data[1] >> 4) & 0x0f
+		ret['lac'] = (data[3] << 8) | data[4]
+		print ret
+		return data[5:]
+	@staticmethod
+	def CellSelectionParameters(data):
+		print BCCH.BitRowFill(data[0],0xe0), 'Cell Reselect Hyst.',(data[0]>>5)*2,'dB'
+		print BCCH.BitRowFill(data[0],0x1f), 'Max Tx power level:',data[0]&0x1f
+		if data[1] >> 7:
+			print '1------- Additional cells in SysInfo 16,17'
+		else:
+			print '0------- No additional cells in SysInfo 7-8'
+		if ((data[1] >> 6) & 1):
+			print '-1------ New establishm cause: supported'
+		else:
+			print '0------ New establishm cause: not supported'
+		print BCCH.BitRowFill(data[1],0x3f),'RXLEV Access Min permitted = -110 + %ddB'%(data[1]&0x3f)
+		return data[2:]
+	@staticmethod
+	def l2_RachControlParameters(data):
+		print 'RachControlParameters',data
+		return data
+
 BCCH.msgType = [
 			  (0x0,'----0000 Group Call Control'                     ,BCCH.no_decode)
 			, (0x1,'----0001 Broadcast call control'                 ,BCCH.l2_bcc   )
@@ -321,7 +215,7 @@ BCCH.rrmType = {
 			  0x00:('00000000 System Information Type 13',BCCH.l2_RRsystemInfo13C)
 			, 0x06:('00000110 System Information Type 5ter',BCCH.l2_BcchAllocation)
 			, 0x0d:('00001101 Channel Release',BCCH.l2_ChannelRelease)
-			, 0x15:('00010101 RR Measurement Report C [FIXME]',)
+			, 0x15:('00010101 RR Measurement Report C [FIXME]',BCCH.no_rrm)
 			, 0x16:('00010110 RRclassmarkChange',BCCH.l2_RRclassmarkChange)
 			, 0x19:('00011001 RRsystemInfo1',BCCH.l2_RRsystemInfo1)
 			, 0x1a:('00011010 RRsystemInfo2',BCCH.l2_RRsystemInfo2)
