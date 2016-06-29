@@ -10,6 +10,8 @@ c0 = C0.GSMC0()
 
 c0.initSCH()
 c0.initBCCH()
+#c0.initCCCH(range(0,9))
+#c0.initSDCCH(range(0,12),1)
 
 file = "../../../temp/log"
 

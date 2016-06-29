@@ -5,7 +5,7 @@ from GSM import *
 import numpy as np
 from interleave import interleave
 from convCode import convCode
-
+from gsmtap import gsmtap
 class CCH(CH):
 	__burst__ = NB
 	def __init__(self):
@@ -13,21 +13,25 @@ class CCH(CH):
 		self.msg = [[]]*4
 		self.il = interleave(57*8,57*2) 
 		self.codec = convCode(convCode.cch_config)
+		self.tap = gsmtap()
 	
 	def callback(self,b,fn,state):
 		if state.timingSyncState.state==2:
 			b.training = state.bcc
 			b.chnEst()
 			b.viterbi_detector()
-			if fn>1 and fn<6:
-				self.msg[fn-2]=b.msg
-			if fn == 5:
+			(r,s) = self.config
+			sfn = fn % MultiFrameC
+			if sfn in r:
+				self.msg[sfn-r[0]]=b.msg
+			if sfn == r[-1]:
 				self.decode(state)
 				if self.codec.parity_check(self.decoded_data)!=0:
-					print "fn",b.fn,"sn",b.sn,"error",self.codec.last_error
+					print "fn %d(%d)"%(b.fn,fn),"sn",b.sn,"error",self.codec.last_error
 				else:
 					self.data = self.compress_bits(self.decoded_data[:184])
-					print state.t1,state.t2,state.t3,self.__name__,"ok",self.__type__[state.t1%8],"msg",self.data
+					#print state.t1,state.t2,state.t3,self.name,"ok","msg",self.data
+					self.tap.send(self,self._fn(state,fn-sfn+r[0]))
 					return "newdata",self.data
 		return 'ok',None
 
@@ -65,3 +69,25 @@ class CCH(CH):
 				k *= 2
 			dbuf.append(c)
 		return dbuf
+
+	def attach(self,C,p):
+		(r,s) = self.config
+		for fs in range(0,len(C.frame),p):
+			for i in r:
+				f = C.frame[i+fs]
+				x = f[s]
+				x.attach(self)
+	
+	def deattach(self,C,p):
+		(r,s) = self.config
+		for fs in range(0,len(C.frame),p):
+			for i in r:
+				f = C.frame[i+fs]
+				x = f[s]
+				x.deattach()
+
+	def _fn(self,state,fn):
+		#tt = ((state.t3 + 26) - state.t2) % 26
+		lfn = (51 * state.t1) + fn
+		#print state.t1,state.t2,state.t3,fn,tt,lfn
+		return lfn

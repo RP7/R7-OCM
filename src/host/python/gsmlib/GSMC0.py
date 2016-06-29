@@ -5,6 +5,8 @@ import GSM as gsm
 import FCCH
 import SCH
 import BCCH
+import CCCH
+import SDCCH
 import TS
 import Burst
 import SB
@@ -68,6 +70,9 @@ class GSMC0:
 		self.sleepTime = 0.
 		self.state = GSMSystemState()
 		self.osr = config.SampleRate/gsm.SymbolRate
+		self.ccch = []
+		self.sdcch = []
+		self.bcch = []
 
 	def initSCH(self):
 		self.sch = SCH.SCH()
@@ -75,8 +80,23 @@ class GSMC0:
 		self.regMCB(self.frameTrack,None)
 	
 	def initBCCH(self):
-		self.bcch = BCCH.BCCH()
-		self.bcch.attach(self.C0)
+		for i in [0,2]:
+			ch = BCCH.BCCH(i)
+			ch.attach(self.C0,gsm.MultiFrame)
+			self.bcch.append(ch)
+
+	def initCCCH(self,r):
+		for i in [0,2]:
+			for n in r:
+				ch = CCCH.CCCH(n,i)
+				ch.attach(self.C0,gsm.MultiFrameC)
+				self.ccch.append(ch)
+
+	def initSDCCH(self,r,s):
+		for n in r:
+			ch = SDCCH.SDCCH(n,s)
+			ch.attach(self.C0,gsm.MultiFrameC)
+			self.sdcch.append(ch)
 
 	def getFn(self):
 		_s = self._fn/gsm.SupperFrame

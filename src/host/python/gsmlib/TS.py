@@ -57,6 +57,13 @@ class CFrame(Frame):
 	__TS__ = [ TS0, TS1 ] + [TST]*6
 	def __init__(self):
 		Frame.__init__(self)
+	def dump(self):
+		for x in self.frame:
+			for b in x:
+				if b.ch != None:
+					print "install",b.ch.name
+				else:
+					print "No install"
 
 class TFrame(Frame):
 	__TS__ = [TST]*8

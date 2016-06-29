@@ -1,5 +1,5 @@
 from ctypes import *
-from socket import socket,AF_INET,SOCK_DGRAM
+from socket import socket,AF_INET,SOCK_DGRAM,htonl
 
 class gsmtap_hdr(Structure):
 	_pack_ = 1
@@ -24,6 +24,21 @@ class gsmtap_data(Structure):
 	]
 
 class gsmtap:
+	"""
+	#define GSMTAP_CHANNEL_UNKNOWN	0x00
+	#define GSMTAP_CHANNEL_BCCH	0x01
+	#define GSMTAP_CHANNEL_CCCH	0x02
+	#define GSMTAP_CHANNEL_RACH	0x03
+	#define GSMTAP_CHANNEL_AGCH	0x04
+	#define GSMTAP_CHANNEL_PCH	0x05
+	#define GSMTAP_CHANNEL_SDCCH	0x06
+	#define GSMTAP_CHANNEL_SDCCH4	0x07
+	#define GSMTAP_CHANNEL_SDCCH8	0x08
+	#define GSMTAP_CHANNEL_TCH_F	0x09
+	#define GSMTAP_CHANNEL_TCH_H	0x0a
+	#define GSMTAP_CHANNEL_ACCH	0x80
+	"""
+	_channel_ = ["UNKNOW","BCCH","CCCH","RACH","AGCH","PCH","SDCCH","SDCCH4","SDCCH8","TCH_F","TCH_H"]
 	def __init__(self):
 		self.block = gsmtap_data()
 
@@ -34,11 +49,20 @@ class gsmtap:
 		self.block.header.sub_type = 1
 		self.sock = socket(AF_INET, SOCK_DGRAM)
 
-	def send(self,data):
-		self.block.data[:]=data[:]
+	def send(self,ch,fn):
+		self.block.data[:]=ch.data[:]
+		self.block.header.sub_type = self.name2inx(ch.name)
+		(r,s) = ch.config
+		self.block.header.timeslot = s
+		self.block.header.frame_number = htonl(fn)
 		self.sock.sendto(self.struct2stream(self.block),('127.0.0.1',4729))
 
 	def struct2stream(self,s):
 		length  = sizeof(s)
 		p       = cast(pointer(s), POINTER(c_char * length))
 		return p.contents.raw
+	def name2inx(self,name):
+		for i in range(len(gsmtap._channel_)):
+			if gsmtap._channel_[i]==name:
+				return i
+		return 0
