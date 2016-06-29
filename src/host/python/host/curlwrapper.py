@@ -26,8 +26,8 @@ class curlwrapper:
 
 def main():
 	c = curlwrapper('http://192.168.1.110:8080/')
-	print c.set_rx_freq(939.8e6)
-	print c.set_afc(0x7c)
+	print c.set_rx_freq(942.8e6)
+	print c.set_afc(186)
 
 if __name__ == '__main__':
 	main()
