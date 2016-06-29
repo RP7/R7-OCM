@@ -67,6 +67,7 @@ class SB(Burst):
 			, Burst.fosr
 			, 0. )/float(SBTraining.length)
 
+
 		self.rhh = np.zeros(len(rhh)*2-1,dtype=complex)
 		self.rhh[:len(rhh)]=np.conj(rhh[::-1])
 		self.rhh[len(rhh):]=rhh[1:]
@@ -77,7 +78,8 @@ class SB(Burst):
 		self.b = self.viterbi.backward(self.mafi[:44])
 		self.sbm0 = self.viterbi.dediff_backward(self.b,0,SBTraining.bits[3])[2:-4]
 		self.sbm1 = self.viterbi.dediff_forward(self.a,0,SBTraining.bits[-4])[4:-2]
-
+		#print "cut_pos",self.cut_pos,self.rhh[:]
+		
 
 	def tofile(self,p):
 		self.save = { 'rhh':self.rhh

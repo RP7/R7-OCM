@@ -24,7 +24,7 @@ def matchFilter(d,h,osr,timing):
 		f = s-p
 		a = np.dot(d[p:p+len(rh)],rh)
 		b = np.dot(d[p+1:p+1+len(rh)],rh)
-		ret[k]=a*(1-f)+b*f
+		ret[k]=a*(1.-f)+b*f
 	return ret
 
 def maxwin(d,l):

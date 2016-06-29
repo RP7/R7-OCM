@@ -57,7 +57,7 @@ class Burst:
 	CHAN_IMP_RESP_LENGTH = 5
 	osr = config.SampleRate/gsm.SymbolRate
 	fosr = float(osr)
-	chn_len = int(CHAN_IMP_RESP_LENGTH*fosr)
+	chn_len = int(CHAN_IMP_RESP_LENGTH*osr)
 	chnMatchLength = int(chn_len+(CHAN_IMP_RESP_LENGTH+2)/2.*fosr)
 	
 	small_overlap_sample = int(small_overlap*osr)

@@ -53,7 +53,7 @@ void leastSquare( double *pa, int64_t * pto, int64_t *pco )
 
 int clklevel(double newa,double olda)
 {
-	if(fabs(olda)<1e-3)
+	if(fabs(olda)<1e-5)
 		return 0;
 	double d = (newa-olda)/olda;
 	printf("diff: %le\n",d);
