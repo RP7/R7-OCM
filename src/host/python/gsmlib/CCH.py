@@ -27,7 +27,7 @@ class CCH(CH):
 			if sfn == r[-1]:
 				self.decode(state)
 				if self.codec.parity_check(self.decoded_data)!=0:
-					print "fn %d(%d)"%(b.fn,fn),"sn",b.sn,"error",self.codec.last_error
+					print "fn %d(%d)"%(b.fn,sfn),"sn",b.sn,"error",self.codec.last_error
 				else:
 					self.data = self.compress_bits(self.decoded_data[:184])
 					#print state.t1,state.t2,state.t3,self.name,"ok","msg",self.data
