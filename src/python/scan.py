@@ -52,6 +52,7 @@ class scan:
 			print "too small"
 			dg = 0x4c
 		self.ad.Set_Rx_Gain(dg,1)
+		self.ad.Check_FDD()
 		self.gain = dg
 
 	def agc(self):
@@ -68,13 +69,14 @@ class scan:
 		self.ad.Set_Rx_freq(next_f)
 		last_gain = self.gain
 		self.agc()
-		d = np.zeros(scan.OUTSIZE)
+		logd = np.zeros(scan.OUTSIZE)
 		for i in range(16):
 			fd = np.fft.fft(self.iq[i*scan.FFTSIZE:(i+1)*scan.FFTSIZE])
 			sfd = np.fft.fftshift(fd)
 			cutfd = sfd[scan.FFTSIZE/2-scan.OUTSIZE/2:scan.FFTSIZE/2+scan.OUTSIZE/2]
-			d += (cutfd*np.conj(cutfd)).real
-		logd = np.log10(d)*10.-last_gain
+			d = (cutfd*np.conj(cutfd)).real
+			logd += np.log10(d)*10.-last_gain
+		logd = logd/16.
 		self.iq = self.nowData(16)
 		return zip(r.tolist(),logd.tolist())
 
