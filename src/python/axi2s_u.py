@@ -32,6 +32,12 @@ class axi2s_u:
 		print 'ocm read',r['power'][:10]
 		return r
 	
+	def npfrom(self,offset,length):
+		self.dev.SetOffset(0)
+		d = np.frombuffer(self.dev.mmap, dtype=np.int16, count=length*2, offset=offset)
+		iq = complex(1.,0.)*d[::2]+complex(0.,1.)*d[1::2]
+		return iq
+	
 	def rfdata(self):
 		self.dev.SetOffset(0)
 		d = np.frombuffer(self.dev.mmap, dtype=np.int16, count=1920*2, offset=0)

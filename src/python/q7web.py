@@ -12,6 +12,7 @@ import ad9361_fir
 import config
 import udp_server
 import FM
+import scan as scanlib
 
 urls = ( '/'      ,'index'
 	     , '/tx'    ,'tx'
@@ -24,6 +25,7 @@ urls = ( '/'      ,'index'
 	     , '/init'  ,'initapi'
 	     , '/udp'   , 'udp'
 			 , '/FM'    , 'FMAPI'
+			 , '/scan'  , 'scan'
 	     )
 
 
@@ -267,7 +269,18 @@ class udp:
 		_g.aximem.reset("inp")
 		_g.udpSrv.run()
 		return json.dumps({"ret":"ok"})
-
+class scan:
+	def GET(self):
+		if _g.scan==None:
+			_g.scan = scanlib.scan(_g)
+		else:
+			_g.scan.init()
+		i = web.input()
+		startf = float(i['s'])
+		endf = float(i['e'])
+		ret = _g.scan.spectrum(startf,endf)
+		web.header('Content-Type', 'text/json')
+		return json.dumps({"ret":"ok","data":ret})
 class FMAPI:
 	def GET(self):
 		i = web.input()

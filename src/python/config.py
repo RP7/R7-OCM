@@ -16,6 +16,7 @@ class config:
 		self.udpSrv = None
 		self.FM = None
 		self.port = 10000
+		self.scan = None
 		
 	def todict(self):
 		r = {}

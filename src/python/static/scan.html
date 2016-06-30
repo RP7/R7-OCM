@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Spectrum</title>
+    <!-- 引入 echarts.js -->
+    <script src="echarts.js"></script>
+    <script src="jquery.min.js"></script>
+    <script src="scan.js"></script>
+    
+</head>
+<body>
+    <!-- 为ECharts准备一个具备大小（宽高）的Dom -->
+    <div id="main" style="width: 800px;height:800px;">
+    </div>
+    <script type="text/javascript">
+
+    var spectrum = echarts.init(document.getElementById('main'));
+    load();
+    </script>
+</body>
+</html>
