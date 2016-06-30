@@ -8,9 +8,12 @@ var option = {
     xAxis: {
             type: 'value'
           , data: []
+          , min:800000000
     },
     yAxis: {
-        type: 'value'
+          type: 'value'
+        , boundaryGap: [0, '100%']
+            
     },
     series: [
         {

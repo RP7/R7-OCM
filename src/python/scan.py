@@ -3,9 +3,11 @@ from axi2s_c import axi2s_c
 from axi2s_u import axi2s_u
 from AD9361_c import AD9361_c
 import numpy as np
+import time
 class scan:
 	FFTSIZE = 3072
-	OUTSIZE = 2000
+	OUTSIZE = 1000
+	STEP = 10e6
 	AGC_TAGET = 1024*1024/2
 	def __init__(self,g):
 		self.g = g
@@ -43,16 +45,20 @@ class scan:
 
 	def setGain(self,d):
 		dg = self.gain+d
-		if dg<0 or dg>0x4c:
-			print "out of agc range"
-		else:
-			self.ad.Set_Rx_Gain(dg,1)
-			self.gain = dg
+		if dg<0 :
+			print "too large"
+			dg = 0
+		if dg>0x4c:
+			print "too small"
+			dg = 0x4c
+		self.ad.Set_Rx_Gain(dg,1)
+		self.gain = dg
 
 	def agc(self):
 		c = 10
 		while c>0:
 			d = self.agcOnce()
+			time.sleep(0.01)
 			if abs(d)<=1:
 				return
 			c -= 1
@@ -74,13 +80,13 @@ class scan:
 
 	def spectrum(self,startf,endf):
 		self.r = []
-		s = int(startf/20e6)
-		e = int(endf/20e6+1)
-		for f in range(s-1,e):
-			cf = f*20e6
-			r = np.arange(cf-30e6,cf-10e6,10e3)
+		s = int(startf/scan.STEP)
+		e = int(endf/scan.STEP+1)
+		for f in range(s,e):
+			cf = f*scan.STEP
+			r = np.arange(cf-scan.STEP*1.5,cf-scan.STEP*0.5,10e3)
 			self.r += self.oneShot(cf,r)
-		self.r = self.r[2000:]
+		self.r = self.r[scan.OUTSIZE:]
 		return self.r
 		
 def main():
