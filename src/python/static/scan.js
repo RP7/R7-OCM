@@ -8,7 +8,7 @@ var option = {
     xAxis: {
             type: 'value'
           , data: []
-          , min:930000000
+          , min:900000000
     },
     yAxis: {
           type: 'value'
@@ -44,7 +44,7 @@ var load = function() {
 };
 
 var update = function() {
-    $.getJSON('/scan?s=930e6&e=960e6').done( function(data) {
+    $.getJSON('/scan?s=900e6&e=1000e6').done( function(data) {
     var ss = data.data;
     var series = [
      {
