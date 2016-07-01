@@ -8,7 +8,7 @@ class scan:
 	FFTSIZE = 3072
 	OUTSIZE = 1000
 	STEP = 10e6
-	AGC_TAGET = 1024*1024/2
+	AGC_TAGET = 1024*1024/8
 	def __init__(self,g):
 		self.g = g
 		self.ram = axi2s_u(g.AXI2S_IBASE,g.AXI2S_ISIZE)

@@ -8,11 +8,8 @@ var option = {
     toolbox: {
         show : true,
         feature : {
-            mark : {show: true},
             dataZoom : {show: true},
             dataView : {show: true},
-            magicType : {show: true, type: ['line', 'bar']},
-            restore : {show: true},
             saveAsImage : {show: true}
         }
     },
@@ -73,10 +70,12 @@ var load = function() {
 };
 
 var update = function() {
+    var values = $("#slider1").slider("values");
+    var diff = (values[1]-values[0])
     o=spectrum.getOption()
-    s = o.dataZoom[0].start+900;
+    s = o.dataZoom[0].start*diff/100.+values[0];
     s = Math.round(s/10)*10;
-    e = o.dataZoom[0].end+900;
+    e = o.dataZoom[0].end*diff/100.+values[0];
     e = Math.round(e/10)*10+10;
     url = '/scan?s='+s+'e6&e='+e+'e6';
     $.getJSON(url).done( function(data) {
@@ -87,10 +86,11 @@ var update = function() {
         , data: ss
      }
    ];
+   var values = $("#slider1").slider("values");
    var xAxis = {   type: 'value'
           , data: []
-          , min:900000000
-          , max:1000000000
+          , min:values[0]*1e6
+          , max:values[1]*1e6
    };
    spectrum.setOption({xAxis:xAxis,series:series});
     });

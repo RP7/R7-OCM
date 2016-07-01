@@ -7,17 +7,72 @@
     <script src="echarts.js"></script>
     <script src="jquery.min.js"></script>
     <script src="scan.js"></script>
+    <script src="dark.js"></script>
+    <link rel="stylesheet" href="jquery-ui.min.css">
+    <style>#slider { margin: 10px; }    </style>
+    <script src="jquery-ui.min.js"></script>
+    <script src="jquery-ui-slider-pips.min.js"></script>
+    <link rel="stylesheet" href="jquery-ui-slider-pips.min.css">
     
 </head>
 <body>
     <!-- 为ECharts准备一个具备大小（宽高）的Dom -->
-    <div id="main" style="width: 800px;height:800px;">
+    <div id="top" style="width: 1200px;height:960px;">
+        <div id="s_1b" style="width: 1200px;height:20px;"> </div>
+        <div id="s0b" style="width: 1200px;height:40px;">
+            <div id="slider0">
+            </div>
+        </div>
+        <div id="s1b" style="width: 1200px;height:40px;">
+            <div id="slider1">
+            </div>
+        </div>
+        <div id="s_2b" style="width: 1200px;height:20px;"> </div>
+        <div id="main" style="width: 1200px;height:800px;">
+        </div>
     </div>
     <script type="text/javascript">
-
-    var spectrum = echarts.init(document.getElementById('main'));
+    var setSlider1 = function(values){
+            $("#slider1").slider( "option", "min", values[0] );
+            var s1s = $("#slider1").slider( "values",0 );
+            if (s1s<values[0])
+                $("#slider1").slider( "values",0,values[0] );
+            $("#slider1").slider( "option", "max", values[1] );
+            var s1e = $("#slider1").slider( "values",1 );
+            if (s1e>values[1])
+                $("#slider1").slider( "values",1,values[1] );
+            $("#slider1").slider("pips");
+    };
+    $( "#slider0" ).slider({
+          range:true
+        , values:[900,1000]
+        , min:100
+        , max:6000
+        , step:100
+        , start: function( event, ui ) {
+            var values = $("#slider0").slider( "values" );
+            if (values[0]!=ui.values[0])
+            {
+                var diff = values[0]-ui.values[0];
+                var newValues = [ui.values[0],values[1]+diff ]
+                $("#slider0").slider( "values",newValues );
+                setSlider1(newValues);
+            }
+        }
+        , stop: function( event, ui ) {
+            setSlider1(ui.values);
+        }
+    }).slider("pips").slider("float");
+    $( "#slider1" ).slider({
+          range:true
+        , values:[935,960]
+        , min:900
+        , max:1000
+        , step:10
+    }).slider("pips").slider("float");
+    var spectrum = echarts.init(document.getElementById('main'),'dark');
     load();
-    setInterval(update, 5000);
+    setInterval(update, 3000);
 
     </script>
 </body>
