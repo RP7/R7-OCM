@@ -36,7 +36,8 @@ var option = {
     xAxis: {
             type: 'value'
           , data: []
-          , min:600000000
+          , scale:true
+          , min:900000000
     },
     yAxis: {
           type: 'value'
@@ -72,7 +73,13 @@ var load = function() {
 };
 
 var update = function() {
-    $.getJSON('/scan?s=900e6&e=1000e6').done( function(data) {
+    o=spectrum.getOption()
+    s = o.dataZoom[0].start+900;
+    s = Math.round(s/10)*10;
+    e = o.dataZoom[0].end+900;
+    e = Math.round(e/10)*10+10;
+    url = '/scan?s='+s+'e6&e='+e+'e6';
+    $.getJSON(url).done( function(data) {
     var ss = data.data;
     var series = [
      {
@@ -80,7 +87,12 @@ var update = function() {
         , data: ss
      }
    ];
-   spectrum.setOption({series:series});
+   var xAxis = {   type: 'value'
+          , data: []
+          , min:900000000
+          , max:1000000000
+   };
+   spectrum.setOption({xAxis:xAxis,series:series});
     });
 };
 

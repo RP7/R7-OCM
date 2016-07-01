@@ -37,7 +37,7 @@ class scan:
 
 	def agcOnce(self):
 		iq = self.nowData(1)
-		p = (np.dot(iq,np.conj(iq))/scan.FFTSIZE).real
+		p = (np.dot(iq,np.conj(iq))/scan.FFTSIZE).real+1.
 		print "power",p
 		d=-int(np.log10(p/scan.AGC_TAGET)*10.)
 		self.setGain(d)
