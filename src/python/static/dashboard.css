@@ -72,7 +72,9 @@ body {
  */
 
 .main {
-  padding: 20px;
+  padding: 0px;
+  background: rgb(51,51,51)
+  /*background-image: url(images/background.jpg);*/
 }
 @media (min-width: 768px) {
   .main {

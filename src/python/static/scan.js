@@ -53,6 +53,8 @@ var option = {
             , data: []
         }
     ]
+    //,
+    //backgroundColor: rgba(52, 52, 52, 0.5)
 };
 var sData = {};
 var updateSData = function(d) {
