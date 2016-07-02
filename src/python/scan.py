@@ -41,9 +41,10 @@ class scan:
 		p = (np.dot(iq,np.conj(iq))/scan.FFTSIZE).real+1.
 		if p>scan.AGC_TAGET_MAX and self.gain!=0:
 			d=-int(np.log10(p/scan.AGC_TAGET_MAX)*10.)
+			self.setGain(d)
 		if p<scan.AGC_TAGET_MIN and self.gain!=0x4c:
 			d=-int(np.log10(p/scan.AGC_TAGET_MAX)*10.)
-		self.setGain(d)
+			self.setGain(d)
 		return d
 
 	def setGain(self,d):
