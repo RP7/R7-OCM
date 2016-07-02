@@ -66,6 +66,7 @@ var load = function() {
      }
    ];
    spectrum.setOption({series:series});
+   setTimeout(update, 2000);
     });
 };
 
@@ -93,6 +94,7 @@ var update = function() {
           , max:values[1]*1e6
    };
    spectrum.setOption({xAxis:xAxis,series:series});
+   setTimeout(update, 2000);
     });
 };
 

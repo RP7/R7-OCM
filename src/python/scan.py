@@ -8,7 +8,8 @@ class scan:
 	FFTSIZE = 3072
 	OUTSIZE = 1000
 	STEP = 10e6
-	AGC_TAGET = 1024*1024/8
+	AGC_TAGET_MAX = 1024*1024/2
+	AGC_TAGET_MIN = 1024*1024/512
 	def __init__(self,g):
 		self.g = g
 		self.ram = axi2s_u(g.AXI2S_IBASE,g.AXI2S_ISIZE)
@@ -38,8 +39,10 @@ class scan:
 	def agcOnce(self):
 		iq = self.nowData(1)
 		p = (np.dot(iq,np.conj(iq))/scan.FFTSIZE).real+1.
-		print "power",p
-		d=-int(np.log10(p/scan.AGC_TAGET)*10.)
+		if p>scan.AGC_TAGET_MAX and self.gain!=0:
+			d=-int(np.log10(p/scan.AGC_TAGET_MAX)*10.)
+		if p<scan.AGC_TAGET_MIN and self.gain!=0x4c:
+			d=-int(np.log10(p/scan.AGC_TAGET_MAX)*10.)
 		self.setGain(d)
 		return d
 
