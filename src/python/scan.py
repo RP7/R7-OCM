@@ -39,26 +39,27 @@ class scan:
 	def agcOnce(self):
 		iq = self.nowData(1)
 		p = (np.dot(iq,np.conj(iq))/scan.FFTSIZE).real+1.
+		d = 0
 		if p>scan.AGC_TAGET_MAX and self.gain!=0:
 			d=-int(np.log10(p/scan.AGC_TAGET_MAX)*10.)
-			self.setGain(d)
 		if p<scan.AGC_TAGET_MIN and self.gain!=0x4c:
 			d=-int(np.log10(p/scan.AGC_TAGET_MAX)*10.)
-			self.setGain(d)
+		self.setGain(d)
 		return d
 
 	def setGain(self,d):
-		dg = self.gain+d
-		if dg<0 :
-			print "too large"
-			dg = 0
-		if dg>0x4c:
-			print "too small"
-			dg = 0x4c
-		self.ad.Set_Rx_Gain(dg,1)
-		self.ad.Check_FDD()
-		self.gain = dg
-
+		if d!=0:
+			dg = self.gain+d
+			if dg<0 :
+				print "too large"
+				dg = 0
+			if dg>0x4c:
+				print "too small"
+				dg = 0x4c
+			self.ad.Set_Rx_Gain(dg,1)
+			self.gain = dg
+		#self.ad.Check_FDD()
+		
 	def agc(self):
 		c = 10
 		while c>0:
@@ -93,6 +94,7 @@ class scan:
 			r = np.arange(cf-scan.STEP*1.5,cf-scan.STEP*0.5,10e3)
 			self.r += self.oneShot(cf,r)
 		self.r = self.r[scan.OUTSIZE:]
+		#ret = {a:b for (a,b) in self.r}
 		return self.r
 		
 def main():

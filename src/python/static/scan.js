@@ -54,19 +54,33 @@ var option = {
         }
     ]
 };
+var sData = {};
+var updateSData = function(d) {
+  for( var i=0;i<d.length;i++ ){
+    a= d[i];
+    sData[a[0]]=a[1];
+  }
+};
+var buildData = function(){
+  var ret = [];
+  for ( var s in sData ){
+    ret.push([s,sData[s]]);
+  }
+  return ret;
+};
 
 var load = function() {
     spectrum.setOption(option);
     $.getJSON('/scan?s=900e6&e=1000e6').done( function(data) {
-    var ss = data.data;
+    updateSData(data.data);
     var series = [
      {
           name: 'Spectrum'
-        , data: ss
+        , data: buildData()
      }
    ];
    spectrum.setOption({series:series});
-   setTimeout(update, 2000);
+   //setTimeout(update, 5000);
     });
 };
 
@@ -80,11 +94,11 @@ var update = function() {
     e = Math.round(e/10)*10+10;
     url = '/scan?s='+s+'e6&e='+e+'e6';
     $.getJSON(url).done( function(data) {
-    var ss = data.data;
+    updateSData(data.data);
     var series = [
      {
           name: 'Spectrum'
-        , data: ss
+        , data: buildData()
      }
    ];
    var values = $("#slider1").slider("values");
@@ -94,7 +108,6 @@ var update = function() {
           , max:values[1]*1e6
    };
    spectrum.setOption({xAxis:xAxis,series:series});
-   setTimeout(update, 2000);
     });
 };
 
