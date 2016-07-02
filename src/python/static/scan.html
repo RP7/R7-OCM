@@ -3,34 +3,77 @@
 <head>
     <meta charset="utf-8">
     <title>Spectrum</title>
-    <!-- 引入 echarts.js -->
     <script src="echarts.js"></script>
     <script src="jquery.min.js"></script>
-    <script src="scan.js"></script>
-    <script src="dark.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="css/bootstrap.min.css">
     <link rel="stylesheet" href="jquery-ui.min.css">
-    <style>#slider { margin: 10px; }    </style>
     <script src="jquery-ui.min.js"></script>
-    <script src="jquery-ui-slider-pips.min.js"></script>
-    <link rel="stylesheet" href="jquery-ui-slider-pips.min.css">
     
 </head>
 <body>
-    <!-- 为ECharts准备一个具备大小（宽高）的Dom -->
-    <div id="top" style="width: 1200px;height:960px;background:rgb(51,51,51)">
-        <div id="s_1b" style="width: 1200px;height:20px;"> </div>
-        <div id="s0b" style="width: 1200px;height:40px;">
-            <div id="slider0" style="margin-left: 100px;margin-right: 100px;">
-            </div>
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container-fluid">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="#">Spectrum</a>
         </div>
-        <div id="s1b" style="width: 1200px;height:40px;">
-            <div id="slider1" style="margin-left: 100px;margin-right: 100px;">
-            </div>
+        <div id="navbar" class="navbar-collapse collapse">
+          <ul class="nav navbar-nav navbar-right">
+            <li><a href="#">Dashboard</a></li>
+            <li><a href="#">Settings</a></li>
+            <li><a href="#">Profile</a></li>
+            <li><a href="#">Help</a></li>
+          </ul>
+          <form class="navbar-form navbar-right">
+            <input type="text" class="form-control" placeholder="Search...">
+          </form>
         </div>
-        <div id="s_2b" style="width: 1200px;height:20px;"> </div>
-        <div id="main" style="width: 1200px;height:800px;">
+      </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-sm-3 col-md-2 sidebar">
+                <div class="col-md-2">
+                    <button class="btn btn-primary">Band</button>
+                    <div id="s0b" class="slider">
+                        <div id="slider0" ></div>
+                    </div>
+                </div>
+                <div class="col-md-2 col-md-offset-2">
+                    <button class="btn btn-primary">Span</button>
+                    <div id="s1b" class="slider">
+                        <div id="slider1" ></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+                <div id="main" class="col-md-12" style="height:840px"></div>
+            </div>
         </div>
     </div>
+
+    <script src="echarts.js"></script>
+    <script src="jquery.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="jquery-ui.min.css">
+    <script src="jquery-ui.min.js"></script>
+    <script src="jquery-ui-slider-pips.min.js"></script>
+    <link rel="stylesheet" href="jquery-ui-slider-pips.min.css">
+    <style>
+        .slider { margin: 10px; height:750px;}    
+    </style>
+    <script src="scan.js"></script>
+    <script src="dark.js"></script>
+    <link rel="stylesheet" href="dashboard.css">
+    
     <script type="text/javascript">
     var setSlider1 = function(values){
             $("#slider1").slider( "option", "min", values[0] );
@@ -43,8 +86,10 @@
                 $("#slider1").slider( "values",1,values[1] );
             $("#slider1").slider("pips");
     };
+    
     $( "#slider0" ).slider({
           range:true
+        , orientation: "vertical"
         , values:[900,1000]
         , min:100
         , max:6000
@@ -63,18 +108,21 @@
             setSlider1(ui.values);
         }
     }).slider("pips").slider("float");
+    
     $( "#slider1" ).slider({
           range:true
+        , orientation: "vertical"
         , values:[935,960]
         , min:900
         , max:1000
         , step:10
     }).slider("pips").slider("float");
+    
     var spectrum = echarts.init(document.getElementById('main'),'dark');
     load();
     setInterval(update, 5000);
 
-
     </script>
+
 </body>
 </html>
