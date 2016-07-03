@@ -22,7 +22,7 @@ bf = burstfile.burstfile(file)
 c0.state.timingSyncState.to("fine")
 for i in range(3):
 	c0.state.timingSyncState.once()
-bf.skip(8+8+8)
+bf.skip(8)
 b,_F = bf.toC0(c0)
 print b,_F
 if b.ch!=None:

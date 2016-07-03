@@ -20,7 +20,7 @@ class clib:
 			  byref(filtered_burst)
 			, 148
 			, byref(xrhh)
-			, c_int(1)
+			, c_int(2)
 			, byref(stop_states)
 			, 2
 			, byref(output)
