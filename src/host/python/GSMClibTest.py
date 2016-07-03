@@ -22,7 +22,7 @@ bf = burstfile.burstfile(file)
 c0.state.timingSyncState.to("fine")
 for i in range(3):
 	c0.state.timingSyncState.once()
-bf.skip(8)
+bf.skip(8+8+8)
 b,_F = bf.toC0(c0)
 print b,_F
 if b.ch!=None:
@@ -34,8 +34,8 @@ if b.ch!=None:
 	yy = b.viterbi.t2b(b.mafi,0)
 	yr = acc.viterbi_restore(yy,np.conj(b.rhh),148) #maybe right
 	yg = acc.viterbi_restore(yy,b.rhh,148)
-	#print yy
-	print np.array(yy[0:20])-np.array(o[0:20])
+	print yy
+	print np.array(yy[:147])-np.array(o[1:148])
 	# plt.figure(1)
 	# plt.plot(yr.real[1:],'r')
 	# plt.plot(yg.real[1:],'g')

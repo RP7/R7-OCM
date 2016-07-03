@@ -24,11 +24,8 @@ class clib:
 			, byref(stop_states)
 			, 2
 			, byref(output)
-			, byref(hard)
 			)
-		print "o",output[:]
-		print "d",np.array(hard[:-1])-np.array(output[1:])
-		return hard[:]
+		return output[:]
 
 	def viterbi_restore(self,x,rhh,bs):
 		output = (c_float*(bs*2))()
