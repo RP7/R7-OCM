@@ -27,6 +27,20 @@ b,_F = bf.toC0(c0)
 print b,_F
 if b.ch!=None:
 	ok,data = b.ch.callback(b,_F,c0.state)
+	chn = acc.channelEst(b.recv,SB.SBTraining.modulated,Burst.Burst.fosr)
+	inx = np.floor(np.arange(64)*Burst.Burst.fosr)
+	print inx[:]
+	print "clib chn",len(chn),chn[:3]
+	print "python chn",len(b.chn),b.chn[:3]	
+	rhh = acc.matchFilter( 
+			  b.chn[b.cut_pos:b.cut_pos+Burst.Burst.chnMatchLength]
+			, b.cut_chn
+			, Burst.Burst.fosr
+			, 0. )
+	print rhh/64.
+	print b.rhh
+	p = acc.maxwin(b.chn[SB.SB._chn_s:SB.SB._chn_e],Burst.Burst.chn_len)
+	print "clib p",p+SB.SB._chn_s,"python p",b.cut_pos
 	print b.a
 	print b.b	
 	o = acc.viterbi_detector(b.mafi,np.conj(b.rhh),148)

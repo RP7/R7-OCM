@@ -43,6 +43,46 @@ class clib:
 			, byref(output)
 			)
 		return np.array([complex(output[i],output[i+1]) for i in range(0,len(output),2)])
+	
+	def c2cf(self,x):
+		cx = (c_float*(len(x)*2))()
+		cx[::2]=x.real[:]
+		cx[1::2]=x.imag[:]
+		return cx
+	
+	def cf2c(self,output):
+		return np.array([complex(output[i],output[i+1]) for i in range(0,len(output),2)])
+	
+	def matchFilter(self,d,h,osr,timing):
+		cd = self.c2cf(d)
+		ch = self.c2cf(h)
+		l = int((len(d)-len(h)-1)/osr)
+		cout = (c_float*(l*2))()
+		self.lib.matchFilter( 
+			  byref(cd), byref(ch)
+			, c_int(l), c_int(len(h))
+			, byref(cout)
+			, c_float(osr), c_float(timing)) 
+		return self.cf2c(cout)		
+		
+	def maxwin(self,b,l):
+		cb = self.c2cf(b)
+		p = self.lib.maxwin(byref(cb),c_int(len(b)),c_int(l))
+		return p
 
-		
-		
+	def channelEst(self,frame,training,osr):
+		cf = self.c2cf(frame)
+		ct = self.c2cf(training)
+		l = int(len(frame)-(len(training)-1)*osr)
+		cout = (c_float*(l*2))()
+		self.lib.channelEst(
+			  byref(cf)
+			, byref(ct)
+			, c_int(len(frame))
+			, c_int(len(training))
+			, c_float(osr)
+			, c_int(l)
+			, byref(cout)
+			)
+		return self.cf2c(cout)
+

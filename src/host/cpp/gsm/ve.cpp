@@ -20,10 +20,78 @@ static void build_t(gr_complex restore[2][8], gr_complex *rhh)
   }
 }
 
+void matchFilter( 
+    gr_complex *d
+  , gr_complex *h
+  , int len
+  , int lenh
+  , gr_complex *output
+  , float osr
+  , float timing 
+  ) 
+{
+  int k,i;
+  for( k=0;k<len;k++ ) {
+    float s = (float)k*osr+timing;
+    int   p = (int)s;
+    float f = s-p;
+    output[k]= gr_complex(0.,0.);
+    for( i=0;i<lenh;i++ ) {
+      output[k] += (d[p+i]*gr_complex(1.0-f,0)+d[p+i+1]*gr_complex(f,0))*conj(h[i]);
+    }
+  }
+}
+
+static inline float norm22(gr_complex x) 
+{
+  return x.real()*x.real()+x.imag()*x.imag();
+}
+
 static inline float norm2(gr_complex a,gr_complex b) 
 {
-  gr_complex x=a-b;
-  return x.real()*x.real()+x.imag()*x.imag();
+  return norm22(a-b);
+}
+
+
+int maxwin(gr_complex *d,int dl,int l)
+{
+  float pd[dl],s=0.,max=0.;
+  int inx=0;
+  int i;
+  for(i=0;i<dl;i++) {
+    s += norm22(d[i]);
+    pd[i]=s;
+  }
+  for(i=0;i<dl-l;i++) {
+    float s = pd[i+l]-pd[i];
+    if(s>max) {
+      max = s;
+      inx = i;
+    }
+  }
+  return inx;
+}
+
+void channelEst(
+    gr_complex *frame
+  , gr_complex *training
+  , int fl
+  , int tl
+  , float osr
+  , int ol
+  , gr_complex *output
+  )
+{
+  int oi,i,j;
+  for( oi=0;oi<ol;oi++ ) {
+    output[oi] = gr_complex(0.,0.);
+    float p = (float)oi;
+    for( i=0;i<tl;i++ ) {
+      output[oi] += frame[int(p)]*conj(training[i]);
+      //printf("%d ",int(p));
+      p+=osr;
+    }
+  }
 }
 
 #define update(s0,s1,p0,p1,su) \
