@@ -54,7 +54,7 @@ class NB(Burst):
 
 	__field__ = [TB,NBM0,LF0,NBTraining,LF1,NBM1,TB,NGP]
 	__name__ = "NB"
-	_chn_s = int((TB.length+NBM0.length+2)*Burst.osr)
+	_chn_s = int((TB.length+NBM0.length+1)*Burst.osr)
 	_chn_e = int((TB.length+NBM0.length+LF0.length+NBTraining.length+Burst.CHAN_IMP_RESP_LENGTH+2*Burst.small_overlap)*Burst.osr)
 
 	def __init__(self):

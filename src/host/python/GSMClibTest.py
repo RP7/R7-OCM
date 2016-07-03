@@ -9,24 +9,7 @@ from ctypes import *
 import constant
 import gsmlib.clib as clib
 import gsmlib.SB as SB
-c0 = C0.GSMC0()
-
-c0.initSCH()
-c0.initBCCH()
-
-file = "../../../temp/gsm.log"
-lib = CDLL(constant.c_temp_dir+'libcgsm.so')
-acc = clib.clib(lib)
-
-bf = burstfile.burstfile(file)
-c0.state.timingSyncState.to("fine")
-for i in range(3):
-	c0.state.timingSyncState.once()
-bf.skip(8)
-b,_F = bf.toC0(c0)
-print b,_F
-if b.ch!=None:
-	ok,data = b.ch.callback(b,_F,c0.state)
+def testFun(b):
 	chn = acc.channelEst(b.recv,SB.SBTraining.modulated,Burst.Burst.fosr)
 	inx = np.floor(np.arange(64)*Burst.Burst.fosr)
 	print inx[:]
@@ -59,3 +42,40 @@ if b.ch!=None:
 	# plt.plot(yg.imag[1:],'g')
 	# plt.plot(b.mafi.imag,'b')
 	# plt.show()
+c0 = C0.GSMC0()
+
+c0.initSCH()
+c0.initBCCH()
+
+file = "../../../temp/gsm.log"
+lib = CDLL(constant.c_temp_dir+'libcgsm.so')
+acc = clib.clib(lib)
+
+bf = burstfile.burstfile(file)
+c0.state.timingSyncState.to("fine")
+for i in range(3):
+	c0.state.timingSyncState.once()
+bf.skip(8+8+8)
+b,_F = bf.toC0(c0)
+print b,_F
+if b.ch!=None:
+	ok,data = b.ch.callback(b,_F,c0.state)
+	#testFun(b)
+	ub = acc.newBurst(b.srecv)
+	acc.demodu(ub,b.training+1)
+	chn = clib.cf2c(ub.chn)
+	mafi = clib.cf2c(ub.mafi)
+	rhh = clib.cf2c(ub.rh)
+	print ub.msg[:114]
+	print b.nbm0
+	print np.array(ub.msg[:114])-np.array(b.msg)
+	plt.plot(mafi.real,'r')
+	plt.plot(b.mafi.real/b.rhh[2].real,'b')
+	#plt.plot(np.abs(chn))
+	plt.show()
+	print ub.demodulated[:]
+	# print b.a
+	print b.b
+
+	
+	

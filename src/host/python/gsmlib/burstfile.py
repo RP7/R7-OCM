@@ -33,8 +33,8 @@ class burstfile:
 			print "wrony in file"
 		else:
 			recv_type = (c_short*(2*1460))
-			recv = recv_type.from_buffer(bytearray(raw))
-			b.recv = Burst.short2Complex(recv)
+			b.srecv = recv_type.from_buffer(bytearray(raw))
+			b.recv = Burst.short2Complex(b.srecv)
 		return b,bdh.lfn
 
 	def readBurst(self):

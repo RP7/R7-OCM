@@ -2,6 +2,28 @@
 #define BURST_SIZE 148
 extern "C"
 {
+typedef struct burst_s {
+  int bl;
+  float osr;
+  short *recv;
+  gr_complex frame[1500];
+  gr_complex chn[6*10];
+  gr_complex rh[3];
+  int cut_pos;
+  gr_complex mafi[148];
+  int demodulated[148];
+  int msg[148];
+  int stolen[2];
+} burst_t;
+
+typedef struct training_s {
+  gr_complex sb[64];
+  gr_complex nb[9][26];
+  int sb_chn_s;
+  int sb_chn_e;
+  int nb_chn_s;
+  int nb_chn_e;
+} training_t;
 
 static void build_t(gr_complex restore[2][8], gr_complex *rhh)
 {
@@ -189,6 +211,120 @@ void viterbi_restore(int * input
     output[sample_nr] = restore[r_i][state];
     sample_nr++;
     r_i = !r_i;
+  }
+}
+
+void s2c(burst_t *b)
+{
+  float *p = (float *)&(b->frame);
+  int i;
+  for(i=0;i<b->bl*2;i++) {
+    *p =(float)b->recv[i];
+    p++;
+  }
+}
+void scale_vec(gr_complex *x, int l, float c)
+{
+  int i;
+  float *p;
+  p = (float*)x;
+  for(i=0;i<l*2;i++) {
+    *p /= c;
+    p++;
+  }
+}
+
+void scale(burst_t *b)
+{
+  float s = b->rh[1].real();
+  int i;
+  float *p;
+  p = (float*)&b->rh;
+  for(i=0;i<6;i++) {
+    *p /= s;
+    p++;
+  }
+  p = (float*)&b->mafi;
+  for(i=0;i<148*2;i++) {
+    *p /= s;
+    p++;
+  }
+}
+
+void dediff_forward(int *msg, int len, int r_i, int s, int *output)
+{
+  int i;
+  output[0] = s;
+  r_i = !r_i;
+  for(i=0;i<len-1;i++) {
+    int k = msg[i]^msg[i+1]^r_i;
+    s ^= k;
+    output[i+1]=s;
+    r_i = !r_i;
+  }
+}
+void demodu_core(burst_t *b, training_t *tr, int _chn_s, int trlen, int msg0len)
+{
+  int cut_pos = maxwin(b->chn,60,int(b->osr*2));
+  printf("cut_pos %d,%d\n",cut_pos,cut_pos+_chn_s);
+  float bs,timing;
+  int ibs;
+  if( cut_pos>b->osr ) {
+    bs = float(cut_pos)-b->osr;
+    ibs = (int)bs;
+    timing = bs-ibs;
+    matchFilter(b->chn+ibs,b->chn+cut_pos, 2, int(b->osr*2), b->rh, b->osr, timing);
+    b->rh[2] = conj(b->rh[0]);
+  }
+  else {
+    matchFilter(b->chn+cut_pos,b->chn+cut_pos, 2, int(b->osr*2), b->rh+1, b->osr, 0.);
+    b->rh[0] = conj(b->rh[2]);
+  }
+  scale_vec(b->rh,3,(float)trlen);
+  bs = float(cut_pos+_chn_s)-(b->osr)*(float)msg0len;
+  ibs = (int)bs;
+  timing = bs-ibs;
+  matchFilter(b->frame+ibs,b->chn+cut_pos, 148, int(b->osr*2), b->mafi, b->osr, timing);
+  scale(b);
+  unsigned int stop_states[2] = {1,2};
+  viterbi_detector(b->mafi, 148, b->rh, 2, stop_states, 2, b->demodulated );
+  dediff_forward(b->demodulated+1, 147, 0, 0, b->msg+1);
+}
+
+void demodu_sb(burst_t *b, training_t *tr)
+{
+  gr_complex *start = b->frame+tr->sb_chn_s;
+  channelEst( start, tr->sb, (int)((64+4)*b->osr), 64, b->osr, 60, b->chn );
+  demodu_core(b,tr,tr->sb_chn_s,64,42);
+  for(int i=0;i<39;i++)
+    b->msg[i]=b->msg[i+4];
+  for(int i=0;i<39;i++)
+    b->msg[39+i]=b->msg[39+4+64+i];
+  
+}
+
+void demodu_nb(burst_t *b, training_t *tr, int type)
+{
+  gr_complex *start = b->frame+tr->nb_chn_s;
+  channelEst( start, tr->nb[type], (int)((26+4)*b->osr), 26, b->osr, 60, b->chn );
+  demodu_core(b,tr,tr->nb_chn_s,26,61);
+  
+  for(int i=0;i<57;i++)
+    b->msg[i]=b->msg[i+4];
+  b->stolen[0]=b->msg[57+4];
+  b->stolen[0]=b->msg[57+4+1+26];
+  for(int i=0;i<57;i++)
+    b->msg[57+i]=b->msg[57+4+1+26+1+i];
+}
+
+void demodu(burst_t *b, training_t *traingings, int type)
+{
+  s2c(b);
+  if(type==0) { // SB 
+    demodu_sb(b,traingings);
+  }
+  else { // NB
+    demodu_nb(b,traingings,type-1);
   }
 }
 } //extern "C"
