@@ -12,6 +12,8 @@ import gsmlib.SB as SB
 import gsmlib.NB as NB
 import gsmlib.convCode as convCode
 import gsmlib.interleave as interleave
+import time
+
 def testFun(b):
 	chn = acc.channelEst(b.recv,SB.SBTraining.modulated,Burst.Burst.fosr)
 	inx = np.floor(np.arange(64)*Burst.Burst.fosr)
@@ -64,17 +66,23 @@ bf = burstfile.burstfile(file)
 c0.state.timingSyncState.to("fine")
 for i in range(3):
 	c0.state.timingSyncState.once()
+frameC = 0
+startT = time.time()
 
 for i in range(8*51*26):
 	b,_F = bf.toC0(c0)
 	if b.ch!=None:
+		if b.ch.name=='CCCH':
 		#print b.ch.name,b.__name__,_F
-		ok,data = b.ch.callback(b,_F,c0.state)
-		ub = acc.newBurst(b.srecv)
-		if b.__class__==NB.NB:
-			acc.demodu(ub,b.training+1)
-		elif b.__class__==SB.SB:
-			acc.demodu(ub,0)
+			ok,data = b.ch.callback(b,_F,c0.state)
+			# ub = acc.newBurst(b.srecv)
+			# if b.__class__==NB.NB:
+			# 	acc.demodu(ub,b.training+1)
+			# elif b.__class__==SB.SB:
+			# 	acc.demodu(ub,0)
+			frameC+=1
+endT = time.time()
+print "pre burst time:",(endT-startT)/frameC
 # power = [0.]*(51*8)
 # for i in range(51*8*26):
 # 	f = bf.readBurst().recv
