@@ -122,7 +122,8 @@ class Burst:
 			return
 		s = int(self.pos-Burst.small_overlap)
 		l = int(Burst.length+2*Burst.small_overlap)
-		self.recv = Burst.short2Complex(mmap(s,l))
+		self.srecv = mmap(s,l)
+		self.recv = Burst.short2Complex(self.srecv)
 
 	def mapLData(self):
 		if mmap==None:

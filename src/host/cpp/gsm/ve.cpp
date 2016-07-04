@@ -1,4 +1,6 @@
 #include "gr_complex.h"
+#include "vd.h"
+#include <inttypes.h> //uint32_t,uint64_t
 #include <stdio.h>
 #define BURST_SIZE 148
 extern "C"
@@ -16,6 +18,19 @@ typedef struct burst_s {
   int msg[148];
   int stolen[2];
 } burst_t;
+typedef struct sch_s {
+  burst_t *sb;
+  unsigned char in_buf[78];
+  unsigned char outbuf[35];
+  uint64_t out[2];
+} sch_t;
+
+typedef struct cch_s {
+  burst_t *nb[4];
+  unsigned char in_buf[1024];
+  unsigned char outbuf[1024];
+  uint64_t out[4];
+} cch_t;
 
 typedef struct training_s {
   gr_complex sb[64];
@@ -325,5 +340,52 @@ void demodu(burst_t *b, training_t *traingings, int type)
   else { // NB
     demodu_nb(b,traingings,type-1);
   }
+}
+int doSch(sch_t *b, training_t *traingings, CC_t *h, int type)
+{
+  demodu(b->sb,traingings,type);
+  for( int i=0;i<h->ins*2;i++ ) {
+    b->in_buf[i]=b->sb->msg[i];
+    printf("%d",(int)b->in_buf[i]);
+  }
+  printf("\n");
+  int error = conv_decode(h,b->in_buf,b->outbuf);
+  printf("Error %d\n",error);
+  for( int i=0;i<h->bs;i++ ) {
+    printf("%d",(int)b->outbuf[i]);
+  }
+  printf("\n");
+  compress_bits(b->outbuf,35,b->out);
+  printf("msg = %lx \n",b->out[0]);
+  
+  return parity_check(h,b->out);
+}
+void cch_deinterleave(cch_t *b, CC_t *t)
+{
+  int i,j,k;
+  for(i=0;i<57*8;i++) {
+    j = t->ilT[i];
+    b->in_buf[i] = (unsigned char)b->nb[j/114]->msg[j%114];
+  }
+  // for(i=0;i<57*8;i++)
+  //   printf("%d,",(int)b->in_buf[i]);
+  // printf("\n");
+}
+int doCch(cch_t *b, training_t *traingings, CC_t *h, int type)
+{
+  int i;
+  for(i=0;i<4;i++)
+    demodu(b->nb[i],traingings,type);
+  cch_deinterleave(b,h);
+  int error = conv_decode(h,b->in_buf,b->outbuf);
+  // printf("Error %d\n",error);
+  // for( int i=0;i<h->bs;i++ ) {
+  //   printf("%d",(int)b->outbuf[i]);
+  // }
+  // printf("\n");
+  compress_bits(b->outbuf,h->bs+h->ps,b->out);
+  // printf("msg = %lx \n",b->out[0]);
+  
+  return parity_check(h,b->out);
 }
 } //extern "C"

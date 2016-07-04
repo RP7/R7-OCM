@@ -121,3 +121,15 @@ class SCH(CH):
 			self.info[d]=m
 		self.info['t3']=self.info['t3p']*10+1
 		return self.info
+
+	def decodeBin(self,bin):
+		self.info = {}
+		for d in SCH._fields_:
+			l = SCH._fields_[d]
+			m = 0
+			for p in l:
+				m *= 2
+				m += (bin>>p)&1
+			self.info[d]=m
+		self.info['t3']=self.info['t3p']*10+1
+		return self.info

@@ -4,6 +4,9 @@ from SB import SB,SBTraining
 from NB import NB,NBTraining
 import config
 import GSM as gsm
+from convCode import convCode
+from interleave import interleave
+
 def c2cf(x):
 	cx = (c_float*(len(x)*2))()
 	cx[::2]=x.real[:]
@@ -15,17 +18,17 @@ def cf2c(output):
 
 def compress_bits(sbuf):
 	dbuf = []
-	for i in range(0,len(sbuf),8):
+	for i in range(0,len(sbuf)-7,8):
 		c = 0
 		k = 1
 		for x in sbuf[i:i+8]:
 			c += k*x
 			k *= 2
 		dbuf.append(c)
-	if i!=len(sbuf):
+	if i+8<len(sbuf):
 		c = 0
 		k = 1
-		for x in sbuf[i:]:
+		for x in sbuf[i+8:]:
 			c += k*x
 			k *= 2
 		dbuf.append(c)
@@ -36,6 +39,7 @@ def buf2uint64(buf):
 	for x in buf[::-1]:
 		r<<=8
 		r+=long(x)
+	#print [hex(x) for x in buf],hex(r)
 	return r
 
 """
@@ -51,6 +55,7 @@ typedef struct burst_s {
   int demoduled[148];
 } burst_t;
 """
+
 class cburst(Structure):
 	_fields_ = [
 		  ("bl"         , c_int)
@@ -70,7 +75,41 @@ class cburst(Structure):
 		self.osr = float(config.SampleRate/gsm.SymbolRate)
 	def mmap(self,r):
 		self.recv = addressof(r)
-
+"""
+typedef struct sch_s {
+  burst_t *sb;
+  unsigned char in_buf[78];
+  unsigned char outbuf[35];
+  uint64_t out[2];
+} sch_t;
+"""
+class cSch(Structure):
+	_fields_ = [
+		  ("sb"     ,c_void_p)
+		, ("in_buf" ,c_char*78)
+		, ("outbuf" ,c_char*35)
+		, ("out"    ,c_uint64*2)
+	]
+	def __init__(self,b):
+		self.sb = addressof(b)
+"""
+typedef struct cch_s {
+  burst_t *nb[4];
+  unsigned char in_buf[1024];
+  unsigned char outbuf[1024];
+  uint64_t out[4];
+} cch_t;
+"""
+class cCch(Structure):
+	_fields_ = [
+		  ("nb"     ,c_void_p*4)
+		, ("in_buf" ,c_char*1024)
+		, ("outbuf" ,c_char*1024)
+		, ("out"    ,c_uint64*4)
+	]
+	def __init__(self,bs):
+		for i in range(len(bs)):
+			self.nb[i] = addressof(bs[i]) 
 class Trainings(Structure):
 	_fields_ = [
 		  ("sb", c_float*128)
@@ -89,7 +128,6 @@ class Trainings(Structure):
 		self.sb_chn_e = SB._chn_s+cut+60
 		self.nb_chn_s = NB._chn_s+cut
 		self.nb_chn_e = NB._chn_s+cut+60
-		print self.sb_chn_s
 """
 	typedef struct CC_s {
       uint64_t pp;
@@ -100,7 +138,7 @@ class Trainings(Structure):
       int maxE;
    	} CC_t;
 """
-class ConvCodeHandle(structure):
+class ConvCodeHandle(Structure):
 	_fields_ = [
 		  ("pp"  , c_uint64)
 		, ("pr"  , c_uint64)
@@ -109,16 +147,18 @@ class ConvCodeHandle(structure):
 		, ("ts"  , c_int)
 		, ("ins" , c_int)
 		, ("maxE", c_int)
+		, ("ilT" , c_int*(57*8))
 	]
 	def __init__(self,config):
 		self.pp = c_uint64(buf2uint64(compress_bits(config['parity_polynomial'])))
-		self.pp = c_uint64(buf2uint64(compress_bits(config['parity_remainder'])))
+		self.pr = c_uint64(buf2uint64(compress_bits(config['parity_remainder'])))
 		self.bs = c_int(config['DATA_BLOCK_SIZE'])
 		self.ps = c_int(config['PARITY_SIZE'])
 		self.ts = c_int(config['TAIL_BITS_SIZE'])
 		self.ins = self.bs+self.ps+self.ts
 		self.maxE = self.ins*2+1
-
+		il = interleave(57*8,57*2)
+		self.ilT[:]=il.trans[:]
 class clib:
 	trainings = Trainings()
 	sch_dec = ConvCodeHandle(convCode.sch_config)
@@ -131,9 +171,22 @@ class clib:
 		b.bl = len(r)/2
 		b.mmap(r)
 		return b
+	
 	def demodu(self,b,t):
 		self.lib.demodu(byref(b),byref(clib.trainings),c_int(t))
+	
+	def doSch(self,b):
+		self.aSch = cSch(b)
+		return self.lib.doSch(byref(self.aSch),byref(clib.trainings),byref(clib.sch_dec),0)
 
+	def doCch(self,b,t):
+		aCch = cCch(b)
+		return self.lib.doCch(byref(aCch),byref(clib.trainings),byref(clib.cch_dec),c_int(t+1)),aCch
+	
+	def cch_deinterleave(self,b):
+		self.aCch = cCch(b)
+		self.lib.cch_deinterleave(byref(self.aCch),byref(clib.cch_dec))
+	
 	def viterbi_detector(self,mafi,rhh,bs):
 		filtered_burst = (c_float*(bs*2))()
 		stop_states = (c_int*2)()

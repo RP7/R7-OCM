@@ -50,7 +50,7 @@ class gsmtap:
 		self.sock = socket(AF_INET, SOCK_DGRAM)
 
 	def send(self,ch,fn):
-		self.block.data[:]=ch.data[:]
+		memmove(self.block.data,ch.data,23)
 		self.block.header.sub_type = self.name2inx(ch.name)
 		(r,s) = ch.config
 		self.block.header.timeslot = s

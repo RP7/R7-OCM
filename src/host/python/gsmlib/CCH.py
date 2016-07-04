@@ -6,6 +6,7 @@ import numpy as np
 from interleave import interleave
 from convCode import convCode
 from gsmtap import gsmtap
+from clib import clib
 class CCH(CH):
 	__burst__ = NB
 	def __init__(self):
@@ -14,8 +15,14 @@ class CCH(CH):
 		self.il = interleave(57*8,57*2) 
 		self.codec = convCode(convCode.cch_config)
 		self.tap = gsmtap()
+		self.lib = None
 	
+	def setLib(self,lib):
+		self.lib = clib(lib)
+
 	def callback(self,b,fn,state):
+		if self.lib != None:
+			return self.callback_c(b,fn,state)
 		if state.timingSyncState.state==2:
 			b.chnEst()
 			b.viterbi_detector()
@@ -34,6 +41,21 @@ class CCH(CH):
 					return "newdata",self.data
 		return 'ok',None
 
+	def callback_c(self,b,fn,state):
+		if state.timingSyncState.state==2:
+			(r,s) = self.config
+			sfn = fn % MultiFrameC
+			if sfn in r:
+				self.msg[sfn-r[0]]=self.lib.newBurst(b.srecv)
+			if sfn == r[-1]:
+				pc,aCch = self.lib.doCch(self.msg,b.training)
+				if pc!=0:
+					print "fn %d(%d)"%(b.fn,fn),"sn",b.sn,"error"
+				else:
+					self.data = aCch.out
+					self.tap.send(self,self._fn(state,fn-sfn+r[0]))
+					return "newdata",self.data
+		return 'ok',None
 	def decode(self,state):
 		if state.bcch_log!=None:
 			print >>state.bcch_log,self.msg

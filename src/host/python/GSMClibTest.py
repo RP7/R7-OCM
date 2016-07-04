@@ -10,6 +10,8 @@ import constant
 import gsmlib.clib as clib
 import gsmlib.SB as SB
 import gsmlib.NB as NB
+import gsmlib.convCode as convCode
+import gsmlib.interleave as interleave
 def testFun(b):
 	chn = acc.channelEst(b.recv,SB.SBTraining.modulated,Burst.Burst.fosr)
 	inx = np.floor(np.arange(64)*Burst.Burst.fosr)
@@ -48,29 +50,31 @@ c0 = C0.GSMC0()
 c0.initSCH()
 c0.initBCCH()
 c0.initCCCH(range(0,9))
-c0.initSDCCH(range(1),[1])
+#c0.initSDCCH(range(1),[1])
 
 file = "../../../temp/log"
 lib = CDLL(constant.c_temp_dir+'libcgsm.so')
 acc = clib.clib(lib)
+for bcch in c0.bcch:
+	bcch.setLib(lib)
+for ccch in c0.ccch:
+	ccch.setLib(lib)
 
 bf = burstfile.burstfile(file)
 c0.state.timingSyncState.to("fine")
 for i in range(3):
 	c0.state.timingSyncState.once()
-#bf.skip(8+8+8)
-for i in range(8*4):
+
+for i in range(8*51*26):
 	b,_F = bf.toC0(c0)
 	if b.ch!=None:
-		print b.ch.name,b.__name__,_F
+		#print b.ch.name,b.__name__,_F
 		ok,data = b.ch.callback(b,_F,c0.state)
 		ub = acc.newBurst(b.srecv)
 		if b.__class__==NB.NB:
 			acc.demodu(ub,b.training+1)
-			print "dif",np.sum(np.array(ub.msg[:114])-np.array(b.msg))
 		elif b.__class__==SB.SB:
 			acc.demodu(ub,0)
-			print "dif",np.sum(np.array(ub.msg[:78])-np.array(b.sbm0[3:]+b.sbm1[:-3]))
 # power = [0.]*(51*8)
 # for i in range(51*8*26):
 # 	f = bf.readBurst().recv
@@ -102,6 +106,46 @@ for i in range(8*4):
 	#plt.plot(mafi.real,'r')
 	#plt.plot(b.mafi.real/b.rhh[2].real,'b')
 	#plt.show()
-	
-	
-	
+# def parity_check(decoded_data):
+# 	buf = []
+# 	buf = np.array(decoded_data[:35])
+# 	for i in range(25):
+# 		if buf[i]==1:
+# 			buf[i:i+10+1]^=convCode.convCode.sch_config['parity_polynomial']
+# 		print i,hex(clib.buf2uint64(clib.compress_bits(buf[i+1:])))
+
+# bf.skip(8)
+# b,_F = bf.toC0(c0)
+# ok,data = b.ch.callback(b,_F,c0.state)
+# bcch = b.ch
+# ub = acc.newBurst(b.srecv)
+# e = acc.doSch(ub)
+#parity_check(b.ch.decoded_data)
+#print "Before conv dec",repr(acc.aSch.in_buf)#[acc.aSch.in_buf[i]+0x30 for i in range(78)]
+#print "After conv dec" ,[acc.aSch.outbuf[i]+0x30 for i in range(35)]
+#print "python ",b.sbm0[3:]+b.sbm1[:-3]
+#print "python ",b.ch.decoded_data
+# print b.ch.info
+# print hex(acc.aSch.out[0])
+# b.ch.decodeBin(acc.aSch.out[0])
+# print b.ch.info
+# bcch_nb = []
+# for i in range(4):
+# 	bf.skip(7)
+# 	b,_F = bf.toC0(c0)
+# 	ub = acc.newBurst(b.srecv)
+# 	bcch_nb.append(ub)	
+# 	ok,data = b.ch.callback(b,_F,c0.state)
+# e = acc.doCch(bcch_nb,bcch.info['bcc'])
+# print "pc",e
+# c = 0
+# for b in bcch_nb:
+# 	for i in range(57*2):
+# 		b.msg[i]=c
+# 		c+=1
+# acc.cch_deinterleave(bcch_nb)
+# print clib.clib.cch_dec.ilT[:]
+# il = interleave.interleave(114*4,114)
+# in_b = np.array(range(57*8))
+# outb = il.decode(in_b)
+# print outb[:]

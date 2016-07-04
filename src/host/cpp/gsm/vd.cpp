@@ -1,4 +1,6 @@
 #include <inttypes.h> //uint32_t,uint64_t
+#include <stdio.h>
+#include "vd.h"
 
 #define K 5
 extern "C" 
@@ -34,74 +36,47 @@ extern "C"
      { 2,  2,  2,  2,  2,  2,  2,  0,  2,  2,  2,  2,  2,  2,  2,  1}
    };
 
-   typedef struct CC_s {
-      uint64_t pp;
-      uint64_t pr;
-      int bs;
-      int ps;
-      int ts;
-      int is;
-      int maxE;
-   } CC_t;
 
-   """ for sch
-   parity_polynomial = np.array([1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1])
-   parity_remainder = np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
-   DATA_BLOCK_SIZE    = 25
-   PARITY_SIZE        = 10
-   TAIL_BITS_SIZE     = 4
-   """
-   sch_config = {
-        'parity_polynomial' : np.array([1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1])
-      , 'parity_remainder'  : np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
-      , 'DATA_BLOCK_SIZE'   : 25
-      , 'PARITY_SIZE'       : 10
-      , 'TAIL_BITS_SIZE'    : 4
-   }
-   cch_config = {
-        'parity_polynomial' : np.array([
-          1, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 1, 0,
-            0, 1, 0, 0, 0, 0, 0, 1,
-            0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 1, 0, 0,
-            1
-            ])
-      , 'parity_remainder'  : np.array([1]*40)
-      , 'DATA_BLOCK_SIZE'   : 184
-      , 'PARITY_SIZE'       : 40
-      , 'TAIL_BITS_SIZE'    : 4
-   }
-   def __init__(self,config):
-      for x in config:
-         self.__dict__[x] = config[x]
-      self.PARITY_OUTPUT_SIZE = (self.DATA_BLOCK_SIZE + self.PARITY_SIZE + self.TAIL_BITS_SIZE)
-      self.CONV_INPUT_SIZE    = self.PARITY_OUTPUT_SIZE
-      self.CONV_SIZE          = (2 * self.CONV_INPUT_SIZE)
-      self.K                  = 5
-      self.h.maxE          = (2 * self.CONV_INPUT_SIZE + 1)
-   
    static int hamming_distance2( int d )
    {
-      return d&1+((d&2)>>1)
+      return d&1+((d&2)>>1);
    }
    
-   static int parity_check(unsigned char *d)
+   int parity_check( CC_t *h, uint64_t *d )
    {
 
-     unsigned int i;
-     unsigned char buf[DATA_BLOCK_SIZE + PARITY_SIZE], *q;
-
-     memcpy(buf, d, DATA_BLOCK_SIZE + PARITY_SIZE);
-
-     for (q = buf; q < buf + DATA_BLOCK_SIZE; q++)
-       if (*q)
-         for (i = 0; i < PARITY_SIZE + 1; i++)
-           q[i] ^= parity_polynomial[i];
-     return memcmp(buf + DATA_BLOCK_SIZE, parity_remainder, PARITY_SIZE);
+      int i,j;
+      int pos = 0;
+      uint64_t w=d[pos];
+      int len = h->bs;
+      uint64_t mask = (1LL<<h->ps)-1LL;
+      j = 0;
+      while(len>0) {
+         if( w&1 ) {
+            w ^= h->pp;
+         }
+         w >>= 1;
+         j++;
+         len--;
+         if( j==64 ) {
+            pos++;
+            w ^= d[pos];
+            j=0;
+         }
+         //printf("%dth step : %lx,(%lx,%lx)\n",j,w,h->pp,h->pr);
+      }
+      if ((64-j)<h->ps) {
+         w ^=(d[pos+1]<<(64-j));
+      }
+      w &= mask;
+      //printf("parity check %lx:(%lx,%lx),%lx,%d\n",w,h->pp,h->pr,d[pos+1],j);
+      if(w==h->pr)
+         return 0;
+      else
+         return 1;
    }
 
-   static int conv_decode( CC_t *h, unsigned char *data, unsigned char *output)
+   int conv_decode( CC_t *h, unsigned char *data, unsigned char *output )
    {
 
      int i, t;
@@ -110,15 +85,15 @@ extern "C"
 
      unsigned int ae[1 << (K - 1)];
      unsigned int nae[1 << (K - 1)]; // next accumulated error
-     unsigned int state_history[1 << (K - 1)][CONV_INPUT_SIZE + 1];
+     unsigned int state_history[1 << (K - 1)][h->ins + 1];
 
      // initialize accumulated error, assume starting state is 0
      for (i = 0; i < (1 << (K - 1)); i++)
-       ae[i] = nae[i] = h.maxE;
+       ae[i] = nae[i] = h->maxE;
      ae[0] = 0;
 
      // build trellis
-     for (t = 0; t < CONV_INPUT_SIZE; t++) {
+     for (t = 0; t < h->ins; t++) {
 
        // get received data symbol
        rdata = (data[2 * t] << 1) | data[2 * t + 1];
@@ -127,7 +102,7 @@ extern "C"
        for (state = 0; state < (1 << (K - 1)); state++) {
 
          // make sure this state is possible
-         if (ae[state] >= h.maxE)
+         if (ae[state] >= h->maxE)
            continue;
 
          // find all states we lead to
@@ -158,12 +133,12 @@ extern "C"
        // get accumulated error ready for next time slice
        for (i = 0; i < (1 << (K - 1)); i++) {
          ae[i] = nae[i];
-         nae[i] = h.maxE;
+         nae[i] = h->maxE;
        }
      }
        // the final state is the state with the fewest errors
      min_state = (unsigned int) - 1;
-     min_error = h.maxE;
+     min_error = h->maxE;
      for (i = 0; i < (1 << (K - 1)); i++) {
        if (ae[i] < min_error) {
          min_state = i;
@@ -173,7 +148,7 @@ extern "C"
 
      // trace the path
      cur_state = min_state;
-     for (t = CONV_INPUT_SIZE; t >= 1; t--) {
+     for (t = h->ins; t >= 1; t--) {
        min_state = cur_state;
        cur_state = state_history[cur_state][t]; // get previous
        output[t - 1] = prev_next_state[cur_state][min_state];
@@ -183,16 +158,35 @@ extern "C"
      return min_error;
    }
 
-   def compress_bits(self,sbuf):
-      dbuf = []
-      for i in range(0,len(sbuf),8):
-         c = 0
-         k = 1
-         for x in sbuf[i:i+8]:
-            c += k*x
-            k *= 2
-         dbuf.append(c)
-      return dbuf
-
+   int compress_bits( unsigned char *sbuf, int len, uint64_t *output )
+   {  
+      int i,j;
+      uint64_t c,k;
+      int pos = 0;
+      unsigned char *p = sbuf;
+      c = 0;
+      k = 1;
+      j = 0;
+      while(len>0) {
+         k = (uint64_t)*p;
+         k<<=j;      
+         c |= k;
+         j++;
+         if( j==64 ) {
+            output[pos] = c;
+            pos++;
+            c = 0;
+            k = 1;
+            j = 0;
+         }
+         len--;
+         p++;
+      }
+      if(j!=0) {
+         output[pos] = c;
+         pos++;
+      }
+      return pos;
+   }
 
 } // extern "C"

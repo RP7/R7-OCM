@@ -76,7 +76,7 @@ hostutils = work/initQ7Mem \
 
 host:${hostutils} hostlib
 
-/tmp/libcgsm.so:src/host/cpp/gsm/ve.cpp
-	g++ ${HOSTINC} ${HOSTFLAG} -shared -o /tmp/libcgsm.so src/host/cpp/gsm/ve.cpp
+/tmp/libcgsm.so:src/host/cpp/gsm/ve.cpp src/host/cpp/gsm/vd.cpp
+	g++ ${HOSTINC} ${HOSTFLAG} -shared -o /tmp/libcgsm.so src/host/cpp/gsm/ve.cpp src/host/cpp/gsm/vd.cpp
 
 	
