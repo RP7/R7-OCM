@@ -10,6 +10,7 @@ class FCCH(CH):
 	__freq__ = Fraction(6500000,24)
 	def __init__(self):
 		CH.__init__(self)
+		self.name="FCCH"
 
 	def callback(self,b,fn,state):
 		if b.__class__!=FCCH.__burst__:

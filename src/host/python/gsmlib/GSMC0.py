@@ -82,7 +82,7 @@ class GSMC0:
 	def initBCCH(self):
 		for i in [0,2]:
 			ch = BCCH.BCCH(i)
-			ch.attach(self.C0,gsm.MultiFrame)
+			ch.attach(self.C0,gsm.MultiFrameC)
 			self.bcch.append(ch)
 
 	def initCCCH(self,r):
@@ -92,11 +92,12 @@ class GSMC0:
 				ch.attach(self.C0,gsm.MultiFrameC)
 				self.ccch.append(ch)
 
-	def initSDCCH(self,r,s):
-		for n in r:
-			ch = SDCCH.SDCCH(n,s)
-			ch.attach(self.C0,gsm.MultiFrameC)
-			self.sdcch.append(ch)
+	def initSDCCH(self,r,slots):
+		for s in slots:
+			for n in r:
+				ch = SDCCH.SDCCH(n,s)
+				ch.attach(self.C0,gsm.MultiFrameC)
+				self.sdcch.append(ch)
 
 	def getFn(self):
 		_s = self._fn/gsm.SupperFrame

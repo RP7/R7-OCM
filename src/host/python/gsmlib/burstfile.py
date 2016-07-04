@@ -41,7 +41,7 @@ class burstfile:
 		t = self.f.read(sizeof(burstFileHead))
 		bdh = self.stream2struct(t,burstFileHead)
 		raw = self.f.read(1460*4)
-		print bdh.name[:2],bdh.length,hex(bdh.fn)
+		print bdh.name[:2],bdh.length,hex(bdh.sfn)
 		if bdh.name in burstfile.burst:
 			b = burstfile.burst[bdh.name]()
 			b.lfn = bdh.lfn

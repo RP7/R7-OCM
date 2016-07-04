@@ -46,6 +46,7 @@ class SCH(CH):
 	_fields_ = {"ncc":[7,6,5],"bcc":[4,3,2],"t1":[1,0,15,14,13,12,11,10,9,8,23],"t2":[22,21,20,19,18],"t3p":[17,16,24]}
 	def __init__(self):
 		CH.__init__(self)
+		self.name = "SCH"
 		self.hit = {}
 		self.osr = float(SampleRate/SymbolRate)
 		self.ovL = int(SB.overheadL()*self.osr)

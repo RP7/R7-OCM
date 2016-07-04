@@ -1,4 +1,5 @@
 #include "gr_complex.h"
+#include <stdio.h>
 #define BURST_SIZE 148
 extern "C"
 {
@@ -110,7 +111,6 @@ void channelEst(
     float p = (float)oi;
     for( i=0;i<tl;i++ ) {
       output[oi] += frame[int(p)]*conj(training[i]);
-      //printf("%d ",int(p));
       p+=osr;
     }
   }
@@ -266,7 +266,6 @@ void dediff_forward(int *msg, int len, int r_i, int s, int *output)
 void demodu_core(burst_t *b, training_t *tr, int _chn_s, int trlen, int msg0len)
 {
   int cut_pos = maxwin(b->chn,60,int(b->osr*2));
-  printf("cut_pos %d,%d\n",cut_pos,cut_pos+_chn_s);
   float bs,timing;
   int ibs;
   if( cut_pos>b->osr ) {

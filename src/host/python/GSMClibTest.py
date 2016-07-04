@@ -9,6 +9,7 @@ from ctypes import *
 import constant
 import gsmlib.clib as clib
 import gsmlib.SB as SB
+import gsmlib.NB as NB
 def testFun(b):
 	chn = acc.channelEst(b.recv,SB.SBTraining.modulated,Burst.Burst.fosr)
 	inx = np.floor(np.arange(64)*Burst.Burst.fosr)
@@ -46,8 +47,10 @@ c0 = C0.GSMC0()
 
 c0.initSCH()
 c0.initBCCH()
+c0.initCCCH(range(0,9))
+c0.initSDCCH(range(1),[1])
 
-file = "../../../temp/gsm.log"
+file = "../../../temp/log"
 lib = CDLL(constant.c_temp_dir+'libcgsm.so')
 acc = clib.clib(lib)
 
@@ -55,27 +58,50 @@ bf = burstfile.burstfile(file)
 c0.state.timingSyncState.to("fine")
 for i in range(3):
 	c0.state.timingSyncState.once()
-bf.skip(8+8+8)
-b,_F = bf.toC0(c0)
-print b,_F
-if b.ch!=None:
-	ok,data = b.ch.callback(b,_F,c0.state)
-	#testFun(b)
-	ub = acc.newBurst(b.srecv)
-	acc.demodu(ub,b.training+1)
-	chn = clib.cf2c(ub.chn)
-	mafi = clib.cf2c(ub.mafi)
-	rhh = clib.cf2c(ub.rh)
-	print ub.msg[:114]
-	print b.nbm0
-	print np.array(ub.msg[:114])-np.array(b.msg)
-	plt.plot(mafi.real,'r')
-	plt.plot(b.mafi.real/b.rhh[2].real,'b')
-	#plt.plot(np.abs(chn))
-	plt.show()
-	print ub.demodulated[:]
-	# print b.a
-	print b.b
+#bf.skip(8+8+8)
+for i in range(8*4):
+	b,_F = bf.toC0(c0)
+	if b.ch!=None:
+		print b.ch.name,b.__name__,_F
+		ok,data = b.ch.callback(b,_F,c0.state)
+		ub = acc.newBurst(b.srecv)
+		if b.__class__==NB.NB:
+			acc.demodu(ub,b.training+1)
+			print "dif",np.sum(np.array(ub.msg[:114])-np.array(b.msg))
+		elif b.__class__==SB.SB:
+			acc.demodu(ub,0)
+			print "dif",np.sum(np.array(ub.msg[:78])-np.array(b.sbm0[3:]+b.sbm1[:-3]))
+# power = [0.]*(51*8)
+# for i in range(51*8*26):
+# 	f = bf.readBurst().recv
+# 	power[i%(51*8)] +=(np.dot(f,np.conj(f)).real)
+# p = np.array(power)
+# p.shape = (51,8)
+# #print p
+# plt.imshow(p,aspect='auto')
+# plt.show()
 
+# for i in range(4):
+# 	b = c0.C0.frame[i][3]
+# 	ub = acc.newBurst(b.srecv)
+# 	acc.demodu(ub,2)
+# 	frame = clib.cf2c(ub.frame)	
+# 	print np.dot(frame,np.conj(frame))
+
+# b = c0.C0.frame[0][1]
+# color = ['r','b','y','g','c','m','k','w']
+# for t in range(1,10):
+# 	acc.demodu(ub,t)
+# 	chn = clib.cf2c(ub.chn)
+# 	plt.plot(np.abs(chn),color[t%8])
+
+# plt.show()
+	# mafi = clib.cf2c(ub.mafi)
+	# rhh = clib.cf2c(ub.rh)
+	
+	#plt.plot(mafi.real,'r')
+	#plt.plot(b.mafi.real/b.rhh[2].real,'b')
+	#plt.show()
+	
 	
 	

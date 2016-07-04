@@ -1,1111 +1,198 @@
-/* -*- c++ -*- */
-/*
- * @file
- * @author Piotr Krysik <pkrysik@stud.elka.pw.edu.pl>
- * @section LICENSE
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3, or (at your option)
- * any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; see the file COPYING.  If not, write to
- * the Free Software Foundation, Inc., 51 Franklin Street,
- * Boston, MA 02110-1301, USA.
- */
+#include <inttypes.h> //uint32_t,uint64_t
 
-/*
- * viterbi_detector:
- *           This part does the detection of received sequnece.
- *           Employed algorithm is viterbi Maximum Likehood Sequence Estimation.
- *           At this moment it gives hard decisions on the output, but
- *           it was designed with soft decisions in mind.
- *
- * SYNTAX:   void viterbi_detector(
- *                                  const gr_complex * input, 
- *                                  unsigned int samples_num, 
- *                                  gr_complex * rhh, 
- *                                  unsigned int start_state, 
- *                                  const unsigned int * stop_states, 
- *                                  unsigned int stops_num, 
- *                                  float * output)
- *
- * INPUT:    input:       Complex received signal afted matched filtering.
- *           samples_num: Number of samples in the input table.
- *           rhh:         The autocorrelation of the estimated channel 
- *                        impulse response.
- *           start_state: Number of the start point. In GSM each burst 
- *                        starts with sequence of three bits (0,0,0) which 
- *                        indicates start point of the algorithm.
- *           stop_states: Table with numbers of possible stop states.
- *           stops_num:   Number of possible stop states
- *                     
- *
- * OUTPUT:   output:      Differentially decoded hard output of the algorithm: 
- *                        -1 for logical "0" and 1 for logical "1"
- *
- * SUB_FUNC: none
- *
- * TEST(S):  Tested with real world normal burst.
- */
-
-#include "gr_complex.h"
-#define CHAN_IMP_RESP_LENGTH  5
-#define BURST_SIZE        148
-
-#define PATHS_NUM (1 << (CHAN_IMP_RESP_LENGTH-1))
-extern "C" {
-static void dump(float *metrics)
+#define K 5
+extern "C" 
 {
-   int i;
-   float a=-1e30;
-   int k = 0;
-   for(i=0;i<16;i++)
+   static const unsigned int encode[1 << (K - 1)][2] = {
+     {0, 3}, {3, 0}, {3, 0}, {0, 3},
+     {0, 3}, {3, 0}, {3, 0}, {0, 3},
+     {1, 2}, {2, 1}, {2, 1}, {1, 2},
+     {1, 2}, {2, 1}, {2, 1}, {1, 2}
+   };
+   static const unsigned int next_state[1 << (K - 1)][2] = {
+     {0, 8}, {0, 8}, {1, 9}, {1, 9},
+     {2, 10}, {2, 10}, {3, 11}, {3, 11},
+     {4, 12}, {4, 12}, {5, 13}, {5, 13},
+     {6, 14}, {6, 14}, {7, 15}, {7, 15}
+   };
+   static const unsigned int prev_next_state[1 << (K - 1)][1 << (K - 1)] = {
+     { 0,  2,  2,  2,  2,  2,  2,  2,  1,  2,  2,  2,  2,  2,  2,  2},
+     { 0,  2,  2,  2,  2,  2,  2,  2,  1,  2,  2,  2,  2,  2,  2,  2},
+     { 2,  0,  2,  2,  2,  2,  2,  2,  2,  1,  2,  2,  2,  2,  2,  2},
+     { 2,  0,  2,  2,  2,  2,  2,  2,  2,  1,  2,  2,  2,  2,  2,  2},
+     { 2,  2,  0,  2,  2,  2,  2,  2,  2,  2,  1,  2,  2,  2,  2,  2},
+     { 2,  2,  0,  2,  2,  2,  2,  2,  2,  2,  1,  2,  2,  2,  2,  2},
+     { 2,  2,  2,  0,  2,  2,  2,  2,  2,  2,  2,  1,  2,  2,  2,  2},
+     { 2,  2,  2,  0,  2,  2,  2,  2,  2,  2,  2,  1,  2,  2,  2,  2},
+     { 2,  2,  2,  2,  0,  2,  2,  2,  2,  2,  2,  2,  1,  2,  2,  2},
+     { 2,  2,  2,  2,  0,  2,  2,  2,  2,  2,  2,  2,  1,  2,  2,  2},
+     { 2,  2,  2,  2,  2,  0,  2,  2,  2,  2,  2,  2,  2,  1,  2,  2},
+     { 2,  2,  2,  2,  2,  0,  2,  2,  2,  2,  2,  2,  2,  1,  2,  2},
+     { 2,  2,  2,  2,  2,  2,  0,  2,  2,  2,  2,  2,  2,  2,  1,  2},
+     { 2,  2,  2,  2,  2,  2,  0,  2,  2,  2,  2,  2,  2,  2,  1,  2},
+     { 2,  2,  2,  2,  2,  2,  2,  0,  2,  2,  2,  2,  2,  2,  2,  1},
+     { 2,  2,  2,  2,  2,  2,  2,  0,  2,  2,  2,  2,  2,  2,  2,  1}
+   };
+
+   typedef struct CC_s {
+      uint64_t pp;
+      uint64_t pr;
+      int bs;
+      int ps;
+      int ts;
+      int is;
+      int maxE;
+   } CC_t;
+
+   """ for sch
+   parity_polynomial = np.array([1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1])
+   parity_remainder = np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
+   DATA_BLOCK_SIZE    = 25
+   PARITY_SIZE        = 10
+   TAIL_BITS_SIZE     = 4
+   """
+   sch_config = {
+        'parity_polynomial' : np.array([1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1])
+      , 'parity_remainder'  : np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
+      , 'DATA_BLOCK_SIZE'   : 25
+      , 'PARITY_SIZE'       : 10
+      , 'TAIL_BITS_SIZE'    : 4
+   }
+   cch_config = {
+        'parity_polynomial' : np.array([
+          1, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 1, 0,
+            0, 1, 0, 0, 0, 0, 0, 1,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 1, 0, 0,
+            1
+            ])
+      , 'parity_remainder'  : np.array([1]*40)
+      , 'DATA_BLOCK_SIZE'   : 184
+      , 'PARITY_SIZE'       : 40
+      , 'TAIL_BITS_SIZE'    : 4
+   }
+   def __init__(self,config):
+      for x in config:
+         self.__dict__[x] = config[x]
+      self.PARITY_OUTPUT_SIZE = (self.DATA_BLOCK_SIZE + self.PARITY_SIZE + self.TAIL_BITS_SIZE)
+      self.CONV_INPUT_SIZE    = self.PARITY_OUTPUT_SIZE
+      self.CONV_SIZE          = (2 * self.CONV_INPUT_SIZE)
+      self.K                  = 5
+      self.h.maxE          = (2 * self.CONV_INPUT_SIZE + 1)
+   
+   static int hamming_distance2( int d )
    {
-      if(metrics[i]>a){
-         a = metrics[i];
-         k = i;
-      }
+      return d&1+((d&2)>>1)
    }
-   /*
-   for(i=0;i<16;i++)
+   
+   static int parity_check(unsigned char *d)
    {
-      if (i==k) printf("*");
-      printf("%d:%e\n",i,metrics[i]);
+
+     unsigned int i;
+     unsigned char buf[DATA_BLOCK_SIZE + PARITY_SIZE], *q;
+
+     memcpy(buf, d, DATA_BLOCK_SIZE + PARITY_SIZE);
+
+     for (q = buf; q < buf + DATA_BLOCK_SIZE; q++)
+       if (*q)
+         for (i = 0; i < PARITY_SIZE + 1; i++)
+           q[i] ^= parity_polynomial[i];
+     return memcmp(buf + DATA_BLOCK_SIZE, parity_remainder, PARITY_SIZE);
    }
-   */
-   printf("%d ",k);
-}
-void viterbi_detector_c(const gr_complex * input, unsigned int samples_num, gr_complex * rhh, unsigned int start_state, const unsigned int * stop_states, unsigned int stops_num, float * output)
-{
-   float increment[8];
-   float iincrement[8];
-   float path_metrics1[16];
-   float path_metrics2[16];
-   float * new_path_metrics;
-   float * old_path_metrics;
-   float * tmp;
-   float trans_table[BURST_SIZE][16];
-   float pm_candidate1, pm_candidate2;
-   bool real_imag;
-   float input_symbol_real, input_symbol_imag;
-   unsigned int i, sample_nr;
-   gr_complex input_symbol;
 
-/*
-* Setup first path metrics, so only state pointed by start_state is possible.
-* Start_state metric is equal to zero, the rest is written with some very low value,
-* which makes them practically impossible to occur.
-*/
-   for(i=0; i<PATHS_NUM; i++){
-      path_metrics1[i]=(-10e30);
-   }
-   path_metrics1[start_state]=0;
-
-/*
-* Compute Increment - a table of values which does not change for subsequent input samples.
-* Increment is table of reference levels for computation of branch metrics:
-*    branch metric = (+/-)received_sample (+/-) reference_level
-*/
-
-   for( i=0;i<5;i++ )
+   static int conv_decode( CC_t *h, unsigned char *data, unsigned char *output)
    {
-      printf("%f +j%f\n",rhh[i].real(),rhh[i].imag());
+
+     int i, t;
+     unsigned int rdata, state, nstate, b, o, distance, accumulated_error,
+     min_state, min_error, cur_state;
+
+     unsigned int ae[1 << (K - 1)];
+     unsigned int nae[1 << (K - 1)]; // next accumulated error
+     unsigned int state_history[1 << (K - 1)][CONV_INPUT_SIZE + 1];
+
+     // initialize accumulated error, assume starting state is 0
+     for (i = 0; i < (1 << (K - 1)); i++)
+       ae[i] = nae[i] = h.maxE;
+     ae[0] = 0;
+
+     // build trellis
+     for (t = 0; t < CONV_INPUT_SIZE; t++) {
+
+       // get received data symbol
+       rdata = (data[2 * t] << 1) | data[2 * t + 1];
+
+       // for each state
+       for (state = 0; state < (1 << (K - 1)); state++) {
+
+         // make sure this state is possible
+         if (ae[state] >= h.maxE)
+           continue;
+
+         // find all states we lead to
+         for (b = 0; b < 2; b++) {
+
+           // get next state given input bit b
+           nstate = next_state[state][b];
+
+           // find output for this transition
+           o = encode[state][b];
+
+           // calculate distance from received data
+           distance = hamming_distance2(rdata ^ o);
+
+           // choose surviving path
+           accumulated_error = ae[state] + distance;
+           if (accumulated_error < nae[nstate]) {
+
+             // save error for surviving state
+             nae[nstate] = accumulated_error;
+
+             // update state history
+             state_history[nstate][t + 1] = state;
+           }
+         }
+       }
+
+       // get accumulated error ready for next time slice
+       for (i = 0; i < (1 << (K - 1)); i++) {
+         ae[i] = nae[i];
+         nae[i] = h.maxE;
+       }
+     }
+       // the final state is the state with the fewest errors
+     min_state = (unsigned int) - 1;
+     min_error = h.maxE;
+     for (i = 0; i < (1 << (K - 1)); i++) {
+       if (ae[i] < min_error) {
+         min_state = i;
+         min_error = ae[i];
+       }
+     }
+
+     // trace the path
+     cur_state = min_state;
+     for (t = CONV_INPUT_SIZE; t >= 1; t--) {
+       min_state = cur_state;
+       cur_state = state_history[cur_state][t]; // get previous
+       output[t - 1] = prev_next_state[cur_state][min_state];
+     }
+
+     // return the number of errors detected (hard-decision)
+     return min_error;
    }
 
-   increment[0]  = -rhh[1].imag() -rhh[2].real() -rhh[3].imag() +rhh[4].real();
-   increment[1]  =  rhh[1].imag() -rhh[2].real() -rhh[3].imag() +rhh[4].real();
-   increment[2]  = -rhh[1].imag() +rhh[2].real() -rhh[3].imag() +rhh[4].real();
-   increment[3]  =  rhh[1].imag() +rhh[2].real() -rhh[3].imag() +rhh[4].real();
-   increment[4]  = -rhh[1].imag() -rhh[2].real() +rhh[3].imag() +rhh[4].real();
-   increment[5]  =  rhh[1].imag() -rhh[2].real() +rhh[3].imag() +rhh[4].real();
-   increment[6]  = -rhh[1].imag() +rhh[2].real() +rhh[3].imag() +rhh[4].real();
-   increment[7]  =  rhh[1].imag() +rhh[2].real() +rhh[3].imag() +rhh[4].real();
-
-   iincrement[0] = -rhh[1].real() -rhh[2].imag() -rhh[3].real() +rhh[4].imag();
-   iincrement[1] =  rhh[1].real() -rhh[2].imag() -rhh[3].real() +rhh[4].imag();
-   iincrement[2] = -rhh[1].real() +rhh[2].imag() -rhh[3].real() +rhh[4].imag();
-   iincrement[3] =  rhh[1].real() +rhh[2].imag() -rhh[3].real() +rhh[4].imag();
-   iincrement[4] = -rhh[1].real() -rhh[2].imag() +rhh[3].real() +rhh[4].imag();
-   iincrement[5] =  rhh[1].real() -rhh[2].imag() +rhh[3].real() +rhh[4].imag();
-   iincrement[6] = -rhh[1].real() +rhh[2].imag() +rhh[3].real() +rhh[4].imag();
-   iincrement[7] =  rhh[1].real() +rhh[2].imag() +rhh[3].real() +rhh[4].imag();
-
-   for( i=0;i<8;i++ )
-   {
-      printf("%e+j%e ",increment[i],iincrement[i]);
-   }
-   printf("\n");
-
-/*
-* Computation of path metrics and decisions (Add-Compare-Select).
-* It's composed of two parts: one for odd input samples (imaginary numbers)
-* and one for even samples (real numbers).
-* Each part is composed of independent (parallelisable) statements like  
-* this one:
-*      pm_candidate1 = old_path_metrics[0] - input_symbol_real - increment[7];
-*      pm_candidate2 = old_path_metrics[8] - input_symbol_real + increment[0];
-*      if(pm_candidate1 > pm_candidate2){
-*         new_path_metrics[0] = pm_candidate1;
-*         trans_table[sample_nr][0] = -1.0;
-*      }
-*      else{
-*         new_path_metrics[0] = pm_candidate2;
-*         trans_table[sample_nr][0] = 1.0;
-*      }
-* This is very good point for optimisations (SIMD or OpenMP) as it's most time 
-* consuming part of this function. 
-*/
-   sample_nr=0;
-   old_path_metrics=path_metrics1;
-   new_path_metrics=path_metrics2;
-   while(sample_nr<samples_num){
-      printf("%d :Before Done %e +j%e\n",sample_nr,input[sample_nr].real(),input[sample_nr].imag());
-      //Processing imag states
-      real_imag=1;
-      input_symbol_imag = input[sample_nr].imag();
-      input_symbol = input[sample_nr]*gr_complex(0.,-1.);
-#define INCII(k) (input_symbol.real()+increment[k]+input_symbol.imag()+iincrement[k])
-#define DECII(k) (input_symbol.real()-increment[k]+input_symbol.imag()-iincrement[k])
-#define UPDATE(k) if(pm_candidate1 > pm_candidate2){\
-         new_path_metrics[k] = pm_candidate1;\
-         trans_table[sample_nr][k] = -1.0;\
-      }\
-      else{\
-         new_path_metrics[k] = pm_candidate2;\
-         trans_table[sample_nr][k] = 1.0;\
-      };
-
-
-      pm_candidate1 = old_path_metrics[0] + DECII(2);//input_symbol_imag - increment[2];
-      pm_candidate2 = old_path_metrics[8] + INCII(5);//input_symbol_imag + increment[5];
-      if(pm_candidate1 > pm_candidate2){
-         new_path_metrics[0] = pm_candidate1;
-         trans_table[sample_nr][0] = -1.0;
-      }
-      else{
-         new_path_metrics[0] = pm_candidate2;
-         trans_table[sample_nr][0] = 1.0;
-      }
-
-      pm_candidate1 = old_path_metrics[0] - DECII(2);//- input_symbol_imag + increment[2];
-      pm_candidate2 = old_path_metrics[8] - INCII(5);//input_symbol_imag - increment[5];
-      if(pm_candidate1 > pm_candidate2){
-         new_path_metrics[1] = pm_candidate1;
-         trans_table[sample_nr][1] = -1.0;
-      }
-      else{
-         new_path_metrics[1] = pm_candidate2;
-         trans_table[sample_nr][1] = 1.0;
-      }
-
-      pm_candidate1 = old_path_metrics[1] + DECII(3);//input_symbol_imag - increment[3];
-      pm_candidate2 = old_path_metrics[9] + INCII(4);//input_symbol_imag + increment[4];
-      if(pm_candidate1 > pm_candidate2){
-         new_path_metrics[2] = pm_candidate1;
-         trans_table[sample_nr][2] = -1.0;
-      }
-      else{
-         new_path_metrics[2] = pm_candidate2;
-         trans_table[sample_nr][2] = 1.0;
-      }
-
-      pm_candidate1 = old_path_metrics[1] - DECII(3);//input_symbol_imag + increment[3];
-      pm_candidate2 = old_path_metrics[9] - INCII(4);//input_symbol_imag - increment[4];
-      if(pm_candidate1 > pm_candidate2){
-         new_path_metrics[3] = pm_candidate1;
-         trans_table[sample_nr][3] = -1.0;
-      }
-      else{
-         new_path_metrics[3] = pm_candidate2;
-         trans_table[sample_nr][3] = 1.0;
-      }
-
-      pm_candidate1 = old_path_metrics[2] + DECII(0);//input_symbol_imag - increment[0];
-      pm_candidate2 = old_path_metrics[10] + INCII(7);//input_symbol_imag + increment[7];
-      if(pm_candidate1 > pm_candidate2){
-         new_path_metrics[4] = pm_candidate1;
-         trans_table[sample_nr][4] = -1.0;
-      }
-      else{
-         new_path_metrics[4] = pm_candidate2;
-         trans_table[sample_nr][4] = 1.0;
-      }
-
-      pm_candidate1 = old_path_metrics[2] - DECII(0);//input_symbol_imag + increment[0];
-      pm_candidate2 = old_path_metrics[10] - INCII(7);//input_symbol_imag - increment[7];
-      if(pm_candidate1 > pm_candidate2){
-         new_path_metrics[5] = pm_candidate1;
-         trans_table[sample_nr][5] = -1.0;
-      }
-      else{
-         new_path_metrics[5] = pm_candidate2;
-         trans_table[sample_nr][5] = 1.0;
-      }
-
-      pm_candidate1 = old_path_metrics[3] + DECII(1);//input_symbol_imag - increment[1];
-      pm_candidate2 = old_path_metrics[11] + INCII(6);//input_symbol_imag + increment[6];
-      if(pm_candidate1 > pm_candidate2){
-         new_path_metrics[6] = pm_candidate1;
-         trans_table[sample_nr][6] = -1.0;
-      }
-      else{
-         new_path_metrics[6] = pm_candidate2;
-         trans_table[sample_nr][6] = 1.0;
-      }
-
-      pm_candidate1 = old_path_metrics[3] - DECII(1);//input_symbol_imag + increment[1];
-      pm_candidate2 = old_path_metrics[11] - INCII(6);//input_symbol_imag - increment[6];
-      if(pm_candidate1 > pm_candidate2){
-         new_path_metrics[7] = pm_candidate1;
-         trans_table[sample_nr][7] = -1.0;
-      }
-      else{
-         new_path_metrics[7] = pm_candidate2;
-         trans_table[sample_nr][7] = 1.0;
-      }
-
-      pm_candidate1 = old_path_metrics[4] + DECII(6);//input_symbol_imag - increment[6];
-      pm_candidate2 = old_path_metrics[12] + INCII(1);//input_symbol_imag + increment[1];
-      if(pm_candidate1 > pm_candidate2){
-         new_path_metrics[8] = pm_candidate1;
-         trans_table[sample_nr][8] = -1.0;
-      }
-      else{
-         new_path_metrics[8] = pm_candidate2;
-         trans_table[sample_nr][8] = 1.0;
-      }
-
-      pm_candidate1 = old_path_metrics[4] - DECII(6);//input_symbol_imag + increment[6];
-      pm_candidate2 = old_path_metrics[12] - INCII(1);//input_symbol_imag - increment[1];
-      if(pm_candidate1 > pm_candidate2){
-         new_path_metrics[9] = pm_candidate1;
-         trans_table[sample_nr][9] = -1.0;
-      }
-      else{
-         new_path_metrics[9] = pm_candidate2;
-         trans_table[sample_nr][9] = 1.0;
-      }
-
-      pm_candidate1 = old_path_metrics[5] + DECII(7);//input_symbol_imag - increment[7];
-      pm_candidate2 = old_path_metrics[13] + INCII(0);//input_symbol_imag + increment[0];
-      if(pm_candidate1 > pm_candidate2){
-         new_path_metrics[10] = pm_candidate1;
-         trans_table[sample_nr][10] = -1.0;
-      }
-      else{
-         new_path_metrics[10] = pm_candidate2;
-         trans_table[sample_nr][10] = 1.0;
-      }
-
-      pm_candidate1 = old_path_metrics[5] - DECII(7);//input_symbol_imag + increment[7];
-      pm_candidate2 = old_path_metrics[13] - INCII(0);//input_symbol_imag - increment[0];
-      if(pm_candidate1 > pm_candidate2){
-         new_path_metrics[11] = pm_candidate1;
-         trans_table[sample_nr][11] = -1.0;
-      }
-      else{
-         new_path_metrics[11] = pm_candidate2;
-         trans_table[sample_nr][11] = 1.0;
-      }
-
-      pm_candidate1 = old_path_metrics[6] + DECII(4);//input_symbol_imag - increment[4];
-      pm_candidate2 = old_path_metrics[14] + INCII(3);//input_symbol_imag + increment[3];
-      if(pm_candidate1 > pm_candidate2){
-         new_path_metrics[12] = pm_candidate1;
-         trans_table[sample_nr][12] = -1.0;
-      }
-      else{
-         new_path_metrics[12] = pm_candidate2;
-         trans_table[sample_nr][12] = 1.0;
-      }
-
-      pm_candidate1 = old_path_metrics[6] - DECII(4);//input_symbol_imag + increment[4];
-      pm_candidate2 = old_path_metrics[14] - INCII(3);//input_symbol_imag - increment[3];
-      if(pm_candidate1 > pm_candidate2){
-         new_path_metrics[13] = pm_candidate1;
-         trans_table[sample_nr][13] = -1.0;
-      }
-      else{
-         new_path_metrics[13] = pm_candidate2;
-         trans_table[sample_nr][13] = 1.0;
-      }
-
-      pm_candidate1 = old_path_metrics[7] + DECII(5);//input_symbol_imag - increment[5];
-      pm_candidate2 = old_path_metrics[15] + INCII(2);//input_symbol_imag + increment[2];
-      if(pm_candidate1 > pm_candidate2){
-         new_path_metrics[14] = pm_candidate1;
-         trans_table[sample_nr][14] = -1.0;
-      }
-      else{
-         new_path_metrics[14] = pm_candidate2;
-         trans_table[sample_nr][14] = 1.0;
-      }
-
-      pm_candidate1 = old_path_metrics[7] - DECII(5);//input_symbol_imag + increment[5];
-      pm_candidate2 = old_path_metrics[15] - INCII(2);//input_symbol_imag - increment[2];
-      if(pm_candidate1 > pm_candidate2){
-         new_path_metrics[15] = pm_candidate1;
-         trans_table[sample_nr][15] = -1.0;
-      }
-      else{
-         new_path_metrics[15] = pm_candidate2;
-         trans_table[sample_nr][15] = 1.0;
-      }
-      tmp=old_path_metrics;
-      old_path_metrics=new_path_metrics;
-      new_path_metrics=tmp;
-
-      sample_nr++;
-      if(sample_nr==samples_num)
-         break;
-      dump(old_path_metrics);
-      printf("%d :Before Done %e +j%e\n",sample_nr,input[sample_nr].real(),input[sample_nr].imag());
-      
-      //Processing real states
-      real_imag=0;
-      input_symbol_real = input[sample_nr].real();
-      input_symbol = input[sample_nr];
-
-      pm_candidate1 = old_path_metrics[0] - INCII(7);//input_symbol_real - increment[7];
-      pm_candidate2 = old_path_metrics[8] - DECII(0);//input_symbol_real + increment[0];
-      if(pm_candidate1 > pm_candidate2){
-         new_path_metrics[0] = pm_candidate1;
-         trans_table[sample_nr][0] = -1.0;
-      }
-      else{
-         new_path_metrics[0] = pm_candidate2;
-         trans_table[sample_nr][0] = 1.0;
-      }
-
-      pm_candidate1 = old_path_metrics[0] + INCII(7);//input_symbol_real + increment[7];
-      pm_candidate2 = old_path_metrics[8] + DECII(0);//input_symbol_real - increment[0];
-      if(pm_candidate1 > pm_candidate2){
-         new_path_metrics[1] = pm_candidate1;
-         trans_table[sample_nr][1] = -1.0;
-      }
-      else{
-         new_path_metrics[1] = pm_candidate2;
-         trans_table[sample_nr][1] = 1.0;
-      }
-
-      pm_candidate1 = old_path_metrics[1] - INCII(6);//input_symbol_real - increment[6];
-      pm_candidate2 = old_path_metrics[9] - DECII(1);//input_symbol_real + increment[1];
-      if(pm_candidate1 > pm_candidate2){
-         new_path_metrics[2] = pm_candidate1;
-         trans_table[sample_nr][2] = -1.0;
-      }
-      else{
-         new_path_metrics[2] = pm_candidate2;
-         trans_table[sample_nr][2] = 1.0;
-      }
-
-      pm_candidate1 = old_path_metrics[1] + INCII(6);//input_symbol_real + increment[6];
-      pm_candidate2 = old_path_metrics[9] + DECII(1);//input_symbol_real - increment[1];
-      if(pm_candidate1 > pm_candidate2){
-         new_path_metrics[3] = pm_candidate1;
-         trans_table[sample_nr][3] = -1.0;
-      }
-      else{
-         new_path_metrics[3] = pm_candidate2;
-         trans_table[sample_nr][3] = 1.0;
-      }
-
-      pm_candidate1 = old_path_metrics[2] - INCII(6);//input_symbol_real - increment[5];
-      pm_candidate2 = old_path_metrics[10] - DECII(2);//input_symbol_real + increment[2];
-      if(pm_candidate1 > pm_candidate2){
-         new_path_metrics[4] = pm_candidate1;
-         trans_table[sample_nr][4] = -1.0;
-      }
-      else{
-         new_path_metrics[4] = pm_candidate2;
-         trans_table[sample_nr][4] = 1.0;
-      }
-
-      pm_candidate1 = old_path_metrics[2] + INCII(5);//input_symbol_real + increment[5];
-      pm_candidate2 = old_path_metrics[10] + DECII(2);//input_symbol_real - increment[2];
-      if(pm_candidate1 > pm_candidate2){
-         new_path_metrics[5] = pm_candidate1;
-         trans_table[sample_nr][5] = -1.0;
-      }
-      else{
-         new_path_metrics[5] = pm_candidate2;
-         trans_table[sample_nr][5] = 1.0;
-      }
-
-      pm_candidate1 = old_path_metrics[3] - INCII(4);//input_symbol_real - increment[4];
-      pm_candidate2 = old_path_metrics[11] - DECII(3);//input_symbol_real + increment[3];
-      if(pm_candidate1 > pm_candidate2){
-         new_path_metrics[6] = pm_candidate1;
-         trans_table[sample_nr][6] = -1.0;
-      }
-      else{
-         new_path_metrics[6] = pm_candidate2;
-         trans_table[sample_nr][6] = 1.0;
-      }
-
-      pm_candidate1 = old_path_metrics[3] + INCII(4);//input_symbol_real + increment[4];
-      pm_candidate2 = old_path_metrics[11] + DECII(3);//input_symbol_real - increment[3];
-      if(pm_candidate1 > pm_candidate2){
-         new_path_metrics[7] = pm_candidate1;
-         trans_table[sample_nr][7] = -1.0;
-      }
-      else{
-         new_path_metrics[7] = pm_candidate2;
-         trans_table[sample_nr][7] = 1.0;
-      }
-
-      pm_candidate1 = old_path_metrics[4] - INCII(3);//input_symbol_real - increment[3];
-      pm_candidate2 = old_path_metrics[12] - DECII(4);//input_symbol_real + increment[4];
-      if(pm_candidate1 > pm_candidate2){
-         new_path_metrics[8] = pm_candidate1;
-         trans_table[sample_nr][8] = -1.0;
-      }
-      else{
-         new_path_metrics[8] = pm_candidate2;
-         trans_table[sample_nr][8] = 1.0;
-      }
-
-      pm_candidate1 = old_path_metrics[4] + INCII(3);//input_symbol_real + increment[3];
-      pm_candidate2 = old_path_metrics[12] + DECII(4);//input_symbol_real - increment[4];
-      if(pm_candidate1 > pm_candidate2){
-         new_path_metrics[9] = pm_candidate1;
-         trans_table[sample_nr][9] = -1.0;
-      }
-      else{
-         new_path_metrics[9] = pm_candidate2;
-         trans_table[sample_nr][9] = 1.0;
-      }
-
-      pm_candidate1 = old_path_metrics[5] - INCII(2);//input_symbol_real - increment[2];
-      pm_candidate2 = old_path_metrics[13] - DECII(5);//input_symbol_real + increment[5];
-      if(pm_candidate1 > pm_candidate2){
-         new_path_metrics[10] = pm_candidate1;
-         trans_table[sample_nr][10] = -1.0;
-      }
-      else{
-         new_path_metrics[10] = pm_candidate2;
-         trans_table[sample_nr][10] = 1.0;
-      }
-
-      pm_candidate1 = old_path_metrics[5] + INCII(2);//input_symbol_real + increment[2];
-      pm_candidate2 = old_path_metrics[13] + DECII(5);//input_symbol_real - increment[5];
-      if(pm_candidate1 > pm_candidate2){
-         new_path_metrics[11] = pm_candidate1;
-         trans_table[sample_nr][11] = -1.0;
-      }
-      else{
-         new_path_metrics[11] = pm_candidate2;
-         trans_table[sample_nr][11] = 1.0;
-      }
-
-      pm_candidate1 = old_path_metrics[6] - INCII(1);//input_symbol_real - increment[1];
-      pm_candidate2 = old_path_metrics[14] - DECII(6);//input_symbol_real + increment[6];
-      if(pm_candidate1 > pm_candidate2){
-         new_path_metrics[12] = pm_candidate1;
-         trans_table[sample_nr][12] = -1.0;
-      }
-      else{
-         new_path_metrics[12] = pm_candidate2;
-         trans_table[sample_nr][12] = 1.0;
-      }
-
-      pm_candidate1 = old_path_metrics[6] + INCII(1);//input_symbol_real + increment[1];
-      pm_candidate2 = old_path_metrics[14] + DECII(6);//input_symbol_real - increment[6];
-      if(pm_candidate1 > pm_candidate2){
-         new_path_metrics[13] = pm_candidate1;
-         trans_table[sample_nr][13] = -1.0;
-      }
-      else{
-         new_path_metrics[13] = pm_candidate2;
-         trans_table[sample_nr][13] = 1.0;
-      }
-
-      pm_candidate1 = old_path_metrics[7] - INCII(0);//input_symbol_real - increment[0];
-      pm_candidate2 = old_path_metrics[15] - DECII(7);//input_symbol_real + increment[7];
-      if(pm_candidate1 > pm_candidate2){
-         new_path_metrics[14] = pm_candidate1;
-         trans_table[sample_nr][14] = -1.0;
-      }
-      else{
-         new_path_metrics[14] = pm_candidate2;
-         trans_table[sample_nr][14] = 1.0;
-      }
-
-      pm_candidate1 = old_path_metrics[7] + INCII(0);//input_symbol_real + increment[0];
-      pm_candidate2 = old_path_metrics[15] + DECII(7);//input_symbol_real - increment[7];
-      if(pm_candidate1 > pm_candidate2){
-         new_path_metrics[15] = pm_candidate1;
-         trans_table[sample_nr][15] = -1.0;
-      }
-      else{
-         new_path_metrics[15] = pm_candidate2;
-         trans_table[sample_nr][15] = 1.0;
-      }
-      tmp=old_path_metrics;
-      old_path_metrics=new_path_metrics;
-      new_path_metrics=tmp;
-      dump(old_path_metrics);
-      
-      sample_nr++;
-   }
-
-/*
-* Find the best from the stop states by comparing their path metrics.
-* Not every stop state is always possible, so we are searching in
-* a subset of them.
-*/
-   unsigned int best_stop_state;
-   float stop_state_metric, max_stop_state_metric;
-   best_stop_state = stop_states[0];
-   max_stop_state_metric = old_path_metrics[best_stop_state];
-   for(i=1; i< stops_num; i++){
-      stop_state_metric = old_path_metrics[stop_states[i]];
-      if(stop_state_metric > max_stop_state_metric){
-         max_stop_state_metric = stop_state_metric;
-         best_stop_state = stop_states[i];
-      }
-   }
-
-/*
-* This table was generated with hope that it gives a litle speedup during
-* traceback stage. 
-* Received bit is related to the number of state in the trellis.
-* I've numbered states so their parity (number of ones) is related
-* to a received bit. 
-*/
-   static const unsigned int parity_table[PATHS_NUM] = { 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0,  };
-
-/*
-* Table of previous states in the trellis diagram.
-* For GMSK modulation every state has two previous states.
-* Example:
-*   previous_state_nr1 = prev_table[current_state_nr][0]
-*   previous_state_nr2 = prev_table[current_state_nr][1]
-*/
-   static const unsigned int prev_table[PATHS_NUM][2] = { {0,8}, {0,8}, {1,9}, {1,9}, {2,10}, {2,10}, {3,11}, {3,11}, {4,12}, {4,12}, {5,13}, {5,13}, {6,14}, {6,14}, {7,15}, {7,15},  };
-
-/*
-* Traceback and differential decoding of received sequence.
-* Decisions stored in trans_table are used to restore best path in the trellis.
-*/
-   sample_nr=samples_num;
-   unsigned int state_nr=best_stop_state;
-   unsigned int decision;
-   bool out_bit=0;
-
-   while(sample_nr>0){
-      sample_nr--;
-      decision = (trans_table[sample_nr][state_nr]>0);
-
-      if(decision != out_bit)
-         output[sample_nr]=-trans_table[sample_nr][state_nr];
-      else
-         output[sample_nr]=trans_table[sample_nr][state_nr];
-      output[sample_nr] = decision;
-      out_bit = out_bit ^ real_imag ^ parity_table[state_nr];
-      state_nr = prev_table[state_nr][decision];
-      real_imag = !real_imag;
-   }
-}
-void viterbi_detector(const gr_complex * input, unsigned int samples_num, gr_complex * rhh, unsigned int start_state, const unsigned int * stop_states, unsigned int stops_num, float * output)
-{
-   float increment[8];
-   float path_metrics1[16];
-   float path_metrics2[16];
-   float * new_path_metrics;
-   float * old_path_metrics;
-   float * tmp;
-   float trans_table[BURST_SIZE][16];
-   float pm_candidate1, pm_candidate2;
-   bool real_imag;
-   float input_symbol_real, input_symbol_imag;
-   unsigned int i, sample_nr;
-
-/*
-* Setup first path metrics, so only state pointed by start_state is possible.
-* Start_state metric is equal to zero, the rest is written with some very low value,
-* which makes them practically impossible to occur.
-*/
-   for(i=0; i<PATHS_NUM; i++){
-      path_metrics1[i]=(-10e30);
-   }
-   path_metrics1[start_state]=0;
-
-/*
-* Compute Increment - a table of values which does not change for subsequent input samples.
-* Increment is table of reference levels for computation of branch metrics:
-*    branch metric = (+/-)received_sample (+/-) reference_level
-*/
-   increment[0] = -rhh[1].imag() -rhh[2].real() -rhh[3].imag() +rhh[4].real();
-   increment[1] = rhh[1].imag() -rhh[2].real() -rhh[3].imag() +rhh[4].real();
-   increment[2] = -rhh[1].imag() +rhh[2].real() -rhh[3].imag() +rhh[4].real();
-   increment[3] = rhh[1].imag() +rhh[2].real() -rhh[3].imag() +rhh[4].real();
-   increment[4] = -rhh[1].imag() -rhh[2].real() +rhh[3].imag() +rhh[4].real();
-   increment[5] = rhh[1].imag() -rhh[2].real() +rhh[3].imag() +rhh[4].real();
-   increment[6] = -rhh[1].imag() +rhh[2].real() +rhh[3].imag() +rhh[4].real();
-   increment[7] = rhh[1].imag() +rhh[2].real() +rhh[3].imag() +rhh[4].real();
-
-
-/*
-* Computation of path metrics and decisions (Add-Compare-Select).
-* It's composed of two parts: one for odd input samples (imaginary numbers)
-* and one for even samples (real numbers).
-* Each part is composed of independent (parallelisable) statements like  
-* this one:
-*      pm_candidate1 = old_path_metrics[0] - input_symbol_real - increment[7];
-*      pm_candidate2 = old_path_metrics[8] - input_symbol_real + increment[0];
-*      if(pm_candidate1 > pm_candidate2){
-*         new_path_metrics[0] = pm_candidate1;
-*         trans_table[sample_nr][0] = -1.0;
-*      }
-*      else{
-*         new_path_metrics[0] = pm_candidate2;
-*         trans_table[sample_nr][0] = 1.0;
-*      }
-* This is very good point for optimisations (SIMD or OpenMP) as it's most time 
-* consuming part of this function. 
-*/
-   sample_nr=0;
-   old_path_metrics=path_metrics1;
-   new_path_metrics=path_metrics2;
-   while(sample_nr<samples_num){
-      //Processing imag states
-      real_imag=1;
-      input_symbol_imag = input[sample_nr].imag();
-
-      pm_candidate1 = old_path_metrics[0] + input_symbol_imag - increment[2];
-      pm_candidate2 = old_path_metrics[8] + input_symbol_imag + increment[5];
-      if(pm_candidate1 > pm_candidate2){
-         new_path_metrics[0] = pm_candidate1;
-         trans_table[sample_nr][0] = -1.0;
-      }
-      else{
-         new_path_metrics[0] = pm_candidate2;
-         trans_table[sample_nr][0] = 1.0;
-      }
-
-      pm_candidate1 = old_path_metrics[0] - input_symbol_imag + increment[2];
-      pm_candidate2 = old_path_metrics[8] - input_symbol_imag - increment[5];
-      if(pm_candidate1 > pm_candidate2){
-         new_path_metrics[1] = pm_candidate1;
-         trans_table[sample_nr][1] = -1.0;
-      }
-      else{
-         new_path_metrics[1] = pm_candidate2;
-         trans_table[sample_nr][1] = 1.0;
-      }
-
-      pm_candidate1 = old_path_metrics[1] + input_symbol_imag - increment[3];
-      pm_candidate2 = old_path_metrics[9] + input_symbol_imag + increment[4];
-      if(pm_candidate1 > pm_candidate2){
-         new_path_metrics[2] = pm_candidate1;
-         trans_table[sample_nr][2] = -1.0;
-      }
-      else{
-         new_path_metrics[2] = pm_candidate2;
-         trans_table[sample_nr][2] = 1.0;
-      }
-
-      pm_candidate1 = old_path_metrics[1] - input_symbol_imag + increment[3];
-      pm_candidate2 = old_path_metrics[9] - input_symbol_imag - increment[4];
-      if(pm_candidate1 > pm_candidate2){
-         new_path_metrics[3] = pm_candidate1;
-         trans_table[sample_nr][3] = -1.0;
-      }
-      else{
-         new_path_metrics[3] = pm_candidate2;
-         trans_table[sample_nr][3] = 1.0;
-      }
-
-      pm_candidate1 = old_path_metrics[2] + input_symbol_imag - increment[0];
-      pm_candidate2 = old_path_metrics[10] + input_symbol_imag + increment[7];
-      if(pm_candidate1 > pm_candidate2){
-         new_path_metrics[4] = pm_candidate1;
-         trans_table[sample_nr][4] = -1.0;
-      }
-      else{
-         new_path_metrics[4] = pm_candidate2;
-         trans_table[sample_nr][4] = 1.0;
-      }
-
-      pm_candidate1 = old_path_metrics[2] - input_symbol_imag + increment[0];
-      pm_candidate2 = old_path_metrics[10] - input_symbol_imag - increment[7];
-      if(pm_candidate1 > pm_candidate2){
-         new_path_metrics[5] = pm_candidate1;
-         trans_table[sample_nr][5] = -1.0;
-      }
-      else{
-         new_path_metrics[5] = pm_candidate2;
-         trans_table[sample_nr][5] = 1.0;
-      }
-
-      pm_candidate1 = old_path_metrics[3] + input_symbol_imag - increment[1];
-      pm_candidate2 = old_path_metrics[11] + input_symbol_imag + increment[6];
-      if(pm_candidate1 > pm_candidate2){
-         new_path_metrics[6] = pm_candidate1;
-         trans_table[sample_nr][6] = -1.0;
-      }
-      else{
-         new_path_metrics[6] = pm_candidate2;
-         trans_table[sample_nr][6] = 1.0;
-      }
-
-      pm_candidate1 = old_path_metrics[3] - input_symbol_imag + increment[1];
-      pm_candidate2 = old_path_metrics[11] - input_symbol_imag - increment[6];
-      if(pm_candidate1 > pm_candidate2){
-         new_path_metrics[7] = pm_candidate1;
-         trans_table[sample_nr][7] = -1.0;
-      }
-      else{
-         new_path_metrics[7] = pm_candidate2;
-         trans_table[sample_nr][7] = 1.0;
-      }
-
-      pm_candidate1 = old_path_metrics[4] + input_symbol_imag - increment[6];
-      pm_candidate2 = old_path_metrics[12] + input_symbol_imag + increment[1];
-      if(pm_candidate1 > pm_candidate2){
-         new_path_metrics[8] = pm_candidate1;
-         trans_table[sample_nr][8] = -1.0;
-      }
-      else{
-         new_path_metrics[8] = pm_candidate2;
-         trans_table[sample_nr][8] = 1.0;
-      }
-
-      pm_candidate1 = old_path_metrics[4] - input_symbol_imag + increment[6];
-      pm_candidate2 = old_path_metrics[12] - input_symbol_imag - increment[1];
-      if(pm_candidate1 > pm_candidate2){
-         new_path_metrics[9] = pm_candidate1;
-         trans_table[sample_nr][9] = -1.0;
-      }
-      else{
-         new_path_metrics[9] = pm_candidate2;
-         trans_table[sample_nr][9] = 1.0;
-      }
-
-      pm_candidate1 = old_path_metrics[5] + input_symbol_imag - increment[7];
-      pm_candidate2 = old_path_metrics[13] + input_symbol_imag + increment[0];
-      if(pm_candidate1 > pm_candidate2){
-         new_path_metrics[10] = pm_candidate1;
-         trans_table[sample_nr][10] = -1.0;
-      }
-      else{
-         new_path_metrics[10] = pm_candidate2;
-         trans_table[sample_nr][10] = 1.0;
-      }
-
-      pm_candidate1 = old_path_metrics[5] - input_symbol_imag + increment[7];
-      pm_candidate2 = old_path_metrics[13] - input_symbol_imag - increment[0];
-      if(pm_candidate1 > pm_candidate2){
-         new_path_metrics[11] = pm_candidate1;
-         trans_table[sample_nr][11] = -1.0;
-      }
-      else{
-         new_path_metrics[11] = pm_candidate2;
-         trans_table[sample_nr][11] = 1.0;
-      }
-
-      pm_candidate1 = old_path_metrics[6] + input_symbol_imag - increment[4];
-      pm_candidate2 = old_path_metrics[14] + input_symbol_imag + increment[3];
-      if(pm_candidate1 > pm_candidate2){
-         new_path_metrics[12] = pm_candidate1;
-         trans_table[sample_nr][12] = -1.0;
-      }
-      else{
-         new_path_metrics[12] = pm_candidate2;
-         trans_table[sample_nr][12] = 1.0;
-      }
-
-      pm_candidate1 = old_path_metrics[6] - input_symbol_imag + increment[4];
-      pm_candidate2 = old_path_metrics[14] - input_symbol_imag - increment[3];
-      if(pm_candidate1 > pm_candidate2){
-         new_path_metrics[13] = pm_candidate1;
-         trans_table[sample_nr][13] = -1.0;
-      }
-      else{
-         new_path_metrics[13] = pm_candidate2;
-         trans_table[sample_nr][13] = 1.0;
-      }
-
-      pm_candidate1 = old_path_metrics[7] + input_symbol_imag - increment[5];
-      pm_candidate2 = old_path_metrics[15] + input_symbol_imag + increment[2];
-      if(pm_candidate1 > pm_candidate2){
-         new_path_metrics[14] = pm_candidate1;
-         trans_table[sample_nr][14] = -1.0;
-      }
-      else{
-         new_path_metrics[14] = pm_candidate2;
-         trans_table[sample_nr][14] = 1.0;
-      }
-
-      pm_candidate1 = old_path_metrics[7] - input_symbol_imag + increment[5];
-      pm_candidate2 = old_path_metrics[15] - input_symbol_imag - increment[2];
-      if(pm_candidate1 > pm_candidate2){
-         new_path_metrics[15] = pm_candidate1;
-         trans_table[sample_nr][15] = -1.0;
-      }
-      else{
-         new_path_metrics[15] = pm_candidate2;
-         trans_table[sample_nr][15] = 1.0;
-      }
-      tmp=old_path_metrics;
-      old_path_metrics=new_path_metrics;
-      new_path_metrics=tmp;
-
-      sample_nr++;
-      if(sample_nr==samples_num)
-         break;
-
-      //Processing real states
-      real_imag=0;
-      input_symbol_real = input[sample_nr].real();
-
-      pm_candidate1 = old_path_metrics[0] - input_symbol_real - increment[7];
-      pm_candidate2 = old_path_metrics[8] - input_symbol_real + increment[0];
-      if(pm_candidate1 > pm_candidate2){
-         new_path_metrics[0] = pm_candidate1;
-         trans_table[sample_nr][0] = -1.0;
-      }
-      else{
-         new_path_metrics[0] = pm_candidate2;
-         trans_table[sample_nr][0] = 1.0;
-      }
-
-      pm_candidate1 = old_path_metrics[0] + input_symbol_real + increment[7];
-      pm_candidate2 = old_path_metrics[8] + input_symbol_real - increment[0];
-      if(pm_candidate1 > pm_candidate2){
-         new_path_metrics[1] = pm_candidate1;
-         trans_table[sample_nr][1] = -1.0;
-      }
-      else{
-         new_path_metrics[1] = pm_candidate2;
-         trans_table[sample_nr][1] = 1.0;
-      }
-
-      pm_candidate1 = old_path_metrics[1] - input_symbol_real - increment[6];
-      pm_candidate2 = old_path_metrics[9] - input_symbol_real + increment[1];
-      if(pm_candidate1 > pm_candidate2){
-         new_path_metrics[2] = pm_candidate1;
-         trans_table[sample_nr][2] = -1.0;
-      }
-      else{
-         new_path_metrics[2] = pm_candidate2;
-         trans_table[sample_nr][2] = 1.0;
-      }
-
-      pm_candidate1 = old_path_metrics[1] + input_symbol_real + increment[6];
-      pm_candidate2 = old_path_metrics[9] + input_symbol_real - increment[1];
-      if(pm_candidate1 > pm_candidate2){
-         new_path_metrics[3] = pm_candidate1;
-         trans_table[sample_nr][3] = -1.0;
-      }
-      else{
-         new_path_metrics[3] = pm_candidate2;
-         trans_table[sample_nr][3] = 1.0;
-      }
-
-      pm_candidate1 = old_path_metrics[2] - input_symbol_real - increment[5];
-      pm_candidate2 = old_path_metrics[10] - input_symbol_real + increment[2];
-      if(pm_candidate1 > pm_candidate2){
-         new_path_metrics[4] = pm_candidate1;
-         trans_table[sample_nr][4] = -1.0;
-      }
-      else{
-         new_path_metrics[4] = pm_candidate2;
-         trans_table[sample_nr][4] = 1.0;
-      }
-
-      pm_candidate1 = old_path_metrics[2] + input_symbol_real + increment[5];
-      pm_candidate2 = old_path_metrics[10] + input_symbol_real - increment[2];
-      if(pm_candidate1 > pm_candidate2){
-         new_path_metrics[5] = pm_candidate1;
-         trans_table[sample_nr][5] = -1.0;
-      }
-      else{
-         new_path_metrics[5] = pm_candidate2;
-         trans_table[sample_nr][5] = 1.0;
-      }
-
-      pm_candidate1 = old_path_metrics[3] - input_symbol_real - increment[4];
-      pm_candidate2 = old_path_metrics[11] - input_symbol_real + increment[3];
-      if(pm_candidate1 > pm_candidate2){
-         new_path_metrics[6] = pm_candidate1;
-         trans_table[sample_nr][6] = -1.0;
-      }
-      else{
-         new_path_metrics[6] = pm_candidate2;
-         trans_table[sample_nr][6] = 1.0;
-      }
-
-      pm_candidate1 = old_path_metrics[3] + input_symbol_real + increment[4];
-      pm_candidate2 = old_path_metrics[11] + input_symbol_real - increment[3];
-      if(pm_candidate1 > pm_candidate2){
-         new_path_metrics[7] = pm_candidate1;
-         trans_table[sample_nr][7] = -1.0;
-      }
-      else{
-         new_path_metrics[7] = pm_candidate2;
-         trans_table[sample_nr][7] = 1.0;
-      }
-
-      pm_candidate1 = old_path_metrics[4] - input_symbol_real - increment[3];
-      pm_candidate2 = old_path_metrics[12] - input_symbol_real + increment[4];
-      if(pm_candidate1 > pm_candidate2){
-         new_path_metrics[8] = pm_candidate1;
-         trans_table[sample_nr][8] = -1.0;
-      }
-      else{
-         new_path_metrics[8] = pm_candidate2;
-         trans_table[sample_nr][8] = 1.0;
-      }
-
-      pm_candidate1 = old_path_metrics[4] + input_symbol_real + increment[3];
-      pm_candidate2 = old_path_metrics[12] + input_symbol_real - increment[4];
-      if(pm_candidate1 > pm_candidate2){
-         new_path_metrics[9] = pm_candidate1;
-         trans_table[sample_nr][9] = -1.0;
-      }
-      else{
-         new_path_metrics[9] = pm_candidate2;
-         trans_table[sample_nr][9] = 1.0;
-      }
-
-      pm_candidate1 = old_path_metrics[5] - input_symbol_real - increment[2];
-      pm_candidate2 = old_path_metrics[13] - input_symbol_real + increment[5];
-      if(pm_candidate1 > pm_candidate2){
-         new_path_metrics[10] = pm_candidate1;
-         trans_table[sample_nr][10] = -1.0;
-      }
-      else{
-         new_path_metrics[10] = pm_candidate2;
-         trans_table[sample_nr][10] = 1.0;
-      }
-
-      pm_candidate1 = old_path_metrics[5] + input_symbol_real + increment[2];
-      pm_candidate2 = old_path_metrics[13] + input_symbol_real - increment[5];
-      if(pm_candidate1 > pm_candidate2){
-         new_path_metrics[11] = pm_candidate1;
-         trans_table[sample_nr][11] = -1.0;
-      }
-      else{
-         new_path_metrics[11] = pm_candidate2;
-         trans_table[sample_nr][11] = 1.0;
-      }
-
-      pm_candidate1 = old_path_metrics[6] - input_symbol_real - increment[1];
-      pm_candidate2 = old_path_metrics[14] - input_symbol_real + increment[6];
-      if(pm_candidate1 > pm_candidate2){
-         new_path_metrics[12] = pm_candidate1;
-         trans_table[sample_nr][12] = -1.0;
-      }
-      else{
-         new_path_metrics[12] = pm_candidate2;
-         trans_table[sample_nr][12] = 1.0;
-      }
-
-      pm_candidate1 = old_path_metrics[6] + input_symbol_real + increment[1];
-      pm_candidate2 = old_path_metrics[14] + input_symbol_real - increment[6];
-      if(pm_candidate1 > pm_candidate2){
-         new_path_metrics[13] = pm_candidate1;
-         trans_table[sample_nr][13] = -1.0;
-      }
-      else{
-         new_path_metrics[13] = pm_candidate2;
-         trans_table[sample_nr][13] = 1.0;
-      }
-
-      pm_candidate1 = old_path_metrics[7] - input_symbol_real - increment[0];
-      pm_candidate2 = old_path_metrics[15] - input_symbol_real + increment[7];
-      if(pm_candidate1 > pm_candidate2){
-         new_path_metrics[14] = pm_candidate1;
-         trans_table[sample_nr][14] = -1.0;
-      }
-      else{
-         new_path_metrics[14] = pm_candidate2;
-         trans_table[sample_nr][14] = 1.0;
-      }
-
-      pm_candidate1 = old_path_metrics[7] + input_symbol_real + increment[0];
-      pm_candidate2 = old_path_metrics[15] + input_symbol_real - increment[7];
-      if(pm_candidate1 > pm_candidate2){
-         new_path_metrics[15] = pm_candidate1;
-         trans_table[sample_nr][15] = -1.0;
-      }
-      else{
-         new_path_metrics[15] = pm_candidate2;
-         trans_table[sample_nr][15] = 1.0;
-      }
-      tmp=old_path_metrics;
-      old_path_metrics=new_path_metrics;
-      new_path_metrics=tmp;
-
-      sample_nr++;
-   }
-
-/*
-* Find the best from the stop states by comparing their path metrics.
-* Not every stop state is always possible, so we are searching in
-* a subset of them.
-*/
-   unsigned int best_stop_state;
-   float stop_state_metric, max_stop_state_metric;
-   best_stop_state = stop_states[0];
-   max_stop_state_metric = old_path_metrics[best_stop_state];
-   for(i=1; i< stops_num; i++){
-      stop_state_metric = old_path_metrics[stop_states[i]];
-      if(stop_state_metric > max_stop_state_metric){
-         max_stop_state_metric = stop_state_metric;
-         best_stop_state = stop_states[i];
-      }
-   }
-
-/*
-* This table was generated with hope that it gives a litle speedup during
-* traceback stage. 
-* Received bit is related to the number of state in the trellis.
-* I've numbered states so their parity (number of ones) is related
-* to a received bit. 
-*/
-   static const unsigned int parity_table[PATHS_NUM] = { 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0,  };
-
-/*
-* Table of previous states in the trellis diagram.
-* For GMSK modulation every state has two previous states.
-* Example:
-*   previous_state_nr1 = prev_table[current_state_nr][0]
-*   previous_state_nr2 = prev_table[current_state_nr][1]
-*/
-   static const unsigned int prev_table[PATHS_NUM][2] = { {0,8}, {0,8}, {1,9}, {1,9}, {2,10}, {2,10}, {3,11}, {3,11}, {4,12}, {4,12}, {5,13}, {5,13}, {6,14}, {6,14}, {7,15}, {7,15},  };
-
-/*
-* Traceback and differential decoding of received sequence.
-* Decisions stored in trans_table are used to restore best path in the trellis.
-*/
-   sample_nr=samples_num;
-   unsigned int state_nr=best_stop_state;
-   unsigned int decision;
-   bool out_bit=0;
-
-   while(sample_nr>0){
-      sample_nr--;
-      decision = (trans_table[sample_nr][state_nr]>0);
-
-      if(decision != out_bit)
-         output[sample_nr]=-trans_table[sample_nr][state_nr];
-      else
-         output[sample_nr]=trans_table[sample_nr][state_nr];
-      output[sample_nr]=decision;
-      out_bit = out_bit ^ real_imag ^ parity_table[state_nr];
-      state_nr = prev_table[state_nr][decision];
-      real_imag = !real_imag;
-   }
-}
-
-} //extern "C"
+   def compress_bits(self,sbuf):
+      dbuf = []
+      for i in range(0,len(sbuf),8):
+         c = 0
+         k = 1
+         for x in sbuf[i:i+8]:
+            c += k*x
+            k *= 2
+         dbuf.append(c)
+      return dbuf
+
+
+} // extern "C"

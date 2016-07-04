@@ -11,5 +11,9 @@ class BCCH(CCH):
 		self.config = (range(2,6),slot)
 		self.name = "BCCH"
 		
+	def callback(self,b,fn,state):
+		b.training = state.bcc
+		return CCH.callback(self,b,fn,state)
+
 
 

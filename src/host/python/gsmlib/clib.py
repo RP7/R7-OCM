@@ -12,6 +12,32 @@ def c2cf(x):
 	
 def cf2c(output):
 	return np.array([complex(output[i],output[i+1]) for i in range(0,len(output),2)])
+
+def compress_bits(sbuf):
+	dbuf = []
+	for i in range(0,len(sbuf),8):
+		c = 0
+		k = 1
+		for x in sbuf[i:i+8]:
+			c += k*x
+			k *= 2
+		dbuf.append(c)
+	if i!=len(sbuf):
+		c = 0
+		k = 1
+		for x in sbuf[i:]:
+			c += k*x
+			k *= 2
+		dbuf.append(c)
+	return dbuf
+
+def buf2uint64(buf):
+	r = long(0)
+	for x in buf[::-1]:
+		r<<=8
+		r+=long(x)
+	return r
+
 """
 typedef struct burst_s {
   int bl;
@@ -44,6 +70,7 @@ class cburst(Structure):
 		self.osr = float(config.SampleRate/gsm.SymbolRate)
 	def mmap(self,r):
 		self.recv = addressof(r)
+
 class Trainings(Structure):
 	_fields_ = [
 		  ("sb", c_float*128)
@@ -59,12 +86,43 @@ class Trainings(Structure):
 		for i in range(len(NBTraining.bits)):
 			self.nb[i][:] = c2cf(NBTraining.modulated[i,:])[:]
 		self.sb_chn_s = SB._chn_s+cut
-		self.sb_chn_e = SB._chn_s+cut+30
+		self.sb_chn_e = SB._chn_s+cut+60
 		self.nb_chn_s = NB._chn_s+cut
-		self.nb_chn_e = NB._chn_s+cut+30
+		self.nb_chn_e = NB._chn_s+cut+60
 		print self.sb_chn_s
+"""
+	typedef struct CC_s {
+      uint64_t pp;
+      uint64_t pr;
+      int bs;
+      int ps;
+      int ts;
+      int maxE;
+   	} CC_t;
+"""
+class ConvCodeHandle(structure):
+	_fields_ = [
+		  ("pp"  , c_uint64)
+		, ("pr"  , c_uint64)
+		, ("bs"  , c_int)
+		, ("ps"  , c_int)
+		, ("ts"  , c_int)
+		, ("ins" , c_int)
+		, ("maxE", c_int)
+	]
+	def __init__(self,config):
+		self.pp = c_uint64(buf2uint64(compress_bits(config['parity_polynomial'])))
+		self.pp = c_uint64(buf2uint64(compress_bits(config['parity_remainder'])))
+		self.bs = c_int(config['DATA_BLOCK_SIZE'])
+		self.ps = c_int(config['PARITY_SIZE'])
+		self.ts = c_int(config['TAIL_BITS_SIZE'])
+		self.ins = self.bs+self.ps+self.ts
+		self.maxE = self.ins*2+1
+
 class clib:
 	trainings = Trainings()
+	sch_dec = ConvCodeHandle(convCode.sch_config)
+	cch_dec = ConvCodeHandle(convCode.cch_config)
 	def __init__(self,lib):
 		self.lib = lib
 	

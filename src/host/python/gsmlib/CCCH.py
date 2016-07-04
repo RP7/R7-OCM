@@ -13,5 +13,8 @@ class CCCH(CCH):
 		print "config CCCH",n,range(s,s+4)
 		self.config = (range(s,s+4),slot)
 		
+	def callback(self,b,fn,state):
+		b.training = state.bcc
+		return CCH.callback(self,b,fn,state)
 
 

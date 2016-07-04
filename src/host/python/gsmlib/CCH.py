@@ -17,7 +17,6 @@ class CCH(CH):
 	
 	def callback(self,b,fn,state):
 		if state.timingSyncState.state==2:
-			b.training = state.bcc
 			b.chnEst()
 			b.viterbi_detector()
 			(r,s) = self.config
