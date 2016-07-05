@@ -46,8 +46,10 @@ class NBTraining(item):
 	  [0, 1, 1, 1, 0, 0, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 0, 1] ## DUMMY
 	]
 	modulated = np.zeros((len(bits),length),dtype=complex)
-	for i in range(len(bits)):
+	for i in range(6):
 		modulated[i,:] = item.gmsk_mapper(bits[i],complex(1,0)) 
+	for i in range(6,len(bits)):
+		modulated[i,:] = item.gmsk_mapper(bits[i],complex(-1,0)) 
 
 
 class NB(Burst):

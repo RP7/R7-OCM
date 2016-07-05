@@ -21,6 +21,9 @@ class burstfile:
 	burst = {'FB':FB,'SB':SB,'NB':NB,'DB':DB}
 	def __init__(self,fn):
 		self.f = open(fn,'rb')
+	def reset(self):
+		self.f.seek(0,0)
+		
 	def skip(self,l):
 		self.f.seek(l*(sizeof(burstFileHead)+4*1460),1)
 	

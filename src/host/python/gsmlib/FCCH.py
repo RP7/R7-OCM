@@ -18,8 +18,8 @@ class FCCH(CH):
 			return
 		omg = b.freqEst()
 		freq = omg * SampleRate
-		print "FCCH freq = ",freq
-		print "FFT method",b.freqEstFFT(int(SampleRate))
+		#print "FCCH freq = ",freq
+		#print "FFT method",b.freqEstFFT(int(SampleRate))
 		return 1,b.recv
 
 	def find(self,rawmf,osr):

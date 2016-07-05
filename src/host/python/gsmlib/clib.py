@@ -176,8 +176,8 @@ class clib:
 		self.lib.demodu(byref(b),byref(clib.trainings),c_int(t))
 	
 	def doSch(self,b):
-		self.aSch = cSch(b)
-		return self.lib.doSch(byref(self.aSch),byref(clib.trainings),byref(clib.sch_dec),0)
+		aSch = cSch(b)
+		return self.lib.doSch(byref(aSch),byref(clib.trainings),byref(clib.sch_dec),0),aSch
 
 	def doCch(self,b,t):
 		aCch = cCch(b)

@@ -1,3 +1,5 @@
+from ctypes import *
+import constant
 import gsmlib.GSMC0 as C0
 import matplotlib.pyplot as plt
 
@@ -11,10 +13,17 @@ c0 = C0.GSMC0()
 c0.setRx(rx)
 c0.initSCH()
 c0.initBCCH()
-#c0.initCCCH(range(2,3))
+file = "../../../temp/log"
+lib = CDLL(constant.c_temp_dir+'libcgsm.so')
+for bcch in c0.bcch:
+	bcch.setLib(lib)
+
+c0.initCCCH(range(0,9))
+for ccch in c0.ccch:
+	ccch.setLib(lib)
 #Burst.Burst.log = open("../../../temp/log","wb")
 #c0.state.bcch_log = open("../../../data/bcch","wt")
-r = c0.run()
+r = c0.run(10*51*26)
 if Burst.Burst.log!= None:
 	Burst.Burst.log.close()
 if c0.state.bcch_log!=None:

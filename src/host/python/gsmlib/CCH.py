@@ -7,6 +7,8 @@ from interleave import interleave
 from convCode import convCode
 from gsmtap import gsmtap
 from clib import clib
+from ctypes import *
+
 class CCH(CH):
 	__burst__ = NB
 	def __init__(self):
@@ -35,7 +37,8 @@ class CCH(CH):
 				if self.codec.parity_check(self.decoded_data)!=0:
 					print "fn %d(%d)"%(b.fn,fn),"sn",b.sn,"error",self.codec.last_error
 				else:
-					self.data = self.compress_bits(self.decoded_data[:184])
+					self.data = (c_int8*23)()
+					self.data[:] = self.compress_bits(self.decoded_data[:184])
 					#print state.t1,state.t2,state.t3,self.name,"ok","msg",self.data
 					self.tap.send(self,self._fn(state,fn-sfn+r[0]))
 					return "newdata",self.data

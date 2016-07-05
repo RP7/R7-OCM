@@ -206,10 +206,10 @@ class GSMC0:
 		self.sleepTime = 0.
 		self.state.timingSyncState.once()
 		print "state:",self.state.timingSyncState.name()
-	def run(self):
+	def run(self,MAXC):
 		self.reset()
 		cnt = 0
-		while cnt<100*51*26:
+		while cnt<MAXC:
 			if self.state.freqSyncState.name()=="init":
 				ok,data = self.findFCCH()
 				if ok==1:
