@@ -80,7 +80,7 @@ class GSMC0:
 		self.regMCB(self.frameTrack,None)
 	
 	def initBCCH(self):
-		for i in [0,2]:
+		for i in [0]:
 			ch = BCCH.BCCH(i)
 			ch.attach(self.C0,gsm.MultiFrameC)
 			self.bcch.append(ch)

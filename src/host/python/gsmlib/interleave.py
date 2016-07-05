@@ -1,6 +1,6 @@
 import numpy as np
 class interleave:
-	def __init__(self,size,block_size):
+	def __init__(self,size,block_size,t="CCH"):
 		
 		"""
 		int
@@ -25,12 +25,23 @@ class interleave:
 		}
 
 		"""
-
-		self.trans = np.zeros(size,dtype=int)
-		for k in range(size):
-			B = k%4
-			j = 2*((49*k)%57) + ((k%8)/4)
-			self.trans[k] = B*block_size+j
+		if t=="CCH":
+			self.trans = np.zeros(size,dtype=int)
+			for k in range(size):
+				B = k%4
+				j = 2*((49*k)%57) + ((k%8)/4)
+				self.trans[k] = B*block_size+j
+		elif t=="TCH":
+			self.trans = np.zeros((2,size),dtype=int)
+			for i in range(2):
+				off = i*4
+				for k in range(size):
+					B = (k+off)%8
+					j = 2*((49*k)%57) + ((k%8)/4)
+					self.trans[i,k] = B*block_size+j
 
 	def decode(self,msg_in):
 		return msg_in[self.trans]
+
+	def decodeTCH(self,msg_in,off):
+		return msg_in[self.trans[off,:]]

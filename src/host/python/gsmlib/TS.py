@@ -54,7 +54,7 @@ class Frame:
 		return l
 
 class CFrame(Frame):
-	__TS__ = [ TS0, TS1 ] + [TST]*6
+	__TS__ = [ TS0, TST, TS1, TST, TS1, TST, TST, TST ] 
 	def __init__(self):
 		Frame.__init__(self)
 	def dump(self):

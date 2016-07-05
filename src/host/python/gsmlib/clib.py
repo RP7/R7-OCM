@@ -51,8 +51,11 @@ typedef struct burst_s {
   gr_complex chn[3*10];
   gr_complex rh[3];
   int cut_pos;
+  float chpower;
   gr_complex mafi[148];
   int demoduled[148];
+  int msg[148];
+  int stolen[2];
 } burst_t;
 """
 
@@ -65,6 +68,7 @@ class cburst(Structure):
 		, ("chn"        , c_float*120)
 		, ("rh"         , c_float*6)
 		, ("cut_pos"    , c_int)
+		, ("chpower"    , c_float)
 		, ("mafi"       , c_float*296)
 		, ("demodulated", c_int*148)
 		, ("msg"        , c_int*148)

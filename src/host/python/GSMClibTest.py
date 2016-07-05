@@ -24,10 +24,10 @@ class GSMClibTest:
 
 		self.lib = CDLL(constant.c_temp_dir+'libcgsm.so')
 		self.acc = clib.clib(self.lib)
-		# for bcch in self.c0.bcch:
-		# 	bcch.setLib(self.lib)
-		# for ccch in self.c0.ccch:
-		# 	ccch.setLib(self.lib)
+		for bcch in self.c0.bcch:
+			bcch.setLib(self.lib)
+		for ccch in self.c0.ccch:
+			ccch.setLib(self.lib)
 		
 		file = "../../../temp/log"
 		self.bf = burstfile.burstfile(file)
@@ -35,7 +35,8 @@ class GSMClibTest:
 		for i in range(3):
 			self.c0.state.timingSyncState.once()
 		self.frameC = 0
-
+		self.color = ['r','b','y','g','c','m','k','g-']
+		
 	def testSchFun(self,b):
 		chn = acc.channelEst(b.recv,SB.SBTraining.modulated,Burst.Burst.fosr)
 		inx = np.floor(np.arange(64)*Burst.Burst.fosr)
@@ -70,15 +71,14 @@ class GSMClibTest:
 		plt.plot(b.mafi.imag,'b')
 		plt.show()
 
-	def powerGraph(self):
-		power = [0.]*(51*8)
-		for i in range(51*8*26):
+	def powerGraph(self,mf1,mf2):
+		power = [0.]*(mf1*8)
+		for i in range(mf1*8*mf2):
 			f = self.bf.readBurst().recv
-			power[i%(51*8)] +=(np.dot(f,np.conj(f)).real)
+			power[i%(mf1*8)] +=(np.dot(f,np.conj(f)).real)
 		p = np.array(power)
-		p.shape = (51,8)
+		p.shape = (mf1,8)
 		plt.imshow(p,aspect='auto')
-		plt.show()
 
 	def oneSDCCH(self):
 		for i in range(4):
@@ -90,7 +90,6 @@ class GSMClibTest:
 
 	def oneSDCCH_nb(self):
 		b = c0.C0.frame[0][1]
-		color = ['r','b','y','g','c','m','k','w']
 		for t in range(1,10):
 			acc.demodu(ub,t)
 			chn = clib.cf2c(ub.chn)
@@ -156,15 +155,27 @@ class GSMClibTest:
 		in_b = np.array(range(57*8))
 		outb = il.decode(in_b)
 		print outb[:]
+	def whatinslot(self,slot):
+		p = np.zeros((9,51*26))
+		ts = range(8,9)
+		for i in range(51*26):
+			b = self.c0.C0.frame[i][slot]
+			for j in range(len(ts)):
+				ub = self.acc.newBurst(b.srecv)
+				self.acc.demodu(ub,ts[j])
+				power = float(ub.chpower)
+				p[j,i] = power
+		for j in range(len(ts)):
+			plt.plot(p[j,:],self.color[j%8])
 
 	def testDemodu(self):
 		frameC = 0
 		startT = time.time()
 
-		for i in range(8*51*26):
+		for i in range(51*26*8):
 			b,_F = self.bf.toC0(self.c0)
 			if b.ch!=None:
-				if b.ch.name=='CCCH':
+				if b.ch.name!='FCCH':
 				#print b.ch.name,b.__name__,_F
 					ok,data = b.ch.callback(b,_F,self.c0.state)
 					# ub = acc.newBurst(b.srecv)
@@ -177,9 +188,22 @@ class GSMClibTest:
 		print "pre burst time:",(endT-startT)/frameC
 
 def main():
+	"""
+	slot 0 FCCH,SCH,BCCH,CCCH
+	slot 2,4 BCCH,CCCH
+	slot 6 26 frames struct
+	"""
 	uut = GSMClibTest()
-	uut.oneSch_nb()
-	uut.oneBcch()
+	# uut.oneSch_nb()
+	# plt.figure(1)
+	# uut.bf.reset()
+	# uut.powerGraph(52,51)
+	# plt.figure(2)
+	# uut.bf.reset()
+	# uut.powerGraph(51,52)
+	uut.testDemodu()
+	uut.whatinslot(5)
+	plt.show()
 
 if __name__ == '__main__':
 	main()

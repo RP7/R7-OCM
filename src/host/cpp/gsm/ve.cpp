@@ -13,6 +13,7 @@ typedef struct burst_s {
   gr_complex chn[6*10];
   gr_complex rh[3];
   int cut_pos;
+  float chpower;
   gr_complex mafi[148];
   int demodulated[148];
   int msg[148];
@@ -91,15 +92,16 @@ static inline float norm2(gr_complex a,gr_complex b)
 }
 
 
-int maxwin(gr_complex *d,int dl,int l)
+int maxwin(gr_complex *d,int dl,int l, float& max)
 {
-  float pd[dl],s=0.,max=0.;
+  float pd[dl],s=0.;
   int inx=0;
   int i;
   for(i=0;i<dl;i++) {
     s += norm22(d[i]);
     pd[i]=s;
   }
+  max=0.;
   for(i=0;i<dl-l;i++) {
     float s = pd[i+l]-pd[i];
     if(s>max) {
@@ -280,7 +282,9 @@ void dediff_forward(int *msg, int len, int r_i, int s, int *output)
 }
 void demodu_core(burst_t *b, training_t *tr, int _chn_s, int trlen, int msg0len)
 {
-  int cut_pos = maxwin(b->chn,60,int(b->osr*2));
+  float max;
+  int cut_pos = maxwin(b->chn,60,int(b->osr*2),max);
+  b->chpower = max;
   float bs,timing;
   int ibs;
   if( cut_pos>b->osr ) {
