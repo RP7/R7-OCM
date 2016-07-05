@@ -7,6 +7,7 @@ import SCH
 import BCCH
 import CCCH
 import SDCCH
+import FACCH
 import TS
 import Burst
 import SB
@@ -73,6 +74,7 @@ class GSMC0:
 		self.ccch = []
 		self.sdcch = []
 		self.bcch = []
+		self.facch = []
 
 	def initSCH(self):
 		self.sch = SCH.SCH()
@@ -98,6 +100,12 @@ class GSMC0:
 				ch = SDCCH.SDCCH(n,s)
 				ch.attach(self.C0,gsm.MultiFrameC)
 				self.sdcch.append(ch)
+
+	def initFACCH(self,r):
+		for n in r:
+			ch = FACCH.FACCH(n)
+			ch.attach(self.C0,gsm.MultiFrameT)
+			self.facch.append(ch)
 
 	def getFn(self):
 		_s = self._fn/gsm.SupperFrame

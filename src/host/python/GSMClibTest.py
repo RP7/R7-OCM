@@ -20,6 +20,7 @@ class GSMClibTest:
 		self.c0.initSCH()
 		self.c0.initBCCH()
 		self.c0.initCCCH(range(0,9))
+		self.c0.initFACCH([3,5])
 		#c0.initSDCCH(range(1),[1])
 
 		self.lib = CDLL(constant.c_temp_dir+'libcgsm.so')

@@ -13,7 +13,7 @@ class TCH(CH):
 	__burst__ = NB
 	def __init__(self):
 		CH.__init__(self)
-		self.msg = [[]]*4
+		self.msg = [[]]*8
 		self.il = interleave(57*8,57*2,"TCH") 
 		self.codec = convCode(convCode.cch_config)
 		self.tap = gsmtap()
@@ -37,14 +37,16 @@ class TCH(CH):
 			b.viterbi_detector()
 			self.msg[sfn8]=b.msg
 			if (sfn8%4) == 3:
-				self.decode(state,sfn8)
+				suc = self.decode(state,sfn8)
+				if suc==0:
+					return 'nodata',None
 				if self.codec.parity_check(self.decoded_data)!=0:
 					print "fn %d(%d)"%(b.fn,fn),"sn",b.sn,"error",self.codec.last_error
 				else:
 					self.data = (c_int8*23)()
 					self.data[:] = self.compress_bits(self.decoded_data[:184])
 					#print state.t1,state.t2,state.t3,self.name,"ok","msg",self.data
-					self.tap.send(self,self._fn(state,fn-sfn+r[0]))
+					self.tap.send(self,self._fn(state,fn-sfn8%4))
 					return "newdata",self.data
 		return 'ok',None
 
@@ -65,12 +67,14 @@ class TCH(CH):
 		return 'ok',None
 	def decode(self,state,off):
 		self.coded = np.array(self.msg[0]+self.msg[1]+self.msg[2]+self.msg[3]+self.msg[4]+self.msg[5]+self.msg[6]+self.msg[7])
+		if len(self.coded)!=8*114:
+			return 0
 		if off==3:
-			self.deil = self.il.decode(self.coded,1)
+			self.deil = self.il.decodeTCH(self.coded,1)
 		else:
-			self.deil = self.il.decode(self.coded,0)
+			self.deil = self.il.decodeTCH(self.coded,0)
 		self.decoded_data = self.codec.conv_decode(self.deil)
-
+		return 1
 	
 	def attach(self,C,p):
 		(r,s) = self.config
