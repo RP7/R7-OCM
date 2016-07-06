@@ -218,7 +218,7 @@ class GSMC0:
 	def run(self,MAXC):
 		self.reset()
 		cnt = 0
-		while cnt<MAXC:
+		while cnt<MAXC or MAXC==-1:
 			if self.state.freqSyncState.name()=="init":
 				ok,data = self.findFCCH()
 				if ok==1:

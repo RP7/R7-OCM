@@ -25,7 +25,8 @@ for ccch in c0.ccch:
 c0.initFACCH([7])
 #Burst.Burst.log = open("../../../temp/log","wb")
 #c0.state.bcch_log = open("../../../data/bcch","wt")
-r = c0.run(30*51*26)
+# r = c0.run(30*51*26)
+r = c0.run(-1)
 if Burst.Burst.log!= None:
 	Burst.Burst.log.close()
 if c0.state.bcch_log!=None:
