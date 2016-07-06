@@ -12,15 +12,17 @@ rx = Q7Mem.rx()
 c0 = C0.GSMC0()
 c0.setRx(rx)
 c0.initSCH()
-c0.initBCCH()
+#c0.initBCCH()
 file = "../../../temp/log"
 lib = CDLL(constant.c_temp_dir+'libcgsm.so')
 for bcch in c0.bcch:
 	bcch.setLib(lib)
 
-c0.initCCCH(range(0,9))
+#c0.initCCCH(range(0,9))
 for ccch in c0.ccch:
 	ccch.setLib(lib)
+
+c0.initFACCH([6])
 #Burst.Burst.log = open("../../../temp/log","wb")
 #c0.state.bcch_log = open("../../../data/bcch","wt")
 r = c0.run(30*51*26)

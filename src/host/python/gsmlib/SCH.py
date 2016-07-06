@@ -82,7 +82,10 @@ class SCH(CH):
 				state.t1 = self.info['t1']
 				state.t2 = self.info['t2']
 				state.t3 = self.info['t3']
-			
+				sys_fn = self.sysLongFN()
+				state.diff_fn = sys_fn - fn
+				#print state.t1,state.t2,state.t3,state.diff_fn,sys_fn
+				
 			pos -= self.ovS
 
 			
@@ -108,7 +111,12 @@ class SCH(CH):
 		self.hit = {}
 		return p,r
 
-
+	def sysLongFN(self):
+		tt = ((self.info['t3'] + 26) - self.info['t2']) % 26
+		fn = self.info['t1']*51*26 + tt*51 + self.info['t3']
+		self.info['lfn'] = fn
+		return fn
+ 
 
 	def decode(self):
 		self.info = {}

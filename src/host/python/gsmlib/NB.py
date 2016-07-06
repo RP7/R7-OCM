@@ -65,6 +65,9 @@ class NB(Burst):
 
 	def chnEst(self):
 		self.chn = self.channelEst(self.recv[NB._chn_s:NB._chn_e],NBTraining.modulated[self.training,:])
+		self.chn9 = self.channelEst(self.recv[NB._chn_s:NB._chn_e],NBTraining.modulated[8,:])
+		if max(np.abs(self.chn9))>max(np.abs(self.chn)):
+			return 0
 		self.cut_chn,self.cut_pos = splibs.maxwin(self.chn,Burst.chn_len)
 		pos = self.cut_pos+NB._chn_s
 		#print "cut pos",self.cut_pos,"pos",pos,len(self.cut_chn),Burst.chnMatchLength,len(self.chn)
@@ -72,7 +75,7 @@ class NB(Burst):
 		self.ibs = int(self.bs)
 		self.timing = self.bs-self.ibs
 		self.be = self.ibs+int(Burst.length*Burst.fosr+Burst.chn_len+1)
-
+		return 1
 	def viterbi_detector(self):
 		self.viterbi.f_r_i = 1
 		self.viterbi.b_r_i = 0
@@ -94,7 +97,7 @@ class NB(Burst):
 		self.nbm0 = self.viterbi.dediff_backward(self.b,0,NBTraining.bits[self.training][3])[2:-4]
 		self.nbm1 = self.viterbi.dediff_forward(self.a,1,NBTraining.bits[self.training][-4])[4:-2]
 		self.msg = self.nbm0[3:-1]+self.nbm1[1:-3]
-		self.stolen = self.nbm0[-1]+self.nbm1[0]
+		self.stolen = [self.nbm0[-1],self.nbm1[0]]
 
 def main():
 	a = NB()

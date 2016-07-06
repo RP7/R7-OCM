@@ -52,6 +52,7 @@ class GSMSystemState:
 		self.t1  = 0
 		self.t2  = 0
 		self.t3  = 0
+		self.diff_fn = 0
 
 class GSMC0:
 

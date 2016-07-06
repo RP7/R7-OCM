@@ -1,6 +1,6 @@
 from ctypes import *
 from socket import socket,AF_INET,SOCK_DGRAM,htonl
-
+import numpy as np
 class gsmtap_hdr(Structure):
 	_pack_ = 1
 	_fields_ = [   ("version", c_int8)
@@ -54,6 +54,8 @@ class gsmtap:
 		self.block.header.sub_type = self.name2inx(ch.name)
 		(r,s) = ch.config
 		self.block.header.timeslot = s
+		if ch.name=="TCH_F":
+			self.block.header.signal_dbm = c_int8(int(ch.chp))
 		self.block.header.frame_number = htonl(fn)
 		self.sock.sendto(self.struct2stream(self.block),('127.0.0.1',4729))
 

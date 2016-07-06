@@ -39,9 +39,17 @@ class interleave:
 					B = (k+off)%8
 					j = 2*((49*k)%57) + ((k%8)/4)
 					self.trans[i,k] = B*block_size+j
-
+	
 	def decode(self,msg_in):
 		return msg_in[self.trans]
 
 	def decodeTCH(self,msg_in,off):
 		return msg_in[self.trans[off,:]]
+
+def main():
+	u = interleave(114*4,114,"TCH")
+	print u.trans[0,:]
+	print u.trans[1,:]
+
+if __name__ == '__main__':
+	main()

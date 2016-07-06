@@ -20,7 +20,7 @@ class GSMClibTest:
 		self.c0.initSCH()
 		#self.c0.initBCCH()
 		#self.c0.initCCCH(range(0,9))
-		self.c0.initFACCH([3,5])
+		self.c0.initFACCH([5,6,7])
 		#c0.initSDCCH(range(1),[1])
 
 		self.lib = CDLL(constant.c_temp_dir+'libcgsm.so')
@@ -173,7 +173,7 @@ class GSMClibTest:
 		frameC = 0
 		startT = time.time()
 
-		for i in range(51*26*8):
+		for i in range(51*26*8*10):
 			b,_F = self.bf.toC0(self.c0)
 			if b.ch!=None:
 				if b.ch.name!='FCCH':
@@ -203,8 +203,8 @@ def main():
 	# uut.bf.reset()
 	# uut.powerGraph(51,52)
 	uut.testDemodu()
-	uut.whatinslot(5)
-	plt.show()
+	# uut.whatinslot(5)
+	# plt.show()
 
 if __name__ == '__main__':
 	main()

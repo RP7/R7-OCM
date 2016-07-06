@@ -18,6 +18,7 @@ class TCH(CH):
 		self.codec = convCode(convCode.cch_config)
 		self.tap = gsmtap()
 		self.lib = None
+		self.stolens = [0]*16
 	
 	def setLib(self,lib):
 		self.lib = clib(lib)
@@ -26,28 +27,38 @@ class TCH(CH):
 		if self.lib != None:
 			return self.callback_c(b,fn,state)
 		if state.timingSyncState.state==2:
-			sfn = fn % MultiFrameT
+			sfn = (fn+state.diff_fn) % MultiFrameT
 			sfn8 = sfn
-			if sfn8==12:
+			ok = b.chnEst()
+			if ok==0:
+				print "*",
+				return "DB",None
+			b.viterbi_detector()
+			#print sfn,b.stolen,
+
+			if sfn8==12 or sfn8==25:
 				return 'SACCH',None
 			if sfn8>12:
 				sfn8 -= 1
 			sfn8 %=8
-			b.chnEst()
-			b.viterbi_detector()
+			self.stolens[sfn8*2:sfn8*2+2] = b.stolen
+			self.chp = self.chpower(b.chn)
 			self.msg[sfn8]=b.msg
 			if (sfn8%4) == 3:
-				suc = self.decode(state,sfn8)
-				if suc==0:
-					return 'nodata',None
-				if self.codec.parity_check(self.decoded_data)!=0:
-					print "fn %d(%d)"%(b.fn,fn),"sn",b.sn,"error",self.codec.last_error
-				else:
-					self.data = (c_int8*23)()
-					self.data[:] = self.compress_bits(self.decoded_data[:184])
-					#print state.t1,state.t2,state.t3,self.name,"ok","msg",self.data
-					self.tap.send(self,self._fn(state,fn-sfn8%4))
-					return "newdata",self.data
+				#print "",self.chp
+				if self.stolens[::2]==[1]*8 or self.stolens[1::2]==[1]*8 :
+					print "-------------------------",
+					suc = self.decode(state,sfn8)
+					if suc==0:
+						return 'nodata',None
+					if self.codec.parity_check(self.decoded_data)!=0:
+						print "fn %d(%d,%d,%d)"%(b.fn,fn,sfn,sfn8),"sn",b.sn,"error",self.codec.last_error,b.training
+					else:
+						self.data = (c_int8*23)()
+						self.data[:] = self.compress_bits(self.decoded_data[:184])
+						print "OK",self.chp
+						self.tap.send(self,self._fn(state,fn-sfn8%4))
+						return "newdata",self.data
 		return 'ok',None
 
 	def callback_c(self,b,fn,state):
@@ -97,3 +108,6 @@ class TCH(CH):
 		lfn = (51 * state.t1) + fn
 		#print state.t1,state.t2,state.t3,fn,tt,lfn
 		return lfn
+
+	def chpower(self,ch):
+		return np.log10(np.dot(ch,np.conj(ch)).real)*10-80
