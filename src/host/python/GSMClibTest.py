@@ -18,8 +18,8 @@ class GSMClibTest:
 	def __init__(self):
 		self.c0 = C0.GSMC0()
 		self.c0.initSCH()
-		self.c0.initBCCH()
-		self.c0.initCCCH(range(0,9))
+		#self.c0.initBCCH()
+		#self.c0.initCCCH(range(0,9))
 		self.c0.initFACCH([3,5])
 		#c0.initSDCCH(range(1),[1])
 

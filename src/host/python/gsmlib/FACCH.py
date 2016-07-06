@@ -4,7 +4,7 @@ class FACCH(TCH):
 	
 	def __init__(self,slot):
 		TCH.__init__(self)
-		self.name = "FACCH"
+		self.name = "TCH_F"
 		self.config = (range(0,26),slot)
 		
 	def callback(self,b,fn,state):
