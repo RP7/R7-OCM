@@ -22,7 +22,7 @@ for bcch in c0.bcch:
 for ccch in c0.ccch:
 	ccch.setLib(lib)
 
-c0.initFACCH([6])
+c0.initFACCH([7])
 #Burst.Burst.log = open("../../../temp/log","wb")
 #c0.state.bcch_log = open("../../../data/bcch","wt")
 r = c0.run(30*51*26)
