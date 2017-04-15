@@ -54,7 +54,7 @@ module ad9361_1t1r
 	reg [13:0]tx;
 	reg [11:0]tx_I_reg;
 	reg [11:0]tx_Q_reg;
-
+	
 ddr_rx rx_if (
   .data_in_from_pins_p({AD9361_RX_Frame_P,AD9361_RX_DATA_P}),  // input wire [6 : 0] data_in_from_pins_p
   .data_in_from_pins_n({AD9361_RX_Frame_N,AD9361_RX_DATA_N}),  // input wire [6 : 0] data_in_from_pins_n
@@ -103,8 +103,8 @@ always @(posedge clk_out or posedge rst) begin
 		tx_I_reg <= 12'h0;
 		tx_Q_reg <= 12'h0;
 	end
-	else if (tx_ce==1'b1) begin
-		tx_ce    <= 1'b0;
+	else if (tx_ce==0'b1) begin
+		tx_ce    <= 1'b1;
 		tx_I_reg <= tx_I;
 		tx_Q_reg <= tx_Q;
 		tx[5:0]  <= tx_I[11:6];
@@ -113,7 +113,7 @@ always @(posedge clk_out or posedge rst) begin
 		tx[13]   <= 1'b1;
 	end
 	else begin
-		tx_ce    <= 1'b1;
+		tx_ce    <= 1'b0;
 		tx[5:0]  <= tx_I_reg[5:0];
 		tx[12:7] <= tx_Q_reg[5:0];
 		tx[6]    <= 1'b0;
